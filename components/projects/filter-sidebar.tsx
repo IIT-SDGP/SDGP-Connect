@@ -95,6 +95,7 @@ type GenericSectionProps = {
   selection: ReadonlyArray<string>;
   setSelection: React.Dispatch<React.SetStateAction<string[]>>;
   showIcons?: boolean;
+  showAllOptions?: boolean; // New prop to always show all options
 };
 
 function GenericFilterSection({
@@ -102,17 +103,19 @@ function GenericFilterSection({
   options,
   selection,
   setSelection,
-  showIcons = false
+  showIcons = false,
+  showAllOptions = false
 }: GenericSectionProps) {
   const [isOpen, setIsOpen] = useState(true);
   const [showAll, setShowAll] = useState(false);
 
   const initialOptionsCount = 5;
+  // If showAllOptions is true, always show all options
   const displayedOptions = useMemo(() =>
-    showAll ? options : options.slice(0, initialOptionsCount),
-    [options, showAll, initialOptionsCount]
+    showAllOptions ? options : (showAll ? options : options.slice(0, initialOptionsCount)),
+    [options, showAll, initialOptionsCount, showAllOptions]
   );
-  const hasMore = useMemo(() => options.length > initialOptionsCount, [options, initialOptionsCount]);
+  const hasMore = useMemo(() => !showAllOptions && options.length > initialOptionsCount, [options, initialOptionsCount, showAllOptions]);
 
   const toggleOption = useCallback((value: string) => {
     setSelection((prev) =>
@@ -499,6 +502,7 @@ export default function FilterSidebar({
           options={yearOptions}
           selection={selectedYears}
           setSelection={setSelectedYears}
+          showAllOptions={true}
         />
         <GenericFilterSection
           title="Project Type"
