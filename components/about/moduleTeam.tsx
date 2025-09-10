@@ -56,7 +56,7 @@ const teamMembers = [
 		linkedin: "https://www.linkedin.com/in/john-sriskandarajah/",
 		description:
 			"CEO @ Telexar | Helping Businesses Scale with Offshore Teams | Resource Augmentation Specialist",
-		category: "Primary",
+		category: "Former",
 		image: "/assets/Johnsir.webp",
 	},
 	{
@@ -66,7 +66,7 @@ const teamMembers = [
 		linkedin: "https://www.linkedin.com/in/krishnakripa-jayakumar/",
 		description:
 			"Cybersecurity & Software Engineering Professional | Lecturer | Multiple Award Winner",
-		category: "Primary",
+		category: "Former",
 		image: "/assets/kripa miss.webp",
 	},
 	{
@@ -106,7 +106,7 @@ const teamMembers = [
 		linkedin: "https://www.linkedin.com/in/mohanadas-jananie/",
 		description:
 			"Focuses on software testing practices and quality assurance in group projects.",
-		category: "Former",
+		category: "Primary",
 		image: "/assets/janani miss.webp",
 	},
 	{
@@ -134,7 +134,7 @@ const teamMembers = [
 		email: "asith.p@iit.ac.lk",
 		linkedin: "https://www.linkedin.com/in/asith-pallemulla/",
 		description: "Expert in back-end development and systems integration.",
-		category: "Primary",
+		category: "Former",
 		image: "/assets/asith sir.webp",
 	},
 	{
@@ -201,7 +201,7 @@ const teamMembers = [
 		email: "prathieshnav@gmail.com",
 		linkedin: "https://www.linkedin.com/in/prathieshna",
 		description: "Freelance Android Developer | Educator",
-		category: "Former",
+		category: "Primary",
 		image: "/assets/prat.webp",
 	},
 	{
