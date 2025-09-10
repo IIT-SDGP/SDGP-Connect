@@ -273,5 +273,5 @@ export const sdgGoals = [
       { value: "I-24-sep", label: "InfoSchol 2024 Sep" ,type: "Infoschol" },
       { value: "I-25-jan", label: "InfoSchol 2025 Jan" ,type: "Infoschol" },
       { value: "I-25-sep", label: "InfoSchol 2025 Sep" ,type: "Infoschol" },
-      { value: "V-25", label: "Visionex 2025" ,type: "Visionex" },
+      { value: "V-25", label: "VisioNEX 2025" ,type: "Visionex" },
     ]
