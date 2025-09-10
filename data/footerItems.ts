@@ -17,6 +17,7 @@ export const footerItem = {
         { label: "About", href: "/about" },
         { label: "Projects", href: "/project" },
         { label: "Competition Winners", href: "/competitions" },
+        { label: "Videos", href: "/video" },
         { label: "Blogs", href: "/blog" },
         // { label: "Testimonials", href: "#" },
         // { label: "Competitions", href: "#" },
