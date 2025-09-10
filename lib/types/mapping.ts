@@ -266,12 +266,12 @@ export const sdgGoals = [
     };
 
     export const yearOptions = [
-      { value: "2024", label: "FT 23/24" ,type: "SDGP" },
-      { value: "2025", label: "FT 24/25" ,type: "SDGP" },
-      { value: "2026", label: "FT 25/26" ,type: "SDGP" },
-      { value: "2027", label: "FT 26/27" ,type: "SDGP" },
-      { value: "I-24-sep", label: "Infoschol '24 Sep" ,type: "Infoschol" },
-      { value: "I-25-jan", label: "Infoschol '25 Jan" ,type: "Infoschol" },
-      { value: "I-25-sep", label: "Infoschol '25 Sep" ,type: "Infoschol" },
-      { value: "V-25", label: "Visionex '25" ,type: "Visionex" },
+      { value: "2024", label: "SDGP 2023/24" ,type: "SDGP" },
+      { value: "2025", label: "SDGP 2024/25" ,type: "SDGP" },
+      { value: "2026", label: "SDGP 2025/26" ,type: "SDGP" },
+      { value: "2027", label: "SDGP 2026/27" ,type: "SDGP" },
+      { value: "I-24-sep", label: "InfoSchol 2024 Sep" ,type: "Infoschol" },
+      { value: "I-25-jan", label: "InfoSchol 2025 Jan" ,type: "Infoschol" },
+      { value: "I-25-sep", label: "InfoSchol 2025 Sep" ,type: "Infoschol" },
+      { value: "V-25", label: "Visionex 2025" ,type: "Visionex" },
     ]
