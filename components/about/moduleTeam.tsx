@@ -106,7 +106,7 @@ const teamMembers = [
 		linkedin: "https://www.linkedin.com/in/mohanadas-jananie/",
 		description:
 			"Focuses on software testing practices and quality assurance in group projects.",
-		category: "Former",
+		category: "Primary",
 		image: "/assets/janani miss.webp",
 	},
 	{
@@ -201,7 +201,7 @@ const teamMembers = [
 		email: "prathieshnav@gmail.com",
 		linkedin: "https://www.linkedin.com/in/prathieshna",
 		description: "Freelance Android Developer | Educator",
-		category: "Former",
+		category: "Primary",
 		image: "/assets/prat.webp",
 	},
 	{
