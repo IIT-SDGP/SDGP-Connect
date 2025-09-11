@@ -56,7 +56,7 @@ const Teamandsocial = ({ teamEmail, teamPhone, teamMembers, teamSocials, project
                                 </p>
                             </Card>
                         </a>
-                        {teamPhone && (
+                            {teamPhone && teamPhone !== '0000000000' && (
                             <a
                                 href={`https://api.whatsapp.com/send?phone=${teamPhone.replace(/\D/g, '')}&text=${encodeURIComponent(
                                     `👋 Hey there! I'm interested in learning more about your project "${projectTitle}". Could you please share more details?`
