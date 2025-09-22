@@ -8,7 +8,7 @@
 
 This platform acts as a digital bridge between innovation and opportunity—allowing students to go beyond academic recognition and **attract funding, incubation, or partnerships** that help bring their projects to life.
 
-> SDGP Connect was collaboratively designed and developed by a team of contributors in partnership with IIT
+> SDGP Connect was collaboratively designed and developed by a team of contributors in partnership with IIT.
 
 
 ## Reporting Website issues
