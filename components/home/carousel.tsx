@@ -9,6 +9,7 @@ import Image from 'next/image';
 const images = [
   '/assets/Dialog.webp',
   '/assets/1.webp',
+  '/assets/inno.webp',
   '/assets/2.webp',
   '/assets/Codesprint.webp',
   '/assets/4.webp',
