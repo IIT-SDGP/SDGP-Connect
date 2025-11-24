@@ -8,7 +8,7 @@
 
 This platform acts as a digital bridge between innovation and opportunity—allowing students to go beyond academic recognition and **attract funding, incubation, or partnerships** that help bring their projects to life.
 
-> Initally developed by [Psycode Lab's](https://psycodelabs.lk) in collaboration with IIT for commercial use.
+> Designed and developed by a team of student contributors in partnership with IIT.
 
 
 ## Reporting Website issues
