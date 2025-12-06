@@ -3,6 +3,7 @@ import axios from 'axios';
 import { ProjectSubmissionSchema } from '@/validations/submit_project';
 import useUploadImageToBlob from '../azure/useUploadImageToBlob';
 import { SubmitProjectResponse } from '@/types/project/response';
+import { getModuleFromYear } from '@/lib/utils/module';
 
 export const useSubmitProject = () => {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -156,6 +157,10 @@ export const useSubmitProject = () => {
     setUploadProgress({});
 
     let submissionData = JSON.parse(JSON.stringify(data));
+
+    if (submissionData.metadata?.sdgp_year) {
+      submissionData.metadata.module = getModuleFromYear(submissionData.metadata.sdgp_year);
+    }
 
     try {
       // Create an array to store all image upload tasks

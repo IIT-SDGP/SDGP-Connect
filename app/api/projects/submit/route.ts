@@ -3,6 +3,7 @@ import { projectSubmissionSchema } from '@/validations/submit_project';
 import { AssociationType, ProjectApprovalStatus } from '@prisma/client';
 import { revalidatePath } from 'next/cache';
 import { NextResponse } from 'next/server';
+import { getModuleFromYear } from '@/lib/utils/module';
 
 // Handle OPTIONS requests for CORS preflight
 export async function OPTIONS() {
@@ -36,6 +37,10 @@ if (
   return NextResponse.json({ error: "Invalid website URL" }, { status: 400 });
 }
 
+    // Automatically set the module field based on selected year
+    if (validatedData.metadata?.sdgp_year) {
+      validatedData.metadata.module = getModuleFromYear(validatedData.metadata.sdgp_year);
+    }
 
     // Start a transaction to ensure all database operations succeed or fail together
     const result = await prisma.$transaction(async (tx) => {
@@ -50,6 +55,7 @@ if (
           cover_image: validatedData.metadata.cover_image || null,
           logo: validatedData.metadata.logo || null,
           featured: false,
+          module: validatedData.metadata.module,
         }
       });
 

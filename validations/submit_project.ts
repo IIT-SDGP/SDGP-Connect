@@ -40,6 +40,7 @@ export const projectSubmissionSchema = z.object({
     logo: z.any().refine((file) => file != null, {
       message: "Logo is required",
     }),
+    module: z.string().optional(),
   }),
   projectDetails: z.object({
     problem_statement: z.string().min(1, "Problem statement is required"),

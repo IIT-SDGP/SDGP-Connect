@@ -183,6 +183,7 @@ model ProjectMetadata {
   logo               String?
   featured           Boolean         @default(false)
   awards             Award[]        @relation("ProjectAwards")
+  module             String? 
 
 
 
@@ -355,6 +356,10 @@ model Competition {
   type             String
   logo             String?
   cover_image      String?
+  schools          String?
+  module           String?
+  teamsParticipated   Int?
+  projectsCompleted   Int?
 
   approval_status  ApprovalStatus @default(PENDING)
   accepted_by_id   String?
