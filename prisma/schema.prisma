@@ -441,6 +441,7 @@ model BlogPost {
 
   createdAt      DateTime           @default(now())
   updatedAt      DateTime           @updatedAt
+  module         String?
 
   @@index([authorId])
   @@index([publishedAt])
