@@ -4,7 +4,7 @@
 
 <xsl:template match="/">
 <!--
-© 2025 SDGP.lk
+© 2026 SDGP.lk
 Licensed under the GNU Affero General Public License v3.0 or later,
 with an additional restriction: Non-commercial use only.
 See <https://www.gnu.org/licenses/agpl-3.0.html> for details.
@@ -248,7 +248,7 @@ See <https://www.gnu.org/licenses/agpl-3.0.html> for details.
         </div>
         
         <div class="footer">
-            <p>© 2025 SDGP.LK - Generated on <xsl:value-of select="sitemap:urlset/sitemap:url[1]/sitemap:lastmod"/></p>
+            <p>© 2026 SDGP.LK - Generated on <xsl:value-of select="sitemap:urlset/sitemap:url[1]/sitemap:lastmod"/></p>
         </div>
     </div>
 </body>

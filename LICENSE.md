@@ -1,6 +1,6 @@
 # GNU Affero General Public License v3.0 (AGPL-3.0) – Community Use Only
 
-© 2025 SDGP.LK
+© 2026 SDGP.LK
 
 This file is part of SDGP.LK .
 
