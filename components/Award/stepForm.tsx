@@ -34,6 +34,7 @@ interface StepperProps extends HTMLAttributes<HTMLDivElement> {
     currentStep: number;
     onStepClick: (clicked: number) => void;
   }) => ReactNode;
+  stepValidation?: (step: number) => { isValid: boolean; message?: string };
 }
 
 export default function Stepper({
@@ -51,10 +52,12 @@ export default function Stepper({
   nextButtonText = "Continue",
   disableStepIndicators = false,
   renderStepIndicator,
+  stepValidation,
   ...rest
 }: StepperProps) {
   const [currentStep, setCurrentStep] = useState<number>(initialStep);
   const [direction, setDirection] = useState<number>(0);
+  const [validationError, setValidationError] = useState<string | null>(null);
   const stepsArray = Children.toArray(children);
   const totalSteps = stepsArray.length;
   const isCompleted = currentStep > totalSteps;
@@ -62,6 +65,7 @@ export default function Stepper({
 
   const updateStep = (newStep: number) => {
     setCurrentStep(newStep);
+    setValidationError(null);
     if (newStep > totalSteps) {
       onFinalStepCompleted();
     } else {
@@ -78,12 +82,26 @@ export default function Stepper({
 
   const handleNext = () => {
     if (!isLastStep) {
+      if (stepValidation) {
+        const { isValid, message } = stepValidation(currentStep);
+        if (!isValid) {
+          setValidationError(message || 'Please complete this step before continuing.');
+          return;
+        }
+      }
       setDirection(1);
       updateStep(currentStep + 1);
     }
   };
 
   const handleComplete = () => {
+    if (stepValidation) {
+      const { isValid, message } = stepValidation(currentStep);
+      if (!isValid) {
+        setValidationError(message || 'Please complete this step before continuing.');
+        return;
+      }
+    }
     setDirection(1);
     updateStep(totalSteps + 1);
   };
@@ -144,6 +162,11 @@ export default function Stepper({
 
         {!isCompleted && (
           <div className={`px-8 pb-8 ${footerClassName}`}>
+            {validationError && (
+              <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
+                <p className="text-sm text-red-600 dark:text-red-400">{validationError}</p>
+              </div>
+            )}
             <div
               className={`mt-10 flex ${
                 currentStep !== 1 ? "justify-between" : "justify-end"

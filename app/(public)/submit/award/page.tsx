@@ -139,6 +139,32 @@ const page = (props: Props) => {
     reader.readAsDataURL(file);
   };
 
+  // Step validation function
+  const validateStep = (step: number): { isValid: boolean; message?: string } => {
+    switch (step) {
+      case 1:
+        if (!projectId) {
+          return { isValid: false, message: 'Please select a project before continuing.' };
+        }
+        return { isValid: true };
+      case 2:
+        if (!competitionId) {
+          return { isValid: false, message: 'Please select a competition before continuing.' };
+        }
+        return { isValid: true };
+      case 3:
+        if (!awardName.trim()) {
+          return { isValid: false, message: 'Please enter an award name.' };
+        }
+        if (!imageFile) {
+          return { isValid: false, message: 'Please upload an award image.' };
+        }
+        return { isValid: true };
+      default:
+        return { isValid: true };
+    }
+  };
+
   // Submission handler for the last step
   const handleSubmit = async () => {
     if (!projectId || !competitionId || !awardName || !imageFile) return;
@@ -162,7 +188,7 @@ const page = (props: Props) => {
         </h1>
         <Stepper
           initialStep={1}
-         
+          stepValidation={validateStep}
           onFinalStepCompleted={handleSubmit}
           backButtonText="Previous"
           nextButtonText="Next"
