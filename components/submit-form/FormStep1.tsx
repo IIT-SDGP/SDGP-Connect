@@ -3,7 +3,7 @@ import useUploadImageToBlob from "@/hooks/azure/useUploadImageToBlob";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import Image from "next/image";
 import { toast } from "sonner";
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useFormContext } from "react-hook-form";
 import { ProjectSubmissionSchema } from "@/validations/submit_project";
@@ -190,6 +190,9 @@ const FormStep1 = ({
                 value={field.value || ""}
               />
             </FormControl>
+            <FormDescription className="text-xs">
+              Include HTTPS:// or HTTP:// in your URL (e.g., https://example.com)
+            </FormDescription>
             <FormMessage />
           </FormItem>
         )}

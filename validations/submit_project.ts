@@ -13,6 +13,32 @@ import {
 } from "@/types/prisma-types";
 import { z } from "zod";
 
+// Custom URL validator that provides specific error messages
+const urlWithProtocolValidator = z.string()
+  .refine(
+    (url: string) => {
+      if (!url.trim()) return true; // Empty is handled separately
+      return /^https?:\/\/.+/.test(url);
+    },
+    {
+      message: "URL must include HTTPS:// or HTTP:// (e.g., https://example.com)"
+    }
+  )
+  .refine(
+    (url: string) => {
+      if (!url.trim()) return true;
+      try {
+        new URL(url);
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    {
+      message: "Must be a valid URL"
+    }
+  );
+
 const teamMemberSchema = z.object({
   name: z.string().min(1, "Name is required"),
   linkedin_url: z.string().url().or(z.string().length(0)).optional(),
@@ -33,11 +59,37 @@ export const projectSubmissionSchema = z.object({
     group_num: z.string().min(1, "Team number is required"),
     title: z.string().min(1, "Title is required").max(100),
     subtitle: z.string().optional().nullable(),
-    website: z.string().url("Must be a valid URL").or(z.string().length(0)).optional().nullable(),
-    cover_image: z.any().refine((file) => file != null, {
+    website: z.string()
+      .refine(
+        (url: string) => {
+          if (!url.trim()) return true; // Allow empty
+          return /^https?:\/\/.+/.test(url);
+        },
+        {
+          message: "URL must include HTTPS:// or HTTP:// (e.g., https://example.com)"
+        }
+      )
+      .refine(
+        (url: string) => {
+          if (!url.trim()) return true;
+          try {
+            new URL(url);
+            return true;
+          } catch {
+            return false;
+          }
+        },
+        {
+          message: "Must be a valid URL"
+        }
+      )
+      .or(z.string().length(0))
+      .optional()
+      .nullable(),
+    cover_image: z.any().refine((file: any) => file != null, {
       message: "Cover image is required",
     }),
-    logo: z.any().refine((file) => file != null, {
+    logo: z.any().refine((file: any) => file != null, {
       message: "Logo is required",
     }),
     module: z.string().optional(),
@@ -70,7 +122,30 @@ export const projectSubmissionSchema = z.object({
   socialLinks: z.array(
     z.object({
       link_name: socialTypeSchema,
-      url: z.string().url("Must be a valid URL"),
+      url: z.string()
+        .refine(
+          (url: string) => {
+            if (!url.trim()) return true;
+            return /^https?:\/\/.+/.test(url);
+          },
+          {
+            message: "URL must include HTTPS:// or HTTP:// (e.g., https://linkedin.com/in/...)"
+          }
+        )
+        .refine(
+          (url: string) => {
+            if (!url.trim()) return true;
+            try {
+              new URL(url);
+              return true;
+            } catch {
+              return false;
+            }
+          },
+          {
+            message: "Must be a valid URL"
+          }
+        ),
     })
   ).optional(),
   // Slides content
@@ -80,7 +155,7 @@ export const projectSubmissionSchema = z.object({
     })
   ).min(3, "You must upload at least 3 images")
     .max(10, "You can upload a maximum of 10 images")
-    .refine((slides) => slides.length >= 3, {
+    .refine((slides: any) => slides.length >= 3, {
       message: "At least 3 images are required to proceed"
     }),
 });
