@@ -270,6 +270,8 @@ export const sdgGoals = [
       { value: "2025", label: "SDGP 2024/25" ,type: "SDGP" },
       { value: "2026", label: "SDGP 2025/26" ,type: "SDGP" },
       { value: "2027", label: "SDGP 2026/27" ,type: "SDGP" },
+      { value: "I-22-sep", label: "InfoSchol 2022 Sep" ,type: "Infoschol" },
+      { value: "I-23-sep", label: "InfoSchol 2023 Sep" ,type: "Infoschol" },
       { value: "I-24-sep", label: "InfoSchol 2024 Sep" ,type: "Infoschol" },
       { value: "I-25-jan", label: "InfoSchol 2025 Jan" ,type: "Infoschol" },
       { value: "I-25-sep", label: "InfoSchol 2025 Sep" ,type: "Infoschol" },
