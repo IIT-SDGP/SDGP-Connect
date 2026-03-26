@@ -7,8 +7,8 @@
 import * as React from "react"
 import { ChevronLeft } from "lucide-react"
 import { motion } from "framer-motion"
-import { signIn } from "next-auth/react"
-import { useRouter } from "next/navigation"
+import { signIn, signOut } from "next-auth/react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { toast } from "sonner"
 import Image from "next/image"
 import Link from "next/link"
@@ -41,8 +41,8 @@ const BackButton: React.FC = () => (
     transition={{ delay: 0.2 }}
     className="absolute left-4 top-4 sm:left-8 sm:top-8"
   >
-       <Link href="/">
-    <SocialButton icon={<ChevronLeft size={16} />}>Go back</SocialButton>
+    <Link href="/">
+      <SocialButton icon={<ChevronLeft size={16} />}>Go back</SocialButton>
     </Link>
   </motion.div>
 )
@@ -64,7 +64,7 @@ const Button: React.FC<ButtonProps> = ({ children, className, ...props }) => (
 )
 
 const Logo: React.FC = () => (
-  <motion.div 
+  <motion.div
     initial={{ scale: 0.8, opacity: 0 }}
     animate={{ scale: 1, opacity: 1 }}
     transition={{ duration: 0.5 }}
@@ -73,13 +73,12 @@ const Logo: React.FC = () => (
     <div className="relative">
       <Image
         src="/iconw.svg"
-        alt="Logo "
+        alt="Logo"
         className="h-48 w-48 -mb-12"
         width={88}
         height={88}
       />
     </div>
-   
   </motion.div>
 )
 
@@ -95,12 +94,15 @@ const SocialButton: React.FC<{
   fullWidth?: boolean
   children?: React.ReactNode
   onClick?: () => void
-}> = ({ icon, children, onClick }) => (
+}> = ({ icon, children, onClick, fullWidth }) => (
   <button
+    type="button"
     onClick={onClick}
-    className="flex items-center justify-center gap-2 rounded-xl 
-    border border-zinc-800 bg-zinc-900 px-4 py-2.5 font-medium text-zinc-200
-    transition-all duration-300 hover:bg-zinc-800 active:scale-95"
+    className={`flex items-center justify-center gap-2 rounded-xl border border-zinc-800
+    bg-zinc-900 px-4 py-2.5 font-medium text-zinc-200
+    transition-all duration-300 hover:bg-zinc-800 active:scale-[0.98]
+    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-600/40 ${fullWidth ? "w-full" : "w-fit"
+      }`}
   >
     {icon && <span className="text-zinc-400">{icon}</span>}
     <span>{children}</span>
@@ -109,21 +111,51 @@ const SocialButton: React.FC<{
 
 const LoginForm: React.FC = () => {
   const router = useRouter();
-  const [username, setUsername] = React.useState("");
+  const searchParams = useSearchParams();
+  const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [error, setError] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(false);
   const [showForgotMessage, setShowForgotMessage] = React.useState(false);
+  const callbackUrl = searchParams.get("callbackUrl") ?? "/admin";
+  const authError = searchParams.get("error");
+
+  React.useEffect(() => {
+    if (!authError) return;
+
+    if (authError === "asgardeo") {
+      setError(
+        "Asgardeo sign-in was denied. Please make sure you're signing in with your @iit.ac.lk email."
+      );
+      toast.error("Asgardeo sign-in was denied.");
+      return;
+    }
+
+    setError(`Sign-in failed (${authError}). Please try again.`);
+    toast.error("Sign-in failed.");
+  }, [authError]);
+
+  const handleAsgardeoSignIn = async () => {
+    try {
+      // If a user is already signed in, NextAuth will "link" this new provider
+      // account to the existing user. We want switching accounts to create a new user.
+      await signOut({ redirect: false });
+      await signIn("asgardeo", { callbackUrl });
+    } catch (e) {
+      setError("Asgardeo sign-in failed to start. Please try again.");
+      toast.error("Asgardeo sign-in failed to start.");
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setIsLoading(true);
 
-    if (!username.trim()) {
-      setError("Username is required");
+    if (!email.trim()) {
+      setError("Email is required");
       setIsLoading(false);
-      toast.error("Username is required");
+      toast.error("Email is required");
       return;
     }
 
@@ -135,40 +167,27 @@ const LoginForm: React.FC = () => {
     }
 
     try {
-      if (process.env.NODE_ENV === 'development') {
-      
-      }
-      // Attempt to sign in using NextAuth credentials provider
       const result = await signIn("credentials", {
-        name: username,
+        email,
         password,
-        redirect: false
+        redirect: false,
       });
-
 
       if (result?.error) {
         setError(result.error);
-
-        if (result.error.includes("User not found")) {
-          toast.error("No user found with this username");
-        } else if (result.error.includes("Invalid password")) {
-          toast.error("Password is incorrect");
-        } else {
-          toast.error("Authentication failed");
-        }
+        toast.error("Invalid email or password");
       } else if (result?.ok) {
         toast.success("Login successful!");
-        router.push("/admin");  // Redirect to the dashboard on successful login
+        router.push("/admin");
       }
     } catch (err) {
-      console.error("SignIn Error:", err); // LOG
+      console.error("SignIn Error:", err);
       setError("An error occurred during sign in");
       toast.error("An error occurred during sign in");
     } finally {
       setIsLoading(false);
     }
   };
-
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -195,17 +214,17 @@ const LoginForm: React.FC = () => {
       )}
       <div className="space-y-2">
         <label
-          htmlFor="username-input"
+          htmlFor="email-input"
           className="block text-sm font-medium text-zinc-300"
         >
-          Username
+          Email
         </label>
         <input
-          id="username-input"
-          type="text"
-          placeholder="Enter your username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
+          id="email-input"
+          type="email"
+          placeholder="you@iit.ac.lk"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
           className="w-full rounded-lg border border-zinc-800 
           bg-zinc-800 px-4 py-3 text-zinc-200
           placeholder-zinc-500 transition-all duration-300 
@@ -250,12 +269,20 @@ const LoginForm: React.FC = () => {
           "Sign in"
         )}
       </Button>
+
+      <div className="space-y-3">
+        <div className="flex items-center gap-3">
+          <div className="h-px flex-1 bg-zinc-800" />
+          <span className="text-xs font-medium text-zinc-500">or</span>
+          <div className="h-px flex-1 bg-zinc-800" />
+        </div>
+        <SocialButton fullWidth onClick={handleAsgardeoSignIn}>
+          Continue with Asgardeo
+        </SocialButton>
+      </div>
     </form>
   );
 };
-
-
-
 
 const BackgroundDecoration: React.FC = () => {
   return (

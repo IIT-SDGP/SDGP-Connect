@@ -1,3 +1,8 @@
+// © 2026 SDGP.lk
+// Licensed under the GNU Affero General Public License v3.0 or later,
+// with an additional restriction: Non-commercial use only.
+// See <https://www.gnu.org/licenses/agpl-3.0.html> for details.
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -9,23 +14,21 @@ datasource db {
 
 // ===================== Enums =====================
 
-// Defines the roles users can have within the platform.
 enum Role {
   ADMIN
   MODERATOR
   DEVELOPER
+  STUDENT
 }
 
-// Defines the association types that can be linked to projects.
 enum AssociationType {
   PROJECT_TYPE
   PROJECT_DOMAIN
   PROJECT_SDG
   PROJECT_TECH
-  AWARD                
+  AWARD
 }
 
-// Defines the different status states a project can be in.
 enum ProjectStatusEnum {
   IDEA
   MVP
@@ -117,8 +120,6 @@ enum TechStackEnum {
   C_SHARP
   C_PLUS_PLUS
   C
-  
-
 }
 
 enum SocialTypeEnum {
@@ -136,42 +137,93 @@ enum ProjectApprovalStatus {
   REJECTED
 }
 
-//  Aproval status used in competition and awards 
-// TODO: use this in project aproval too
 enum ApprovalStatus {
   PENDING
   APPROVED
   REJECTED
 }
 
+// ===================== NextAuth Adapter Models =====================
 
-// ===================== Models =====================
+// Required by PrismaAdapter — do not rename fields.
+model Account {
+  id                String  @id @default(uuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
 
-// Represents users of the platform with specific roles.
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+// Required by PrismaAdapter for DB sessions (kept even if using JWT — adapter expects it).
+model Session {
+  id           String   @id @default(uuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// Required by PrismaAdapter for email verification flows.
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ===================== Application Models =====================
+
+// Represents users of the platform.
+// `id` is the NextAuth adapter-required primary key (renamed from user_id).
+// `password` is nullable — only set for credential-based logins.
+// `email` is required and unique — used as the identity anchor across providers.
 model User {
-  user_id          String            @id @default(uuid())
-  role             Role
-  password         String
-  name             String            
-  // Relations to projects this user has approved/featured
+  id               String            @id @default(uuid())
+  name             String?
+  email            String            @unique
+  emailVerified    DateTime?
+  image            String?
+  password         String?           // nullable — only set for credentials logins
+  role             Role              @default(STUDENT)
+
+  // NextAuth adapter relations
+  accounts         Account[]
+  sessions         Session[]
+
+  // Application relations
   approvedProjects ProjectStatus[]   @relation("ApprovedBy")
   featuredProjects ProjectMetadata[] @relation("FeaturedBy")
-  acceptedAwards    Award[] @relation("AcceptedAwards")
-  rejectedAwards    Award[] @relation("RejectedAwards")
+  acceptedAwards   Award[]           @relation("AcceptedAwards")
+  rejectedAwards   Award[]           @relation("RejectedAwards")
   acceptedCompetitions Competition[] @relation("AcceptedCompetitions")
   rejectedCompetitions Competition[] @relation("RejectedCompetitions")
-
-  approvedBlogPosts BlogPost[] @relation("BlogPostsApprovedBy")
-  rejectedBlogPosts BlogPost[] @relation("BlogPostsRejectedBy")
-
+  approvedBlogPosts BlogPost[]       @relation("BlogPostsApprovedBy")
+  rejectedBlogPosts BlogPost[]       @relation("BlogPostsRejectedBy")
 
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
 
-  @@index([user_id], name: "user_id_index")
+  @@index([email])
 }
 
-// Stores the basic metadata of projects. Used for quick loading of project information without details.
+// ===================== Project Models =====================
+
 model ProjectMetadata {
   project_id         String          @id @default(uuid())
   sdgp_year          String
@@ -182,16 +234,12 @@ model ProjectMetadata {
   cover_image        String?
   logo               String?
   featured           Boolean         @default(false)
-  awards             Award[]        @relation("ProjectAwards")
-  module             String? 
+  awards             Award[]         @relation("ProjectAwards")
+  module             String?
 
-
-
-  // Links to the user who featured this project
   featured_by_userId String?
-  featured_by        User?           @relation("FeaturedBy", fields: [featured_by_userId], references: [user_id], onDelete: SetNull)
+  featured_by        User?           @relation("FeaturedBy", fields: [featured_by_userId], references: [id], onDelete: SetNull)
 
-  // One-to-one relation with extended content
   projectContent     ProjectContent?
 
   createdAt          DateTime        @default(now())
@@ -201,22 +249,16 @@ model ProjectMetadata {
   @@index([featured_by_userId], name: "featured_by_index")
 }
 
-// Stores the detailed content of projects. This is separated from metadata for efficient fetching.
 model ProjectContent {
-  // Primary key for content identification
   content_id      String               @id @default(uuid())
-
-  // Links to the parent ProjectMetadata
   metadata_id     String               @unique
   metadata        ProjectMetadata      @relation(fields: [metadata_id], references: [project_id], onDelete: Restrict)
-
-  // Related content sections
-  projectDetails  ProjectDetails?      // Contains problem statement, solution, etc.
+  projectDetails  ProjectDetails?
   status          ProjectStatus?       @relation("ProjectStatusToContent")
-  associations    ProjectAssociation[] // Types, domains, SDGs, technologies
-  slides          ProjectSlide[]       // Slide contents for the project
-  team            ProjectTeam[]        // Team members working on the project
-  socialLinks     ProjectSocialLink[]  // Links to social profiles or external resources
+  associations    ProjectAssociation[]
+  slides          ProjectSlide[]
+  team            ProjectTeam[]
+  socialLinks     ProjectSocialLink[]
 
   createdAt       DateTime             @default(now())
   updatedAt       DateTime             @updatedAt
@@ -224,20 +266,16 @@ model ProjectContent {
   @@index([metadata_id], map: "project_content_index")
 }
 
-// Tracks the status of a project and which user approved it
 model ProjectStatus {
-  // Primary key matching ProjectContent's content_id
   content_id         String                @id
   status             ProjectStatusEnum
   approved_status    ProjectApprovalStatus @default(PENDING)
   rejected_reason    String?
   approved_at        DateTime?
 
-  // Links to the user who approved/rejected the project
   approved_by_userId String?
-  approved_by        User?                 @relation("ApprovedBy", fields: [approved_by_userId], references: [user_id], onDelete: SetNull)
+  approved_by        User?                 @relation("ApprovedBy", fields: [approved_by_userId], references: [id], onDelete: SetNull)
 
-  // Links to the parent ProjectContent
   content            ProjectContent        @relation("ProjectStatusToContent", fields: [content_id], references: [content_id], onDelete: Restrict)
 
   createdAt          DateTime              @default(now())
@@ -246,41 +284,30 @@ model ProjectStatus {
   @@index([approved_by_userId], name: "approved_by_index")
 }
 
-// Links projects to various categories (type, domain, SDG, tech)
 model ProjectAssociation {
-  id         String           @id @default(uuid())
-
-  // Links to the parent ProjectContent
-  content_id String
-  content    ProjectContent   @relation(fields: [content_id], references: [content_id], onDelete: Restrict)
-
-  type       AssociationType
-  value      String
-
-  // Enum fields for specific association types
+  id          String            @id @default(uuid())
+  content_id  String
+  content     ProjectContent    @relation(fields: [content_id], references: [content_id], onDelete: Restrict)
+  type        AssociationType
+  value       String
   domain      ProjectDomainEnum?
   projectType ProjectTypeEnum?
   sdgGoal     SDGGoalEnum?
   techStack   TechStackEnum?
-
   award_id    String?
-  award       Award?           @relation("AwardAssociation", fields: [award_id], references: [id], onDelete: SetNull)
+  award       Award?            @relation("AwardAssociation", fields: [award_id], references: [id], onDelete: SetNull)
 
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
 
   @@index([content_id], map: "project_association_index")
   @@index([award_id])
 }
 
-// Stores individual slides related to a project
 model ProjectSlide {
   id             String         @id @default(uuid())
-
-  // Links to the parent ProjectContent
   content_id     String
   content        ProjectContent @relation(fields: [content_id], references: [content_id], onDelete: Restrict)
-
   slides_content String
 
   createdAt      DateTime       @default(now())
@@ -289,14 +316,10 @@ model ProjectSlide {
   @@index([content_id], map: "project_slide_index")
 }
 
-// Represents team members working on a project
 model ProjectTeam {
   member_id     String         @id @default(uuid())
-
-  // Links to the parent ProjectContent
   content_id    String
   content       ProjectContent @relation(fields: [content_id], references: [content_id], onDelete: Restrict)
-
   name          String
   linkedin_url  String?
   profile_image String?
@@ -307,14 +330,10 @@ model ProjectTeam {
   @@index([content_id], map: "project_team_index")
 }
 
-// Links to external resources or social profiles for projects
 model ProjectSocialLink {
   id         String         @id @default(uuid())
-
-  // Links to the parent ProjectContent
   content_id String
   content    ProjectContent @relation(fields: [content_id], references: [content_id], onDelete: Restrict)
-
   link_name  SocialTypeEnum
   url        String
 
@@ -324,14 +343,10 @@ model ProjectSocialLink {
   @@index([content_id], map: "project_social_index")
 }
 
-// Contains detailed project descriptions
 model ProjectDetails {
   id                String         @id @default(uuid())
-
-  // Links to the parent ProjectContent
   content_id        String         @unique
   content           ProjectContent @relation(fields: [content_id], references: [content_id], onDelete: Restrict)
-
   problem_statement String         @db.LongText
   solution          String         @db.LongText
   features          String         @db.LongText
@@ -344,65 +359,56 @@ model ProjectDetails {
   @@index([content_id], map: "project_details_index")
 }
 
-// Competitions held on the platform, which can have multiple awards.
-// Each competition can be approved or rejected by a user.
 model Competition {
-  id               String         @id @default(uuid())
-  name             String
-  is_featured      Boolean        @default(false)
-  start_date       DateTime
-  end_date         DateTime
-  description      String         @db.LongText
-  type             String
-  logo             String?
-  cover_image      String?
-  schools          String?
-  module           String?
+  id                  String         @id @default(uuid())
+  name                String
+  is_featured         Boolean        @default(false)
+  start_date          DateTime
+  end_date            DateTime
+  description         String         @db.LongText
+  type                String
+  logo                String?
+  cover_image         String?
+  schools             String?
+  module              String?
   teamsParticipated   Int?
   projectsCompleted   Int?
+  approval_status     ApprovalStatus @default(PENDING)
+  accepted_by_id      String?
+  rejected_by_id      String?
+  rejected_reason     String?
 
-  approval_status  ApprovalStatus @default(PENDING)
-  accepted_by_id   String?
-  rejected_by_id   String?
-  rejected_reason  String?
+  accepted_by         User?          @relation("AcceptedCompetitions", fields: [accepted_by_id], references: [id], onDelete: SetNull)
+  rejected_by         User?          @relation("RejectedCompetitions", fields: [rejected_by_id], references: [id], onDelete: SetNull)
 
-  accepted_by      User?          @relation("AcceptedCompetitions", fields: [accepted_by_id], references: [user_id], onDelete: SetNull)
-  rejected_by      User?          @relation("RejectedCompetitions", fields: [rejected_by_id], references: [user_id], onDelete: SetNull)
+  awards              Award[]
 
-  awards           Award[]
-
-  createdAt        DateTime       @default(now())
-  updatedAt        DateTime       @updatedAt
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
 
   @@index([accepted_by_id])
   @@index([rejected_by_id])
 }
 
-
-// Represents awards given in competitions. Each award is linked to a project and a competition.
 model Award {
-  id               String         @id @default(uuid())
+  id               String              @id @default(uuid())
   name             String
   image            String?
-
   competition_id   String
-  competition      Competition    @relation(fields: [competition_id], references: [id], onDelete: Cascade)
-
+  competition      Competition         @relation(fields: [competition_id], references: [id], onDelete: Cascade)
   project_id       String
-  project          ProjectMetadata @relation("ProjectAwards", fields: [project_id], references: [project_id], onDelete: Cascade)
-
+  project          ProjectMetadata     @relation("ProjectAwards", fields: [project_id], references: [project_id], onDelete: Cascade)
   associations     ProjectAssociation[] @relation("AwardAssociation")
-
-  approval_status  ApprovalStatus @default(PENDING)
+  approval_status  ApprovalStatus      @default(PENDING)
   accepted_by_id   String?
   rejected_by_id   String?
   rejected_reason  String?
 
-  accepted_by      User?          @relation("AcceptedAwards", fields: [accepted_by_id], references: [user_id], onDelete: SetNull)
-  rejected_by      User?          @relation("RejectedAwards", fields: [rejected_by_id], references: [user_id], onDelete: SetNull)
+  accepted_by      User?               @relation("AcceptedAwards", fields: [accepted_by_id], references: [id], onDelete: SetNull)
+  rejected_by      User?               @relation("RejectedAwards", fields: [rejected_by_id], references: [id], onDelete: SetNull)
 
-  createdAt        DateTime       @default(now())
-  updatedAt        DateTime       @updatedAt
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
 
   @@index([competition_id])
   @@index([project_id])
@@ -410,37 +416,26 @@ model Award {
   @@index([rejected_by_id])
 }
 
-// Blog model and author 
-// Blog author is not a user , it has its own model
 model BlogPost {
-  id             String             @id @default(uuid())
+  id             String            @id @default(uuid())
   title          String
   excerpt        String
-  content        String             @db.LongText
+  content        String            @db.LongText
   imageUrl       String?
-  publishedAt    DateTime           @default(now())
-
-  // Author relation (standalone table)
+  publishedAt    DateTime          @default(now())
   authorId       String
-  author         BlogAuthor         @relation(fields: [authorId], references: [id], onDelete: Cascade)
-
-  // Category from ProjectDomainEnum
+  author         BlogAuthor        @relation(fields: [authorId], references: [id], onDelete: Cascade)
   category       ProjectDomainEnum
-
-  // Moderation + Status
-  featured       Boolean            @default(false)
-  approved       Boolean            @default(false)
-
+  featured       Boolean           @default(false)
+  approved       Boolean           @default(false)
   approvedById   String?
-  approvedBy     User?              @relation("BlogPostsApprovedBy", fields: [approvedById], references: [user_id], onDelete: SetNull)
-
+  approvedBy     User?             @relation("BlogPostsApprovedBy", fields: [approvedById], references: [id], onDelete: SetNull)
   rejectedById   String?
-  rejectedBy     User?              @relation("BlogPostsRejectedBy", fields: [rejectedById], references: [user_id], onDelete: SetNull)
-
+  rejectedBy     User?             @relation("BlogPostsRejectedBy", fields: [rejectedById], references: [id], onDelete: SetNull)
   rejectedReason String?
 
-  createdAt      DateTime           @default(now())
-  updatedAt      DateTime           @updatedAt
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
   module         String?
 
   @@index([authorId])
@@ -460,11 +455,8 @@ model BlogAuthor {
   linkedin   String?
   medium     String?
   website    String?
-
   posts      BlogPost[]
 
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
 }
-
-
