@@ -122,23 +122,12 @@ const LoginForm: React.FC = () => {
 
   React.useEffect(() => {
     if (!authError) return;
-
-    if (authError === "asgardeo") {
-      setError(
-        "Asgardeo sign-in was denied. Please make sure you're signing in with your @iit.ac.lk email."
-      );
-      toast.error("Asgardeo sign-in was denied.");
-      return;
-    }
-
     setError(`Sign-in failed (${authError}). Please try again.`);
     toast.error("Sign-in failed.");
   }, [authError]);
 
   const handleAsgardeoSignIn = async () => {
     try {
-      // If a user is already signed in, NextAuth will "link" this new provider
-      // account to the existing user. We want switching accounts to create a new user.
       await signOut({ redirect: false });
       await signIn("asgardeo", { callbackUrl });
     } catch (e) {
@@ -222,7 +211,7 @@ const LoginForm: React.FC = () => {
         <input
           id="email-input"
           type="email"
-          placeholder="you@iit.ac.lk"
+          placeholder="you@example.com"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           className="w-full rounded-lg border border-zinc-800 

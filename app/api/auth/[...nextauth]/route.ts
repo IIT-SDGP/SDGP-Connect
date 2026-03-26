@@ -14,14 +14,6 @@ interface AppUser extends NextAuthUser {
   role: Role;
 }
 
-const ALLOWED_DOMAINS = ["iit.ac.lk"];
-
-function isAllowedDomain(email: string | null | undefined): boolean {
-  if (!email) return false;
-  const domain = email.split("@")[1];
-  return !!domain && ALLOWED_DOMAINS.includes(domain);
-}
-
 export const authOptions: AuthOptions = {
   adapter: PrismaAdapter(prisma),
 
@@ -62,13 +54,11 @@ export const authOptions: AuthOptions = {
     CredentialsProvider({
       name: "Credentials",
       credentials: {
-        email: { label: "Email", type: "email", placeholder: "you@iit.ac.lk" },
+        email: { label: "Email", type: "email", placeholder: "you@example.com" },
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials): Promise<AppUser | null> {
         if (!credentials?.email || !credentials?.password) return null;
-
-        if (!isAllowedDomain(credentials.email)) return null;
 
         try {
           const user = await prisma.user.findUnique({
@@ -95,13 +85,6 @@ export const authOptions: AuthOptions = {
   ],
 
   callbacks: {
-    async signIn({ account, profile }) {
-      if (account?.provider === "asgardeo") {
-        return isAllowedDomain(profile?.email);
-      }
-      return true;
-    },
-
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
