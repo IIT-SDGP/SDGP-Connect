@@ -117,7 +117,9 @@ const LoginForm: React.FC = () => {
   const [error, setError] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(false);
   const [showForgotMessage, setShowForgotMessage] = React.useState(false);
-  const callbackUrl = searchParams.get("callbackUrl") ?? "/admin";
+  const callbackUrlFromQuery = searchParams.get("callbackUrl");
+  const adminCallbackUrl = callbackUrlFromQuery ?? "/admin";
+  const studentCallbackUrl = callbackUrlFromQuery ?? "/student";
   const authError = searchParams.get("error");
 
   React.useEffect(() => {
@@ -129,7 +131,7 @@ const LoginForm: React.FC = () => {
   const handleAsgardeoSignIn = async () => {
     try {
       await signOut({ redirect: false });
-      await signIn("asgardeo", { callbackUrl });
+      await signIn("asgardeo", { callbackUrl: studentCallbackUrl });
     } catch (e) {
       setError("Asgardeo sign-in failed to start. Please try again.");
       toast.error("Asgardeo sign-in failed to start.");
@@ -167,7 +169,7 @@ const LoginForm: React.FC = () => {
         toast.error("Invalid email or password");
       } else if (result?.ok) {
         toast.success("Login successful!");
-        router.push("/admin");
+        router.push(adminCallbackUrl);
       }
     } catch (err) {
       console.error("SignIn Error:", err);

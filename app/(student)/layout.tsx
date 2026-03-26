@@ -1,23 +1,19 @@
-// © 2026 SDGP.lk
-// Licensed under the GNU Affero General Public License v3.0 or later,
-// with an additional restriction: Non-commercial use only.
-// See <https://www.gnu.org/licenses/agpl-3.0.html> for details.
+import "../globals.css";
 
-import "./globals.css";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { getServerSession } from "next-auth/next";
 import { redirect } from "next/navigation";
 import { authOptions } from "../api/auth/[...nextauth]/route";
 import { ClientProviders } from "@/components/Providers/ClientProvider";
+import { StudentDashboardLayout } from "@/components/layout/student-dashboard-layout";
 import { Role } from "@/types/prisma-types";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Admin Dashboard",
-  description: "Modern admin dashboard built with Next.js",
+  title: "Student Dashboard",
+  description: "Modern student dashboard built with Next.js",
 };
 
 export default async function RootLayout({
@@ -29,15 +25,16 @@ export default async function RootLayout({
   if (!session) redirect("/login");
 
   const userRole = (session.user as any)?.role as Role | undefined;
-  if (userRole === Role.STUDENT) redirect("/student");
+  if (userRole !== Role.STUDENT) redirect("/admin");
 
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
         <ClientProviders session={session}>
-          <DashboardLayout>{children}</DashboardLayout>
+          <StudentDashboardLayout>{children}</StudentDashboardLayout>
         </ClientProviders>
       </body>
     </html>
   );
 }
+
