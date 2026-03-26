@@ -31,7 +31,7 @@ function getNested(obj: unknown, path: string[], fallback: any = undefined) {
   );
 }
 
-export default function NewHero() {
+export default function HomeHeroSection() {
   const { t } = useLanguage();
   const homeHero = getNested(t, ["home", "hero"], {});
   const [currentHeroImage, setCurrentHeroImage] = useState(0);
@@ -175,4 +175,4 @@ export default function NewHero() {
       </div>
     </section>
   );
-}
+}// Barrel file for home components

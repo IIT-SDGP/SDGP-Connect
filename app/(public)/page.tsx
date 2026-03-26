@@ -12,13 +12,13 @@ import Domains from "@/components/home/domains";
 import ImpactStats from "@/components/home/impact-stats";
 import { LanguageProvider } from "@/hooks/LanguageProvider";
 import LanguageToggle from "@/components/LanguageToggle";
-import NewHero from "@/components/NewHero";
+import HomeHeroSection from "@/components/home/HomeHeroSection";
 
 export default function Home() {
   return (
     <LanguageProvider>
       <div className="flex flex-col gap-12 pb-12">
-        <NewHero />
+        <HomeHeroSection />
         <HomeAboutSection />
         <GlobeSection />
         <AboutSection/>
