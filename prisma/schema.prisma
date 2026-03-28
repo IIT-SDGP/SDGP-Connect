@@ -144,6 +144,13 @@ enum ApprovalStatus {
   REJECTED
 }
 
+enum EmailOutboxStatus {
+  PENDING
+  SENDING
+  SENT
+  FAILED
+}
+
 
 // ===================== Models =====================
 
@@ -169,6 +176,25 @@ model User {
   updatedAt        DateTime          @updatedAt
 
   @@index([user_id], name: "user_id_index")
+}
+
+model EmailOutbox {
+  id            String           @id @default(uuid())
+  type          String
+  to            String
+  subject       String
+  html          String           @db.LongText
+  status        EmailOutboxStatus @default(PENDING)
+  attempts      Int              @default(0)
+  lastError     String?          @db.Text
+  nextAttemptAt DateTime?
+  meta          Json?
+
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  @@index([status, nextAttemptAt], name: "email_outbox_status_next_idx")
+  @@index([createdAt], name: "email_outbox_created_idx")
 }
 
 // Stores the basic metadata of projects. Used for quick loading of project information without details.
@@ -466,5 +492,4 @@ model BlogAuthor {
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
 }
-
 

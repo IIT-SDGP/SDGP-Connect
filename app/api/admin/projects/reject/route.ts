@@ -6,8 +6,8 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/prisma/prismaClient";
 import { ProjectStatusEnum } from "@prisma/client";
 import { ProjectApprovalStatus } from "@prisma/client";
-import { sendEmail } from "@/lib/email";
 import { rejectedTemplate } from "@/lib/email/templates/rejected";
+import { enqueueEmail } from "@/lib/email/outbox";
 
 export async function POST(request: NextRequest) {
   // 1) Get real session & enforce login
@@ -91,10 +91,12 @@ export async function POST(request: NextRequest) {
       const groupNum = projectContent.metadata?.group_num;
       const title = projectContent.metadata?.title;
       if (teamEmail && groupNum && title) {
-        void sendEmail({
+        void enqueueEmail({
+          type: "PROJECT_REJECTED",
           to: teamEmail,
           subject: `Your SDGP Project "${title}" has been REJECTED`,
           html: rejectedTemplate({ group_num: groupNum, title, reason }),
+          meta: { projectId: String(projectId), reason },
         }).catch(console.error);
       }
     } catch (e) {
