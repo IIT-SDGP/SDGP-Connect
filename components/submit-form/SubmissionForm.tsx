@@ -19,6 +19,7 @@ import { Loader2 } from "lucide-react";
 import useUploadImageToBlob from "@/hooks/azure/useUploadImageToBlob";
 import { UploadingSequence } from "@/components/ui/UploadingSequence";
 import { ProjectStatusEnum } from "@/types/prisma-types";
+import type { SubmitProjectResponse } from "@/types/project/response";
 
 const TOTAL_STEPS = 5;
 
@@ -40,6 +41,70 @@ const ProjectSubmissionForm = () => {
 
   // Use our custom submission hook
   const { submitProject, isSubmitting, error } = useSubmitProject();
+  const buildCopyPayload = (result: Partial<SubmitProjectResponse>, fallbackError?: unknown) => {
+    const payload: Record<string, any> = {
+      message: result.message,
+      code: result.code,
+      details: result.details || result.error,
+    };
+
+    if (Array.isArray(result.errors) && result.errors.length) {
+      payload.validation = result.errors.slice(0, 5).map((e: any) => ({
+        path: Array.isArray(e.path) ? e.path.join(".") : e.path,
+        message: e.message,
+      }));
+    }
+
+    if (fallbackError instanceof Error) {
+      payload.clientError = fallbackError.message;
+    }
+
+    return JSON.stringify(payload, null, 2);
+  };
+
+  const truncate = (text: string, max = 160) =>
+    text.length > max ? `${text.slice(0, max - 1)}…` : text;
+
+  const showSubmitErrorToast = (result: Partial<SubmitProjectResponse>, fallbackError?: unknown) => {
+    const validationMessage =
+      Array.isArray(result.errors) && result.errors.length
+        ? result.errors[0]?.message
+        : undefined;
+
+    const description = truncate(
+      validationMessage ||
+        result.details ||
+        result.error ||
+        result.message ||
+        "There was an error submitting your project."
+    );
+
+    const copyPayload = buildCopyPayload(
+      {
+        message: result.message || "Submission failed",
+        code: result.code,
+        details: result.details,
+        error: result.error,
+        errors: result.errors,
+      },
+      fallbackError
+    );
+
+    toast.error("Submission Failed", {
+      description,
+      action: {
+        label: "Copy",
+        onClick: async () => {
+          try {
+            await navigator.clipboard.writeText(copyPayload);
+            toast.success("Copied error details");
+          } catch {
+            toast.error("Failed to copy");
+          }
+        },
+      },
+    });
+  };
 
   const methods = useForm<ProjectSubmissionSchema>({
     resolver: zodResolver(projectSubmissionSchema),
@@ -301,16 +366,11 @@ const ProjectSubmissionForm = () => {
           router.push(`/project/${result?.data?.projectId}`);
         }, 3000);
       } else {
-        // Show error message
-        toast.error("Submission Failed", {
-          description: result.message || "There was an error submitting your project. Please try again.",
-        });
+        showSubmitErrorToast(result);
       }
     } catch (err) {
       console.error("Error during submission:", err);
-      toast.error("Submission Error", {
-        description: "An unexpected error occurred. Please try again later.",
-      });
+      showSubmitErrorToast({ message: "An unexpected error occurred" }, err);
     }
   };
 

@@ -265,8 +265,7 @@ export const useSubmitProject = () => {
         setIsSubmitting(false);
 
         const errorMessage = err.response?.data?.message || 'Failed to submit project';
-        const errorDetails = err.response?.data?.error || '';
-
+        const errorDetails = err.response?.data?.details || err.response?.data?.error || '';
         const error = new Error(`${errorMessage}${errorDetails ? `: ${errorDetails}` : ''}`);
         setError(error);
 
@@ -275,6 +274,9 @@ export const useSubmitProject = () => {
         return {
           success: false,
           message: errorMessage,
+          code: err.response?.data?.code,
+          details: err.response?.data?.details,
+          error: err.response?.data?.error,
           errors: err.response?.data?.errors
         };
       }

@@ -5,6 +5,9 @@
 export interface SubmitProjectResponse {
   success: boolean;
   message: string;
+  code?: string;
+  details?: string;
+  error?: string;
   data?: {
     projectId: string;
   };
