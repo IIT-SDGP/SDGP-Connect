@@ -3,8 +3,8 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/prisma/prismaClient";
 import { ProjectApprovalStatus } from "@prisma/client";
-import { sendEmail } from "@/lib/email";
 import { rejectedTemplate } from "@/lib/email/templates/rejected";
+import { enqueueEmail } from "@/lib/email/outbox";
 
 function normalizeTitle(value: string) {
   return value.trim().toLowerCase().replace(/\s+/g, " ");
@@ -212,11 +212,13 @@ export async function POST(req: NextRequest) {
         rejectedCreatedAtIso: r.createdAtIso,
       });
 
-      void sendEmail({
+      void enqueueEmail({
+        type: "PROJECT_REJECTED",
         to: r.teamEmail,
         subject: `Your SDGP Project "${r.title}" has been REJECTED`,
         html: rejectedTemplate({ group_num: r.groupNumber, title: r.title, reason }),
-      }).catch((err) => console.error("Failed to send duplicate rejection email (silent):", err));
+        meta: { projectId: r.projectId, duplicateOf: r.keptProjectId },
+      }).catch((err) => console.error("Failed to queue duplicate rejection email:", err));
     }
 
     return NextResponse.json({

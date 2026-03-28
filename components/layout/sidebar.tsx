@@ -11,6 +11,7 @@ import {
   FolderKanban,
   Users2,
   BookOpen,
+  Mail,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -45,6 +46,11 @@ const sidebarItems = [
     title: 'Awards',
     href: '/admin/awards',
     icon: FolderKanban, // You may want to use a trophy icon
+  },
+  {
+    title: 'Email Outbox',
+    href: '/admin/email',
+    icon: Mail,
   },
   // {
   //   title: 'Module Team',

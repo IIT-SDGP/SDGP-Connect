@@ -3,8 +3,8 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { ProjectApprovalStatus } from "@prisma/client";
 import { prisma } from "@/prisma/prismaClient";
-import { sendEmail } from "@/lib/email";
 import { approvedTemplate } from "@/lib/email/templates/approved";
+import { enqueueEmail } from "@/lib/email/outbox";
 
 export async function POST(request: NextRequest) {
 
@@ -101,17 +101,19 @@ export async function POST(request: NextRequest) {
       });
     }
 
-		// Send approval email (best-effort, do not block approval)
-		try {
-			const title = projectContent.metadata?.title;
-			const groupNumber = projectContent.metadata?.group_num;
-			const teamEmail = projectContent.projectDetails?.team_email;
+    // Send approval email (best-effort, do not block approval)
+    try {
+      const title = projectContent.metadata?.title;
+      const groupNumber = projectContent.metadata?.group_num;
+      const teamEmail = projectContent.projectDetails?.team_email;
       if (teamEmail && title && groupNumber) {
-        void sendEmail({
+        void enqueueEmail({
+          type: "PROJECT_APPROVED",
           to: teamEmail,
           subject: `Your SDGP project "${title}" has been approved!`,
           html: approvedTemplate({ group_num: groupNumber, title, projectId }),
-        }).catch((err) => console.error("Failed to send approval email (silent):", err));
+          meta: { projectId: String(projectId) },
+        }).catch((err) => console.error("Failed to queue approval email:", err));
       }
     } catch (err) {
       console.error("Failed to prepare approval email:", err);
