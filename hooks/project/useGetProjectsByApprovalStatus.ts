@@ -29,7 +29,9 @@ interface UseGetProjectsByApprovalStatusReturn<T> {
 export function useGetProjectsByApprovalStatus<T extends PendingProject | ApprovedProject | RejectedProject>(
   statusType: ProjectApprovalStatus,
   searchQuery: string = '',
-  itemsPerPage: number = 10
+  itemsPerPage: number = 10,
+  sortBy?: string,
+  sortDir?: 'asc' | 'desc'
 ): UseGetProjectsByApprovalStatusReturn<T> {
   const [projects, setProjects] = useState<T[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -50,6 +52,9 @@ export function useGetProjectsByApprovalStatus<T extends PendingProject | Approv
         page,
         limit: itemsPerPage,
       };
+
+      if (sortBy) params.sortBy = sortBy;
+      if (sortDir) params.sortDir = sortDir;
 
       // Add search query if provided
       if (searchQuery && searchQuery.trim()) {
@@ -90,7 +95,7 @@ export function useGetProjectsByApprovalStatus<T extends PendingProject | Approv
     } finally {
       setIsLoading(false);
     }
-  }, [statusType, searchQuery, itemsPerPage]);
+  }, [statusType, searchQuery, itemsPerPage, sortBy, sortDir]);
 
   // Reset to page 1 when search query changes
   useEffect(() => {

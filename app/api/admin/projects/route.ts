@@ -31,6 +31,9 @@ export const GET = async (req: NextRequest) => {
     const limit = Math.max(parseInt(searchParams.get("limit") || "10"), 1); // Default 10 for admin
     const search = searchParams.get("search") || "";
     const statusType = searchParams.get("status") as ProjectApprovalStatus;
+    const sortBy = (searchParams.get("sortBy") || "").trim();
+    const sortDirParam = (searchParams.get("sortDir") || "desc").toLowerCase();
+    const sortDir: "asc" | "desc" = sortDirParam === "asc" ? "asc" : "desc";
 
     // Calculate skip for pagination
     const skip = (page - 1) * limit;
@@ -59,24 +62,50 @@ export const GET = async (req: NextRequest) => {
 
     const totalPages = Math.ceil(totalProjects / limit);
 
+    // Sorting (table header click)
+    const buildOrderBy = () => {
+      if (!sortBy) {
+        return statusType === ProjectApprovalStatus.APPROVED
+          ? [
+              { metadata: { featured: "desc" as const } },
+              { updatedAt: "desc" as const },
+            ]
+          : { updatedAt: "desc" as const };
+      }
+
+      switch (sortBy) {
+        case "title":
+          return { metadata: { title: sortDir } };
+        case "groupNumber":
+          return { metadata: { group_num: sortDir } };
+        case "submissionDate":
+          return { createdAt: sortDir };
+        case "status":
+          return { status: { status: sortDir } };
+        case "featured":
+          return { metadata: { featured: sortDir } };
+        case "approvedAt":
+        case "rejectedAt":
+          return { status: { approved_at: sortDir } };
+        case "approvedBy":
+        case "rejectedBy":
+          return { status: { approved_by: { name: sortDir } } };
+        default:
+          return statusType === ProjectApprovalStatus.APPROVED
+            ? [
+                { metadata: { featured: "desc" as const } },
+                { updatedAt: "desc" as const },
+              ]
+            : { updatedAt: "desc" as const };
+      }
+    };
+
     // Fetch projects with pagination
     const projects = await prisma.projectContent.findMany({
       where: whereClause,
       take: limit,
-      skip: skip, orderBy: statusType === ProjectApprovalStatus.APPROVED
-        ? [
-          {
-            metadata: {
-              featured: 'desc'
-            }
-          },
-          {
-            updatedAt: 'desc'
-          }
-        ]
-        : {
-          updatedAt: 'desc'
-        },
+      skip: skip,
+      orderBy: buildOrderBy(),
       include: {
         metadata: true,
         status: {
