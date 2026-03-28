@@ -17,10 +17,11 @@ try {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "Accept": "application/json",
         Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
-        model: "openai/gpt-4o-mini",
+        model: "gpt-4o-mini",
         messages: [
           {
             role: "system",
@@ -34,8 +35,8 @@ Return ONLY valid JSON:
 
 Rules:
 - No explanations
-- Only fix required files
-- Ensure code compiles
+- Only valid JSON
+- Fix only required files
             `,
           },
           {
@@ -56,22 +57,35 @@ ${repoTree}
     }
   );
 
-  const data = await response.json();
+  // SAFE RAW RESPONSE HANDLING (FIXES YOUR ERROR)
+  const rawText = await response.text();
 
-  if (!data.choices || !data.choices[0]) {
-    console.error("GitHub Models API error:");
+  console.log("RAW RESPONSE:");
+  console.log(rawText);
+
+  let data;
+  try {
+    data = JSON.parse(rawText);
+  } catch (err) {
+    console.error("Failed to parse response JSON");
+    console.error(rawText);
+    process.exit(1);
+  }
+
+  const content = data?.choices?.[0]?.message?.content;
+
+  if (!content) {
+    console.error("No AI content returned");
     console.error(JSON.stringify(data, null, 2));
     process.exit(1);
   }
 
-  const text = data.choices[0].message.content;
-
   let patches;
   try {
-    patches = JSON.parse(text);
-  } catch (e) {
-    console.error("Invalid JSON from AI:");
-    console.error(text);
+    patches = JSON.parse(content);
+  } catch (err) {
+    console.error("AI returned invalid JSON:");
+    console.error(content);
     process.exit(1);
   }
 
