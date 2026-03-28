@@ -1,29 +1,31 @@
 import fs from "fs";
 import { execSync } from "child_process";
 
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+const token = process.env.GITHUB_TOKEN;
 const issueTitle = process.env.ISSUE_TITLE;
 const issueBody = process.env.ISSUE_BODY;
 const issueNumber = process.env.ISSUE_NUMBER;
 
-console.log("AI Fixer started");
+console.log("GitHub Models AI Fixer started");
 
 try {
   const repoTree = execSync("find . -type f | head -n 200").toString();
 
-  const response = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${OPENAI_API_KEY}`,
-    },
-    body: JSON.stringify({
-      model: "gpt-4o-mini",
-      messages: [
-        {
-          role: "system",
-          content: `
-You are a senior Next.js + React engineer.
+  const response = await fetch(
+    "https://models.github.ai/inference/chat/completions",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        model: "openai/gpt-4o-mini",
+        messages: [
+          {
+            role: "system",
+            content: `
+You are a senior Next.js developer.
 
 Return ONLY valid JSON:
 [
@@ -32,13 +34,13 @@ Return ONLY valid JSON:
 
 Rules:
 - No explanations
-- Ensure code compiles
 - Only fix required files
-          `,
-        },
-        {
-          role: "user",
-          content: `
+- Ensure code compiles
+            `,
+          },
+          {
+            role: "user",
+            content: `
 Issue Title: ${issueTitle}
 
 Issue Body:
@@ -46,17 +48,18 @@ ${issueBody}
 
 Repo Files:
 ${repoTree}
-          `,
-        },
-      ],
-    }),
-  });
+            `,
+          },
+        ],
+        temperature: 0.2,
+      }),
+    }
+  );
 
   const data = await response.json();
 
-  // SAFE CHECK (FIXES YOUR ERROR)
   if (!data.choices || !data.choices[0]) {
-    console.error("OpenAI API Error:");
+    console.error("GitHub Models API error:");
     console.error(JSON.stringify(data, null, 2));
     process.exit(1);
   }
@@ -66,13 +69,12 @@ ${repoTree}
   let patches;
   try {
     patches = JSON.parse(text);
-  } catch (err) {
-    console.error("Invalid JSON from AI");
+  } catch (e) {
+    console.error("Invalid JSON from AI:");
     console.error(text);
     process.exit(1);
   }
 
-  // Apply file changes
   for (const patch of patches) {
     fs.mkdirSync(patch.file.split("/").slice(0, -1).join("/"), {
       recursive: true,
@@ -84,12 +86,11 @@ ${repoTree}
   const branch = `ai-fix-${issueNumber}`;
   execSync(`git checkout -b ${branch}`);
 
-  // Yarn build check
   try {
     execSync("yarn install --frozen-lockfile", { stdio: "inherit" });
     execSync("yarn build", { stdio: "inherit" });
   } catch (err) {
-    console.log("Build failed — skipping PR");
+    console.log("Build failed, skipping PR");
     process.exit(1);
   }
 
@@ -100,7 +101,7 @@ ${repoTree}
   execSync(`
     gh pr create \
       --title "AI Fix: Issue #${issueNumber}" \
-      --body "Auto-generated fix triggered by label ai-will-fix" \
+      --body "Auto-generated fix using GitHub Models" \
       --head ${branch} \
       --base main
   `);
