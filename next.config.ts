@@ -8,6 +8,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   productionBrowserSourceMaps: true,
+  serverExternalPackages: ["@prisma/client", "prisma"],
   images: {
     unoptimized: true,
     remotePatterns: [

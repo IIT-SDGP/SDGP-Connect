@@ -5,12 +5,10 @@
 
 import NextAuth, { AuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import bcrypt from "bcrypt";
 import { prisma } from "@/prisma/prismaClient";
 
 export const authOptions: AuthOptions = {
-  adapter: PrismaAdapter(prisma),
   pages: {
     signIn: "/login",
     error: "/login",
@@ -28,7 +26,13 @@ export const authOptions: AuthOptions = {
         const { name, password } = credentials;
         try {
           const user = await prisma.user.findFirst({
-            where: { name: name }
+            where: { name },
+            select: {
+              user_id: true,
+              name: true,
+              role: true,
+              password: true,
+            },
           });
 
           if (!user) {
