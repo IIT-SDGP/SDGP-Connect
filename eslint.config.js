@@ -5,18 +5,20 @@
 
 import globals from "globals";
 import { defineConfig } from "eslint/config";
+import tseslint from "@typescript-eslint/eslint-plugin";
+import tsParser from "@typescript-eslint/parser";
 
 export default defineConfig([
   {
     files: ["**/*.{ts,tsx}"],
 
     languageOptions: {
-      parser: "@typescript-eslint/parser",
+      parser: tsParser,
       globals: globals.browser,
     },
 
     plugins: {
-      "@typescript-eslint": require("@typescript-eslint/eslint-plugin"),
+      "@typescript-eslint": tseslint,
     },
 
     rules: {

@@ -19,7 +19,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useGetProjectsByApprovalStatus } from '@/hooks/project/useGetProjectsByApprovalStatus';
 import { useToggleProjectFeature } from '@/hooks/project/useToggleProjectFeature';
 import { ApprovedProject, PendingProject, RejectedProject } from '@/types/project/response';
-import { ProjectApprovalStatus } from '@prisma/client';
+import { ProjectApprovalStatus } from '@/types/prisma-types';
 import { useEffect, useState, useCallback } from 'react';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -27,6 +27,8 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { AlertCircle, FileX2, Inbox, RefreshCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import BulkApproveDialog from '@/components/dialogs/BulkApproveDialog';
+import DuplicatePendingProjectsDialog from '@/components/dialogs/DuplicatePendingProjectsDialog';
+import { useSession } from 'next-auth/react';
 
 const projectStatuses = ['IDEA', 'RESEARCH', 'MVP', 'DEPLOYED', 'STARTUP'];
 
@@ -36,11 +38,14 @@ export default function ProjectManagement() {
   const [rejectDialog, setRejectDialog] = useState(false);
   const [detailsDialog, setDetailsDialog] = useState(false);
   const [bulkApproveDialog, setBulkApproveDialog] = useState(false);
+  const [duplicateDialog, setDuplicateDialog] = useState(false);
   const [currentProject, setCurrentProject] = useState<any>(null);
   const [currentTab, setCurrentTab] = useState<'pending' | 'approved' | 'rejected'>('pending');
   const [lastFetchedTime, setLastFetchedTime] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
+  const { data: session } = useSession();
+  const isAdmin = session?.user?.role === 'ADMIN';
 
   // Debounce search query to avoid too many API calls
   useEffect(() => {
@@ -308,6 +313,15 @@ export default function ProjectManagement() {
               <RefreshCcw />
             </Button>
 
+            {currentTab === 'pending' && isAdmin && (
+              <Button
+                variant="outline"
+                onClick={() => setDuplicateDialog(true)}
+              >
+                Reject Duplicates
+              </Button>
+            )}
+
             {currentTab === 'pending' && selectedProjects.length > 0 && (
               <Button
                 onClick={() => setBulkApproveDialog(true)}
@@ -357,6 +371,14 @@ export default function ProjectManagement() {
           onOpenChange={setBulkApproveDialog}
           projectIds={selectedProjects}
           onApproved={refreshPending}
+        />
+      )}
+
+      {duplicateDialog && (
+        <DuplicatePendingProjectsDialog
+          open={duplicateDialog}
+          onOpenChange={setDuplicateDialog}
+          onRejected={refreshPending}
         />
       )}
     </div>

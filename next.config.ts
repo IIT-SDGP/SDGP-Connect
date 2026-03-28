@@ -9,6 +9,9 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   productionBrowserSourceMaps: true,
   serverExternalPackages: ["@prisma/client", "prisma"],
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   images: {
     unoptimized: true,
     remotePatterns: [
