@@ -1,6 +1,6 @@
 import { prisma } from '@/prisma/prismaClient';
 import { projectSubmissionSchema } from '@/validations/submit_project';
-import { AssociationType, ProjectApprovalStatus } from '@prisma/client';
+import { AssociationType, ProjectApprovalStatus, Prisma } from '@prisma/client';
 import { revalidatePath } from 'next/cache';
 import { NextResponse } from 'next/server';
 import { getModuleFromYear } from '@/lib/utils/module';
@@ -76,7 +76,15 @@ export async function POST(request: Request) {
       );
       validatedData.metadata.website = normalizedWebsite;
     } catch {
-      return NextResponse.json({ error: "Invalid website URL" }, { status: 400 });
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Invalid website URL",
+          code: "INVALID_WEBSITE_URL",
+          details: "Website URL must be a valid http(s) address.",
+        },
+        { status: 400 }
+      );
     }
 
     // Automatically set the module field based on selected year
@@ -271,15 +279,57 @@ export async function POST(request: Request) {
       return NextResponse.json({
         success: false,
         message: 'Validation error',
+        code: "VALIDATION_ERROR",
         errors: error.errors
       }, { status: 400 });
+    }
+
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === "P2000") {
+        const column = (error.meta as any)?.column_name || (error.meta as any)?.column || "unknown";
+        return NextResponse.json(
+          {
+            success: false,
+            message: "Some input is too long",
+            code: "VALUE_TOO_LONG",
+            details: `One of the fields exceeded the allowed length (column: ${String(column)}). Please shorten it and try again.`,
+          },
+          { status: 400 }
+        );
+      }
+
+      if (error.code === "P2002") {
+        const target = (error.meta as any)?.target;
+        return NextResponse.json(
+          {
+            success: false,
+            message: "Duplicate submission",
+            code: "DUPLICATE",
+            details: target
+              ? `A record with the same value already exists (${String(target)}).`
+              : "A record with the same value already exists.",
+          },
+          { status: 409 }
+        );
+      }
+
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Database error",
+          code: "DB_ERROR",
+          details: `Request failed (${error.code}). Please try again.`,
+        },
+        { status: 500 }
+      );
     }
 
     // Return error response with CORS headers
     const response = NextResponse.json({
       success: false,
       message: 'Failed to submit project',
-      error: error.message || 'Unknown error occurred'
+      code: "SUBMISSION_FAILED",
+      details: error.message || 'Unknown error occurred'
     }, { status: 500 });
 
     // Set the CORS headers for the error response as well
