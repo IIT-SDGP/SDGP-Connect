@@ -151,9 +151,9 @@ export default function ContributePage() {
         className="relative z-10 px-4 md:px-6 max-w-5xl"
       >
         <WhatIsSdgp cardVariants={cardVariants} />
+        <ContributingGuideSections cardVariants={cardVariants} />
         <CommunityCards cardVariants={cardVariants} />
         <ReportingIssues cardVariants={cardVariants} />
-        <ContributingGuideSections cardVariants={cardVariants} />
       </motion.div>
 
       {/* Bottom gradient overlay */}
