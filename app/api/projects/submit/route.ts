@@ -5,6 +5,48 @@ import { revalidatePath } from 'next/cache';
 import { NextResponse } from 'next/server';
 import { getModuleFromYear } from '@/lib/utils/module';
 
+function isPrivateIpv4(ip: string) {
+  const match = ip.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+  if (!match) return false;
+  const parts = match.slice(1).map((p) => Number(p));
+  if (parts.some((p) => Number.isNaN(p) || p < 0 || p > 255)) return false;
+
+  const [a, b] = parts;
+  if (a === 10) return true;
+  if (a === 127) return true;
+  if (a === 169 && b === 254) return true;
+  if (a === 192 && b === 168) return true;
+  if (a === 172 && b >= 16 && b <= 31) return true;
+  return false;
+}
+
+function normalizeAndValidateWebsiteUrl(input: string) {
+  const trimmed = input.trim();
+  if (!trimmed) return null;
+
+  let parsed: URL;
+  try {
+    parsed = new URL(trimmed);
+  } catch {
+    throw new Error("Invalid website URL");
+  }
+
+  if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+    throw new Error("Invalid website URL");
+  }
+
+  const hostname = parsed.hostname.toLowerCase();
+  if (hostname === "localhost" || hostname === "::1") {
+    throw new Error("Invalid website URL");
+  }
+  if (isPrivateIpv4(hostname)) {
+    throw new Error("Invalid website URL");
+  }
+
+  // Normalizes IDNs (e.g. loomeé.com) to punycode via WHATWG URL.
+  return parsed.toString();
+}
+
 // Handle OPTIONS requests for CORS preflight
 export async function OPTIONS() {
   const response = NextResponse.json({});
@@ -28,14 +70,14 @@ export async function POST(request: Request) {
     const validatedData = projectSubmissionSchema.parse(body);
 
     // Validate website field to prevent unsafe schemes
-    const website = validatedData?.metadata?.website?.trim();
-
-if (
-  website &&
-  !/^https?:\/\/(localhost|127\.0\.0\.1|[a-zA-Z0-9.-]+\.[a-z]{2,})(:\d+)?(\/\S*)?$/.test(website)
-) {
-  return NextResponse.json({ error: "Invalid website URL" }, { status: 400 });
-}
+    try {
+      const normalizedWebsite = normalizeAndValidateWebsiteUrl(
+        validatedData?.metadata?.website ?? ""
+      );
+      validatedData.metadata.website = normalizedWebsite;
+    } catch {
+      return NextResponse.json({ error: "Invalid website URL" }, { status: 400 });
+    }
 
     // Automatically set the module field based on selected year
     if (validatedData.metadata?.sdgp_year) {
