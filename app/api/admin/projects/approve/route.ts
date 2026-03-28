@@ -27,10 +27,10 @@ export async function POST(request: NextRequest) {
 
   const userId = session.user.id;
 
-  try {
+	try {
    
 
-    const { projectId, featured, title, groupNumber, teamEmail } = await request.json();
+    const { projectId, featured } = await request.json();
     if (!projectId) {
       return NextResponse.json(
         { error: "Project ID is required." },
@@ -38,62 +38,62 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // verify project exists
-    const projectMetadata = await prisma.projectMetadata.findUnique({
-      where: { project_id: String(projectId) }
+    // load content + status + minimal details for email
+    const projectContent = await prisma.projectContent.findFirst({
+      where: { metadata_id: String(projectId) },
+      include: {
+        status: true,
+        metadata: true,
+        projectDetails: true,
+      },
     });
-    if (!projectMetadata) {
+    if (!projectContent) {
       return NextResponse.json(
         { error: "Project not found." },
         { status: 404 }
       );
     }
 
-    // load its content + status
-    const projectContent = await prisma.projectContent.findUnique({
-      where: { metadata_id: String(projectId) },
-      include: { status: true }
-    });
-    if (!projectContent) {
-      return NextResponse.json(
-        { error: "Project content not found." },
-        { status: 404 }
-      );
-    }
+		// Atomic state transition: only one reviewer can move PENDING -> APPROVED.
+		const now = new Date();
+		const updated = await prisma.projectStatus.updateMany({
+			where: {
+				content_id: projectContent.content_id,
+				approved_status: ProjectApprovalStatus.PENDING,
+			},
+			data: {
+				approved_status: ProjectApprovalStatus.APPROVED,
+				approved_at: now,
+				approved_by_userId: userId,
+			},
+		});
 
-    // conflict if already approved
-    if (
-      projectContent.status?.approved_status ===
-      ProjectApprovalStatus.APPROVED
-    ) {
-      return NextResponse.json(
-        {
-          error: "Already approved",
-          status: "ALREADY_APPROVED",
-          approvedBy: projectContent.status.approved_by_userId,
-          approvedAt: projectContent.status.approved_at,
-        },
-        { status: 409 }
-      );
-    }    // Check if the user exists in the database
-    const user = await prisma.user.findUnique({
-      where: { user_id: userId }
-    });
+		if (updated.count === 0) {
+			const current = await prisma.projectStatus.findUnique({
+				where: { content_id: projectContent.content_id },
+				select: {
+					approved_status: true,
+					approved_by_userId: true,
+					approved_at: true,
+				},
+			});
 
-    // Update status with the session.user.id, but only if user exists
-    const updatedStatus = await prisma.projectStatus.update({
-      where: { content_id: projectContent.content_id },
-      data: {
-        approved_status: ProjectApprovalStatus.APPROVED,
-        approved_at: new Date(),
-        ...(user ? { approved_by_userId: userId } : {})
-      },
-    });
+			const alreadyApproved = current?.approved_status === ProjectApprovalStatus.APPROVED;
+			return NextResponse.json(
+				{
+					error: alreadyApproved ? "Already approved" : "Already reviewed",
+					status: alreadyApproved ? "ALREADY_APPROVED" : "ALREADY_REVIEWED",
+					approvedBy: current?.approved_by_userId ?? null,
+					approvedAt: current?.approved_at ?? null,
+				},
+				{ status: 409 }
+			);
+		}
 
-    // optionally mark featured
-    if (featured) {
-      await prisma.projectMetadata.update({
-        where: { project_id: String(projectId) },
+		// optionally mark featured
+		if (featured) {
+			await prisma.projectMetadata.update({
+				where: { project_id: String(projectId) },
         data: {
           featured: true,
           featured_by_userId: userId,
@@ -101,29 +101,32 @@ export async function POST(request: NextRequest) {
       });
     }
 
-   if (teamEmail && title && groupNumber) {
-  try {
-    await sendEmail({
-      to: teamEmail,
-      subject: `Your SDGP project "${title}" has been approved!`,
-      html: approvedTemplate({ group_num: groupNumber, title, projectId }),
-    });
+		// Send approval email (best-effort, do not block approval)
+		try {
+			const title = projectContent.metadata?.title;
+			const groupNumber = projectContent.metadata?.group_num;
+			const teamEmail = projectContent.projectDetails?.team_email;
+      if (teamEmail && title && groupNumber) {
+        void sendEmail({
+          to: teamEmail,
+          subject: `Your SDGP project "${title}" has been approved!`,
+          html: approvedTemplate({ group_num: groupNumber, title, projectId }),
+        }).catch((err) => console.error("Failed to send approval email (silent):", err));
+      }
+    } catch (err) {
+      console.error("Failed to prepare approval email:", err);
+    }
 
-  } catch (err) {
-    console.error("Failed to send approval email:", err);
-  }
-}
-
-    return NextResponse.json({
-      success: true,
-      message: "Project approved successfully",
-      data: {
-        projectId,
-        featured,
-        approvedAt: updatedStatus.approved_at,
-        approvedBy: userId,
-      },
-    });
+		return NextResponse.json({
+			success: true,
+			message: "Project approved successfully",
+			data: {
+				projectId,
+				featured,
+				approvedAt: now,
+				approvedBy: userId,
+			},
+		});
   } catch (error: any) {
     console.error("Error approving project:", error);
     return NextResponse.json(

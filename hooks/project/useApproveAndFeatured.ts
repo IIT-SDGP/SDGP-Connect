@@ -1,20 +1,11 @@
 import { useState } from 'react';
 import axios from 'axios';
 import { toast } from 'sonner';
-import { ProjectApprovalStatus } from '@prisma/client';
 
 interface UseApproveAndFeaturedOptions {
   onSuccess?: () => void;
   onError?: (error: Error) => void;
   onAlreadyApproved?: (data: any) => void;
-}
-
-interface ApproveProjectDetails {
-  projectId: string;
-  featured?: boolean;
-  title: string;
-  groupNumber: string;
-  teamEmail: string;
 }
 
 export function useApproveAndFeatured(options?: UseApproveAndFeaturedOptions) {
@@ -23,8 +14,7 @@ export function useApproveAndFeatured(options?: UseApproveAndFeaturedOptions) {
 
   const approveProject = async (
     projectId: string,
-    featured: boolean = false,
-    details?: { title: string; groupNumber: string; teamEmail: string }
+    featured: boolean = false
   ) => {
   
     setIsLoading(true);
@@ -34,9 +24,6 @@ export function useApproveAndFeatured(options?: UseApproveAndFeaturedOptions) {
     const response = await axios.post('/api/admin/projects/approve', {
         projectId: String(projectId),
         featured,
-        title: details?.title,
-        groupNumber: details?.groupNumber,
-        teamEmail: details?.teamEmail,
       });
 
       
