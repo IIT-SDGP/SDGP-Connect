@@ -163,8 +163,18 @@ export const SlideDeck: React.FC<SlideDeckProps> = ({ slides }) => {
 
         .swiper-button-next::after,
         .swiper-button-prev::after {
+          content: '';
           font-size: 16px;
           font-weight: bold;
+          line-height: 1;
+        }
+
+        .swiper-button-next::after {
+          content: '›';
+        }
+
+        .swiper-button-prev::after {
+          content: '‹';
         }
       `}</style>
     </Card>
