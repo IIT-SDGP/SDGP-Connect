@@ -6,7 +6,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import HomeNavbar from "@/components/HomeNavbar";
 import MorphingText from "@/components/home/Morphing";
-import { BrandsCarousel } from "@/components/home/brands";
+import { HeroDomains } from "@/components/home/HeroDomains";
 import { useLanguage } from "@/hooks/LanguageProvider";
 
 const Logo = () => (
@@ -104,7 +104,7 @@ export default function HomeHeroSection() {
             opacity: 1 - scrollProgress * 0.5,
           }}
         >
-          <BrandsCarousel className="h-full" />
+          <HeroDomains className="h-full" />
         </div>
       </div>
 

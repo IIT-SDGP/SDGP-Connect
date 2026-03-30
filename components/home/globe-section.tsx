@@ -448,8 +448,8 @@ export default function GlobeSection() {
       </div>
 
       {/* Globe Visualization */}
-      <div className="flex flex-row items-center justify-center py-8 h-screen md:h-auto relative w-full">
-        <div className="max-w-7xl mx-auto w-full relative overflow-hidden h-full md:h-[600px] px-4">
+      <div className="flex flex-row items-center justify-center py-8 min-h-0 w-full">
+        <div className="max-w-7xl mx-auto w-full relative overflow-hidden min-h-0 h-[350px] sm:h-[500px] md:h-[600px] px-4">
           <div className="absolute w-full h-full z-10">
             <World data={sampleArcs} globeConfig={globeConfig} />
           </div>
