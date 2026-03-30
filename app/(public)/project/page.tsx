@@ -5,7 +5,6 @@
 "use client"
 
 import FilterSidebar from "@/components/projects/filter-sidebar";
-import ProjectHeroSection from "@/components/home/ProjectHeroSection";
 import ProjectExplorer from "@/components/projects/project-explorer";
 import SearchHeader from "@/components/projects/search-header";
 import { Button } from "@/components/ui/button";
@@ -144,7 +143,6 @@ function ProjectsPageContent() {
 
     return (
         <div className="relative">
-            <ProjectHeroSection />
             <div className="container mx-auto py-8 px-4">
                 <SearchHeader
                     toggleFilters={toggleFilters}
