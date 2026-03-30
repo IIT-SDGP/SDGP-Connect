@@ -3,9 +3,10 @@
 // with an additional restriction: Non-commercial use only.
 // See <https://www.gnu.org/licenses/agpl-3.0.html> for details.
 "use client";
-import { useState, FormEvent } from "react";
+import React, { useState, FormEvent, forwardRef } from "react";
 import { Bot, Paperclip, Mic, CornerDownLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ChatRef } from "@/components/ui/expandable-chat";
 import {
   ChatBubble,
   ChatBubbleAvatar,
@@ -22,7 +23,7 @@ import { ChatMessageList } from "@/components/ui/chat-message-list";
 import { useChat } from "@/components/ai/useChat";
 import { MarkdownAnswer } from "@/components/ai/MarkdownAnswer";
 
-export function ExpandableChatAI() {
+export const ExpandableChatAI = forwardRef<ChatRef, {}>((props, ref) => {
   const { messages, isLoading, sendMessage, showThink, setShowThink } = useChat();
   const [input, setInput] = useState("");
   
@@ -35,10 +36,12 @@ export function ExpandableChatAI() {
   
   return (
     <ExpandableChat 
+      ref={ref}
       size="lg" 
       position="bottom-right" 
       icon={<Bot className="h-6 w-6" />}
       className="mb-16 md:mb-4"
+      hideToggle={true}
     >
       <ExpandableChatHeader className="flex-col text-center justify-center">
         <h1 className="text-xl font-semibold">Chat with AI</h1>
@@ -104,4 +107,6 @@ export function ExpandableChatAI() {
       </ExpandableChatFooter>
     </ExpandableChat>
   );
-}
+});
+
+ExpandableChatAI.displayName = "ExpandableChatAI";
