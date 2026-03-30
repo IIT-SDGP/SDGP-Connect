@@ -15,7 +15,7 @@ function Stars() {
   // Generate sphere positions manually without external random library
   const sphere = useMemo(() => {
     const generateSafePositions = (): Float32Array => {
-      const count = 5000;
+      const count = 12000;
       const positions = new Float32Array(count);
       const radius = 1.5;
       
