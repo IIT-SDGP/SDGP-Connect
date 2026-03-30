@@ -41,37 +41,37 @@ function useProjects(currentParams: ProjectQueryParams) {
           currentParams.projectTypes.length > 0
         ) {
           currentParams.projectTypes.forEach((type) =>
-            queryParams.append("projectTypes", type)
+            queryParams.append("projectTypes", type),
           );
         }
 
         if (currentParams.domains && currentParams.domains.length > 0) {
           currentParams.domains.forEach((domain) =>
-            queryParams.append("domains", domain)
+            queryParams.append("domains", domain),
           );
         }
 
         if (currentParams.status && currentParams.status.length > 0) {
           currentParams.status.forEach((status) =>
-            queryParams.append("status", status)
+            queryParams.append("status", status),
           );
         }
 
         if (currentParams.sdgGoals && currentParams.sdgGoals.length > 0) {
           currentParams.sdgGoals.forEach((goal) =>
-            queryParams.append("sdgGoals", goal)
+            queryParams.append("sdgGoals", goal),
           );
         }
 
         if (currentParams.techStack && currentParams.techStack.length > 0) {
           currentParams.techStack.forEach((tech) =>
-            queryParams.append("techStack", tech)
+            queryParams.append("techStack", tech),
           );
         }
 
         if (currentParams.years && currentParams.years.length > 0) {
           currentParams.years.forEach((year) =>
-            queryParams.append("years", year)
+            queryParams.append("years", year),
           );
         }
 
@@ -84,7 +84,7 @@ function useProjects(currentParams: ProjectQueryParams) {
         if (!response.ok) {
           const errorData = await response.text();
           throw new Error(
-            `Error ${response.status}: ${errorData || response.statusText}`
+            `Error ${response.status}: ${errorData || response.statusText}`,
           );
         }
 
@@ -146,7 +146,7 @@ function useProjects(currentParams: ProjectQueryParams) {
         setError(
           err instanceof Error
             ? err.message
-            : "An error occurred while fetching projects"
+            : "An error occurred while fetching projects",
         );
         console.error("Error fetching projects:", err);
         if (!shouldAppend) {
@@ -156,17 +156,19 @@ function useProjects(currentParams: ProjectQueryParams) {
         setIsLoading(false);
       }
     },
-    [currentParams]
+    [currentParams],
   );
 
   // Initial load of projects - reset everything
   useEffect(() => {
+    const initialPage = currentParams.page || 1;
     setProjects([]);
-    setCurrentPage(1);
+    setCurrentPage(initialPage);
     setHasMore(true);
-    fetchProjects(1, false);
+    fetchProjects(initialPage, false);
   }, [
     currentParams.featured, // Add featured to dependency array
+    currentParams.page,
     currentParams.title,
     currentParams.limit,
     currentParams.projectTypes?.join(","),
