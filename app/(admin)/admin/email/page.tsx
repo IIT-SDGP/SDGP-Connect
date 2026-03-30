@@ -36,6 +36,22 @@ export default function EmailOutboxPage() {
   const [isLoading, setIsLoading] = useState(false);
 
   const selectedIds = useMemo(() => items.map((i) => i.id), [items]);
+  const nowMs = Date.now();
+
+  const renderNextAttempt = (i: OutboxItem) => {
+    if (!i.nextAttemptAt) return "-";
+    const ts = new Date(i.nextAttemptAt);
+    const isDue =
+      (i.status === "PENDING" || i.status === "FAILED") && !Number.isNaN(ts.getTime()) && ts.getTime() <= nowMs;
+
+    if (!isDue) return ts.toLocaleString("en-GB");
+
+    return (
+      <span className="text-destructive font-medium" title={ts.toLocaleString("en-GB")}>
+        Due
+      </span>
+    );
+  };
 
   const load = async (activeTab = tab) => {
     setIsLoading(true);
@@ -71,7 +87,6 @@ export default function EmailOutboxPage() {
   useEffect(() => {
     if (!isAdmin) return;
     void load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab, isAdmin]);
 
   if (status === "loading") return null;
@@ -100,6 +115,11 @@ export default function EmailOutboxPage() {
           {tab === "FAILED" && selectedIds.length > 0 && (
             <Button onClick={() => retry(selectedIds)} disabled={isLoading}>
               Retry All ({selectedIds.length})
+            </Button>
+          )}
+          {tab === "PENDING" && selectedIds.length > 0 && (
+            <Button onClick={() => retry(selectedIds)} disabled={isLoading}>
+              Requeue All ({selectedIds.length})
             </Button>
           )}
         </div>
@@ -149,9 +169,7 @@ export default function EmailOutboxPage() {
                   <TableCell className="max-w-[340px] truncate" title={i.lastError ?? ""}>
                     {i.lastError ?? "-"}
                   </TableCell>
-                  <TableCell>
-                    {i.nextAttemptAt ? new Date(i.nextAttemptAt).toLocaleString("en-GB") : "-"}
-                  </TableCell>
+                  <TableCell>{renderNextAttempt(i)}</TableCell>
                   <TableCell>
                     <div className="flex gap-2">
                       <Button
@@ -184,9 +202,9 @@ export default function EmailOutboxPage() {
                       >
                         Copy
                       </Button>
-                      {i.status === "FAILED" && (
+                      {(i.status === "FAILED" || i.status === "PENDING") && (
                         <Button size="sm" onClick={() => retry([i.id])} disabled={isLoading}>
-                          Retry
+                          {i.status === "FAILED" ? "Retry" : "Requeue"}
                         </Button>
                       )}
                     </div>
@@ -200,4 +218,3 @@ export default function EmailOutboxPage() {
     </div>
   );
 }
-
