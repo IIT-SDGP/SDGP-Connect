@@ -27,8 +27,8 @@ export default function WhatIsSdgp({ cardVariants }: { cardVariants: any }) {
               <strong>connect them with real-world investors, mentors, and industry partners</strong>.
             </p>
             <p className="mt-4 text-lg text-white/70 leading-relaxed">
-              This platform acts as a digital bridge between innovation and opportunity—allowing students to go beyond academic recognition and{" "}
-              <strong>attract funding, incubation, or partnerships</strong> that help bring their projects to life.
+              SDGP Connect helps students go beyond academic recognition and{" "}
+              <strong>attract funding, incubation, or partnerships</strong> that can help bring their projects to life.
             </p>
           </CardContent>
         </Card>

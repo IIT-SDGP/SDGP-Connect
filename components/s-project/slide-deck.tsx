@@ -161,10 +161,23 @@ export const SlideDeck: React.FC<SlideDeckProps> = ({ slides }) => {
           background: rgba(255, 255, 255, 1);
         }
 
-        .swiper-button-next::after,
-        .swiper-button-prev::after {
-          font-size: 16px;
-          font-weight: bold;
+        /* Force real arrow icons (avoid Swiper's ligature-based "prev/next") */
+        .swiper-button-next:after,
+        .swiper-button-prev:after {
+          font-family: inherit !important;
+          font-size: 20px !important;
+          font-weight: 700 !important;
+          line-height: 1 !important;
+          text-transform: none !important;
+          letter-spacing: 0 !important;
+        }
+
+        .swiper-button-prev:after {
+          content: '‹' !important;
+        }
+
+        .swiper-button-next:after {
+          content: '›' !important;
         }
       `}</style>
     </Card>

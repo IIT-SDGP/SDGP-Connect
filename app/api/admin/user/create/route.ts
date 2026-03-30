@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/prisma/prismaClient';
-import { getServerSession } from 'next-auth';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import * as z from 'zod';
-import { hash } from 'bcrypt';
+import bcrypt from 'bcryptjs';
 
 // Schema for validating user creation
 const userCreateSchema = z.object({
@@ -14,7 +15,7 @@ const userCreateSchema = z.object({
 export async function POST(req: Request) {
   try {
     // Check authentication
-    const session = await getServerSession();
+    const session = await getServerSession(authOptions);
     if (!session) {
       return NextResponse.json(
         { error: "Authentication required" },
@@ -23,14 +24,7 @@ export async function POST(req: Request) {
     }
 
     // Check if user is admin
-    const currentUser = await prisma.user.findFirst({
-      where: {
-        // `id` is the NextAuth adapter primary key
-        id: (session.user as any).id,
-      },
-    });
-
-    if (!currentUser || currentUser.role !== 'ADMIN') {
+    if (session.user.role !== 'ADMIN') {
       return NextResponse.json(
         { error: "Only admins can create users" },
         { status: 403 }
@@ -58,7 +52,7 @@ export async function POST(req: Request) {
     }
 
     // Hash password
-    const hashedPassword = await hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     // Create user
     const newUser = await prisma.user.create({

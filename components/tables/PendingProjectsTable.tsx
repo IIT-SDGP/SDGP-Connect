@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Pagination, PaginationPrevious, PaginationNext } from '@/components/ui/pagination';
 import { PendingProject } from '@/types/project/response';
+import { ArrowUpDown, ChevronDown, ChevronUp } from 'lucide-react';
 
 interface PendingProjectsTableProps {
   projects: PendingProject[];
@@ -13,6 +14,9 @@ interface PendingProjectsTableProps {
   onViewDetails: (project: PendingProject) => void;
   onApprove: (project: PendingProject) => void;
   onReject: (project: PendingProject) => void;
+  sortBy: string;
+  sortDir: 'asc' | 'desc';
+  onSortChange: (column: string) => void;
   currentPage: number;
   totalPages: number;
   onNextPage: () => void;
@@ -27,11 +31,23 @@ export function PendingProjectsTable({
   onViewDetails,
   onApprove,
   onReject,
+  sortBy,
+  sortDir,
+  onSortChange,
   currentPage,
   totalPages,
   onNextPage,
   onPreviousPage,
 }: PendingProjectsTableProps) {
+  const SortIcon = ({ column }: { column: string }) => {
+    if (sortBy !== column) return <ArrowUpDown className="ml-2 h-4 w-4" />;
+    return sortDir === 'asc' ? (
+      <ChevronUp className="ml-2 h-4 w-4" />
+    ) : (
+      <ChevronDown className="ml-2 h-4 w-4" />
+    );
+  };
+
   return (
     <div>
       <Table>
@@ -43,10 +59,26 @@ export function PendingProjectsTable({
                 onCheckedChange={(checked) => onSelectAll(checked as boolean)}
               />
             </TableHead>
-            <TableHead>Title</TableHead>
-            <TableHead>Group</TableHead>
-            <TableHead>Submission Date</TableHead>
-            <TableHead>Status</TableHead>
+            <TableHead>
+              <Button variant="ghost" size="sm" className="h-8 px-2" onClick={() => onSortChange('title')}>
+                Title <SortIcon column="title" />
+              </Button>
+            </TableHead>
+            <TableHead>
+              <Button variant="ghost" size="sm" className="h-8 px-2" onClick={() => onSortChange('groupNumber')}>
+                Group <SortIcon column="groupNumber" />
+              </Button>
+            </TableHead>
+            <TableHead>
+              <Button variant="ghost" size="sm" className="h-8 px-2" onClick={() => onSortChange('submissionDate')}>
+                Created <SortIcon column="submissionDate" />
+              </Button>
+            </TableHead>
+            <TableHead>
+              <Button variant="ghost" size="sm" className="h-8 px-2" onClick={() => onSortChange('status')}>
+                Status <SortIcon column="status" />
+              </Button>
+            </TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -68,12 +100,14 @@ export function PendingProjectsTable({
               <TableCell>{project.title}</TableCell>
               <TableCell>{project.groupNumber}</TableCell>
               <TableCell>
-                  {new Date(project.submissionDate).toLocaleDateString('en-GB', {
-                    day: 'numeric',
-                    month: 'long',
-                    year: 'numeric'
-                  })}
-                </TableCell>
+                {new Date(project.submissionDate).toLocaleString('en-GB', {
+                  day: 'numeric',
+                  month: 'long',
+                  year: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })}
+              </TableCell>
               <TableCell>
                 <Badge>{project.status}</Badge>
               </TableCell>

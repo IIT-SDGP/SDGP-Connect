@@ -10,4 +10,7 @@ secure: Number(process.env.SMTP_PORT) === 465,
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
   },
+  connectionTimeout: Number(process.env.SMTP_CONNECTION_TIMEOUT_MS || 10_000),
+  greetingTimeout: Number(process.env.SMTP_GREETING_TIMEOUT_MS || 10_000),
+  socketTimeout: Number(process.env.SMTP_SOCKET_TIMEOUT_MS || 20_000),
 };

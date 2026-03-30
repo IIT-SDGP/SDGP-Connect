@@ -138,8 +138,8 @@ export default function HeroGeometric({
             }}
           >
             <p className="text-base sm:text-lg md:text-xl text-white/40 mb-8 leading-relaxed font-light tracking-wide max-w-xl mx-auto px-4">
-              Join us in building the future of student-led tech projects. Your
-              contributions make a difference!
+              Help improve SDGP Connect. You can contribute with code, bug reports, documentation, design feedback, or
+              simple suggestions.
             </p>
           </motion.div>
         </div>

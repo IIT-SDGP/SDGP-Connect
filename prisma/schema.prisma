@@ -144,6 +144,12 @@ enum ApprovalStatus {
 }
 
 // ===================== NextAuth Adapter Models =====================
+enum EmailOutboxStatus {
+  PENDING
+  SENDING
+  SENT
+  FAILED
+}
 
 // Required by PrismaAdapter — do not rename fields.
 model Account {
@@ -224,6 +230,26 @@ model User {
 
 // ===================== Project Models =====================
 
+model EmailOutbox {
+  id            String           @id @default(uuid())
+  type          String
+  to            String
+  subject       String
+  html          String           @db.LongText
+  status        EmailOutboxStatus @default(PENDING)
+  attempts      Int              @default(0)
+  lastError     String?          @db.Text
+  nextAttemptAt DateTime?
+  meta          Json?
+
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  @@index([status, nextAttemptAt], name: "email_outbox_status_next_idx")
+  @@index([createdAt], name: "email_outbox_created_idx")
+}
+
+// Stores the basic metadata of projects. Used for quick loading of project information without details.
 model ProjectMetadata {
   project_id         String          @id @default(uuid())
   sdgp_year          String

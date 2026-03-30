@@ -19,7 +19,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useGetProjectsByApprovalStatus } from '@/hooks/project/useGetProjectsByApprovalStatus';
 import { useToggleProjectFeature } from '@/hooks/project/useToggleProjectFeature';
 import { ApprovedProject, PendingProject, RejectedProject } from '@/types/project/response';
-import { ProjectApprovalStatus } from '@prisma/client';
+import { ProjectApprovalStatus } from '@/types/prisma-types';
 import { useEffect, useState, useCallback } from 'react';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -27,6 +27,8 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { AlertCircle, FileX2, Inbox, RefreshCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import BulkApproveDialog from '@/components/dialogs/BulkApproveDialog';
+import DuplicatePendingProjectsDialog from '@/components/dialogs/DuplicatePendingProjectsDialog';
+import { useSession } from 'next-auth/react';
 
 const projectStatuses = ['IDEA', 'RESEARCH', 'MVP', 'DEPLOYED', 'STARTUP'];
 
@@ -36,11 +38,26 @@ export default function ProjectManagement() {
   const [rejectDialog, setRejectDialog] = useState(false);
   const [detailsDialog, setDetailsDialog] = useState(false);
   const [bulkApproveDialog, setBulkApproveDialog] = useState(false);
+  const [duplicateDialog, setDuplicateDialog] = useState(false);
   const [currentProject, setCurrentProject] = useState<any>(null);
   const [currentTab, setCurrentTab] = useState<'pending' | 'approved' | 'rejected'>('pending');
   const [lastFetchedTime, setLastFetchedTime] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
+  const [pendingSort, setPendingSort] = useState<{ by: string; dir: 'asc' | 'desc' }>({
+    by: 'submissionDate',
+    dir: 'desc',
+  });
+  const [approvedSort, setApprovedSort] = useState<{ by: string; dir: 'asc' | 'desc' }>({
+    by: 'approvedAt',
+    dir: 'desc',
+  });
+  const [rejectedSort, setRejectedSort] = useState<{ by: string; dir: 'asc' | 'desc' }>({
+    by: 'rejectedAt',
+    dir: 'desc',
+  });
+  const { data: session } = useSession();
+  const isAdmin = session?.user?.role === 'ADMIN';
 
   // Debounce search query to avoid too many API calls
   useEffect(() => {
@@ -61,7 +78,13 @@ export default function ProjectManagement() {
     totalPages: pendingTotalPages,
     fetchNextPage: fetchPendingNextPage,
     fetchPreviousPage: fetchPendingPreviousPage,
-  } = useGetProjectsByApprovalStatus<PendingProject>(ProjectApprovalStatus.PENDING, debouncedSearchQuery);
+  } = useGetProjectsByApprovalStatus<PendingProject>(
+    ProjectApprovalStatus.PENDING,
+    debouncedSearchQuery,
+    10,
+    pendingSort.by,
+    pendingSort.dir
+  );
 
   const {
     projects: approvedProjects,
@@ -73,7 +96,13 @@ export default function ProjectManagement() {
     totalPages: approvedTotalPages,
     fetchNextPage: fetchApprovedNextPage,
     fetchPreviousPage: fetchApprovedPreviousPage,
-  } = useGetProjectsByApprovalStatus<ApprovedProject>(ProjectApprovalStatus.APPROVED, debouncedSearchQuery);
+  } = useGetProjectsByApprovalStatus<ApprovedProject>(
+    ProjectApprovalStatus.APPROVED,
+    debouncedSearchQuery,
+    10,
+    approvedSort.by,
+    approvedSort.dir
+  );
 
   const {
     projects: rejectedProjects,
@@ -85,7 +114,13 @@ export default function ProjectManagement() {
     totalPages: rejectedTotalPages,
     fetchNextPage: fetchRejectedNextPage,
     fetchPreviousPage: fetchRejectedPreviousPage,
-  } = useGetProjectsByApprovalStatus<RejectedProject>(ProjectApprovalStatus.REJECTED, debouncedSearchQuery);
+  } = useGetProjectsByApprovalStatus<RejectedProject>(
+    ProjectApprovalStatus.REJECTED,
+    debouncedSearchQuery,
+    10,
+    rejectedSort.by,
+    rejectedSort.dir
+  );
 
   // Reset selected projects when changing tabs or search query
   useEffect(() => {
@@ -112,6 +147,21 @@ export default function ProjectManagement() {
     } else {
       setSelectedProjects([]);
     }
+  };
+
+  const getDefaultSortDir = (column: string): 'asc' | 'desc' => {
+    const dateColumns = new Set(['submissionDate', 'approvedAt', 'rejectedAt']);
+    return dateColumns.has(column) ? 'desc' : 'asc';
+  };
+
+  const toggleSort = (
+    current: { by: string; dir: 'asc' | 'desc' },
+    column: string
+  ): { by: string; dir: 'asc' | 'desc' } => {
+    if (current.by === column) {
+      return { by: column, dir: current.dir === 'asc' ? 'desc' : 'asc' };
+    }
+    return { by: column, dir: getDefaultSortDir(column) };
   };
 
   const handleApprove = (project: PendingProject) => {
@@ -220,6 +270,9 @@ export default function ProjectManagement() {
           onViewDetails={handleViewDetails}
           onApprove={handleApprove}
           onReject={handleReject}
+          sortBy={pendingSort.by}
+          sortDir={pendingSort.dir}
+          onSortChange={(column) => setPendingSort((prev) => toggleSort(prev, column))}
           currentPage={pendingCurrentPage}
           totalPages={pendingTotalPages}
           onNextPage={fetchPendingNextPage}
@@ -238,6 +291,9 @@ export default function ProjectManagement() {
           onViewDetails={handleViewDetails}
           onToggleFeature={handleToggleFeature}
           onReject={handleReject}
+          sortBy={approvedSort.by}
+          sortDir={approvedSort.dir}
+          onSortChange={(column) => setApprovedSort((prev) => toggleSort(prev, column))}
           currentPage={approvedCurrentPage}
           totalPages={approvedTotalPages}
           onNextPage={fetchApprovedNextPage}
@@ -254,6 +310,9 @@ export default function ProjectManagement() {
         <RejectedProjectsTable
           projects={rejectedProjects}
           onViewDetails={handleViewDetails}
+          sortBy={rejectedSort.by}
+          sortDir={rejectedSort.dir}
+          onSortChange={(column) => setRejectedSort((prev) => toggleSort(prev, column))}
           currentPage={rejectedCurrentPage}
           totalPages={rejectedTotalPages}
           onNextPage={fetchRejectedNextPage}
@@ -308,6 +367,15 @@ export default function ProjectManagement() {
               <RefreshCcw />
             </Button>
 
+            {currentTab === 'pending' && isAdmin && (
+              <Button
+                variant="outline"
+                onClick={() => setDuplicateDialog(true)}
+              >
+                Reject Duplicates
+              </Button>
+            )}
+
             {currentTab === 'pending' && selectedProjects.length > 0 && (
               <Button
                 onClick={() => setBulkApproveDialog(true)}
@@ -357,6 +425,14 @@ export default function ProjectManagement() {
           onOpenChange={setBulkApproveDialog}
           projectIds={selectedProjects}
           onApproved={refreshPending}
+        />
+      )}
+
+      {duplicateDialog && (
+        <DuplicatePendingProjectsDialog
+          open={duplicateDialog}
+          onOpenChange={setDuplicateDialog}
+          onRejected={refreshPending}
         />
       )}
     </div>

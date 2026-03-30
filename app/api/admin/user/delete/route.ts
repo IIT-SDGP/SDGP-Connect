@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/prisma/prismaClient';
-import { getServerSession } from 'next-auth';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import * as z from 'zod';
 
 // Schema for validating user deletion
@@ -11,7 +12,7 @@ const userDeleteSchema = z.object({
 export async function DELETE(req: Request) {
   try {
     // Check authentication
-    const session = await getServerSession();
+    const session = await getServerSession(authOptions);
     if (!session) {
       return NextResponse.json(
         { error: "Authentication required" },
@@ -20,13 +21,7 @@ export async function DELETE(req: Request) {
     }
 
     // Check if user is admin
-    const currentUser = await prisma.user.findFirst({
-      where: {
-        id: (session.user as any).id,
-      },
-    });
-
-    if (!currentUser || currentUser.role !== 'ADMIN') {
+    if (session.user.role !== 'ADMIN') {
       return NextResponse.json(
         { error: "Only admins can delete users" },
         { status: 403 }
@@ -47,7 +42,7 @@ export async function DELETE(req: Request) {
     const { id } = validationResult.data;
 
     // Prevent deleting self
-    if (id === currentUser.id) {
+    if (id === session.user.id) {
       return NextResponse.json(
         { error: "Cannot delete your own account" },
         { status: 400 }

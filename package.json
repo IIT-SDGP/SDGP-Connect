@@ -5,10 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "next dev --turbopack",
+    "dev:webpack": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "seed": "node --loader ts-node/esm ./prisma/seed.ts",
+    "email-worker": "node --loader ts-node/esm ./scripts/email-worker.ts",
     "vercel-build": "prisma generate && yarn build"
   },
   "dependencies": {

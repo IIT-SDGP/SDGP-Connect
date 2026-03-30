@@ -1,9 +1,51 @@
 import { prisma } from '@/prisma/prismaClient';
 import { projectSubmissionSchema } from '@/validations/submit_project';
-import { AssociationType, ProjectApprovalStatus } from '@prisma/client';
+import { AssociationType, ProjectApprovalStatus, Prisma } from '@prisma/client';
 import { revalidatePath } from 'next/cache';
 import { NextResponse } from 'next/server';
 import { getModuleFromYear } from '@/lib/utils/module';
+
+function isPrivateIpv4(ip: string) {
+  const match = ip.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+  if (!match) return false;
+  const parts = match.slice(1).map((p) => Number(p));
+  if (parts.some((p) => Number.isNaN(p) || p < 0 || p > 255)) return false;
+
+  const [a, b] = parts;
+  if (a === 10) return true;
+  if (a === 127) return true;
+  if (a === 169 && b === 254) return true;
+  if (a === 192 && b === 168) return true;
+  if (a === 172 && b >= 16 && b <= 31) return true;
+  return false;
+}
+
+function normalizeAndValidateWebsiteUrl(input: string) {
+  const trimmed = input.trim();
+  if (!trimmed) return null;
+
+  let parsed: URL;
+  try {
+    parsed = new URL(trimmed);
+  } catch {
+    throw new Error("Invalid website URL");
+  }
+
+  if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+    throw new Error("Invalid website URL");
+  }
+
+  const hostname = parsed.hostname.toLowerCase();
+  if (hostname === "localhost" || hostname === "::1") {
+    throw new Error("Invalid website URL");
+  }
+  if (isPrivateIpv4(hostname)) {
+    throw new Error("Invalid website URL");
+  }
+
+  // Normalizes IDNs (e.g. loomeé.com) to punycode via WHATWG URL.
+  return parsed.toString();
+}
 
 // Handle OPTIONS requests for CORS preflight
 export async function OPTIONS() {
@@ -28,14 +70,22 @@ export async function POST(request: Request) {
     const validatedData = projectSubmissionSchema.parse(body);
 
     // Validate website field to prevent unsafe schemes
-    const website = validatedData?.metadata?.website?.trim();
-
-if (
-  website &&
-  !/^https?:\/\/(localhost|127\.0\.0\.1|[a-zA-Z0-9.-]+\.[a-z]{2,})(:\d+)?(\/\S*)?$/.test(website)
-) {
-  return NextResponse.json({ error: "Invalid website URL" }, { status: 400 });
-}
+    try {
+      const normalizedWebsite = normalizeAndValidateWebsiteUrl(
+        validatedData?.metadata?.website ?? ""
+      );
+      validatedData.metadata.website = normalizedWebsite;
+    } catch {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Invalid website URL",
+          code: "INVALID_WEBSITE_URL",
+          details: "Website URL must be a valid http(s) address.",
+        },
+        { status: 400 }
+      );
+    }
 
     // Automatically set the module field based on selected year
     if (validatedData.metadata?.sdgp_year) {
@@ -229,15 +279,57 @@ if (
       return NextResponse.json({
         success: false,
         message: 'Validation error',
+        code: "VALIDATION_ERROR",
         errors: error.errors
       }, { status: 400 });
+    }
+
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === "P2000") {
+        const column = (error.meta as any)?.column_name || (error.meta as any)?.column || "unknown";
+        return NextResponse.json(
+          {
+            success: false,
+            message: "Some input is too long",
+            code: "VALUE_TOO_LONG",
+            details: `One of the fields exceeded the allowed length (column: ${String(column)}). Please shorten it and try again.`,
+          },
+          { status: 400 }
+        );
+      }
+
+      if (error.code === "P2002") {
+        const target = (error.meta as any)?.target;
+        return NextResponse.json(
+          {
+            success: false,
+            message: "Duplicate submission",
+            code: "DUPLICATE",
+            details: target
+              ? `A record with the same value already exists (${String(target)}).`
+              : "A record with the same value already exists.",
+          },
+          { status: 409 }
+        );
+      }
+
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Database error",
+          code: "DB_ERROR",
+          details: `Request failed (${error.code}). Please try again.`,
+        },
+        { status: 500 }
+      );
     }
 
     // Return error response with CORS headers
     const response = NextResponse.json({
       success: false,
       message: 'Failed to submit project',
-      error: error.message || 'Unknown error occurred'
+      code: "SUBMISSION_FAILED",
+      details: error.message || 'Unknown error occurred'
     }, { status: 500 });
 
     // Set the CORS headers for the error response as well

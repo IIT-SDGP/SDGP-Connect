@@ -4,8 +4,8 @@ import { authOptions } from "../../../auth/[...nextauth]/route";
 
 import { ProjectApprovalStatus } from "@prisma/client";
 import { prisma } from "@/prisma/prismaClient";
-import { sendEmail } from "@/lib/email";
 import { approvedTemplate } from "@/lib/email/templates/approved";
+import { enqueueEmail } from "@/lib/email/outbox";
 
 export async function POST(req: NextRequest) {
   try {
@@ -91,13 +91,13 @@ export async function POST(req: NextRequest) {
       const projectId = content.metadata?.project_id;
       const teamEmail = content.projectDetails?.team_email;
       if (title && group_num && projectId && teamEmail) {
-        sendEmail({
+        enqueueEmail({
+          type: "PROJECT_APPROVED",
           to: teamEmail,
           subject: `Your project "${title}" has been approved!`,
           html: approvedTemplate({ group_num, title, projectId }),
-        }).catch((err) => {
-          console.error("Failed to send approval email (silent):", err);
-        });
+          meta: { projectId: String(projectId) },
+        }).catch((err) => console.error("Failed to queue approval email:", err));
       }
     }
 

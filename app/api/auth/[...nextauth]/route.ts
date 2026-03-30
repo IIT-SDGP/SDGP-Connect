@@ -16,7 +16,6 @@ interface AppUser extends NextAuthUser {
 
 export const authOptions: AuthOptions = {
   adapter: PrismaAdapter(prisma),
-
   pages: {
     signIn: "/login",
     error: "/login",
@@ -67,6 +66,14 @@ export const authOptions: AuthOptions = {
         try {
           const user = await prisma.user.findUnique({
             where: { email: credentials.email },
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              image: true,
+              password: true,
+              role: true,
+            },
           });
 
           if (!user || !user.password) return null;

@@ -10,6 +10,8 @@ import { Button } from "@/components/ui/button";
 import { ExternalLink } from "lucide-react";
 
 export default function CommunityCards({ cardVariants }: { cardVariants: any }) {
+  const repoUrl = "https://github.com/IIT-SDGP/SDGP-Connect";
+
   return (
     <motion.section
       initial="hidden"
@@ -48,9 +50,11 @@ export default function CommunityCards({ cardVariants }: { cardVariants: any }) 
               <CardDescription className="text-white/60">Dive into the codebase and see how you can contribute.</CardDescription>
             </CardHeader>
             <CardContent className="p-6 pt-0 md:p-8 md:pt-0">
-              <p className="text-white/70 mb-4">Access the full project repository on GitHub for detailed documentation and code.</p>
+              <p className="text-white/70 mb-4">
+                Access the SDGP Connect repository on GitHub for issues, discussions, documentation, and code.
+              </p>
               <Button asChild variant="outline" className="bg-white/[0.05] text-white border-white/[0.1] hover:bg-white/[0.1]">
-                <a href="https://github.com/agzaiyenth/sdgp-connect" target="_blank" rel="noopener noreferrer">
+                <a href={repoUrl} target="_blank" rel="noopener noreferrer">
                   Visit GitHub Repository <ExternalLink className="ml-2 h-4 w-4" />
                 </a>
               </Button>
