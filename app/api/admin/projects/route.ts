@@ -83,7 +83,7 @@ export const GET = async (req: NextRequest) => {
           include: {
             approved_by: {
               select: {
-                user_id: true,
+                id: true,
                 name: true
               }
             }

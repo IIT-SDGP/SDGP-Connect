@@ -5,7 +5,7 @@ import * as z from 'zod';
 
 // Schema for validating user deletion
 const userDeleteSchema = z.object({
-  user_id: z.string().uuid('Invalid user ID'),
+  id: z.string().uuid('Invalid user ID'),
 });
 
 export async function DELETE(req: Request) {
@@ -22,8 +22,7 @@ export async function DELETE(req: Request) {
     // Check if user is admin
     const currentUser = await prisma.user.findFirst({
       where: {
-        // Assuming user_id is stored in session.user.id
-        user_id: (session.user as any).id,
+        id: (session.user as any).id,
       },
     });
 
@@ -45,10 +44,10 @@ export async function DELETE(req: Request) {
       );
     }
 
-    const { user_id } = validationResult.data;
+    const { id } = validationResult.data;
 
     // Prevent deleting self
-    if (user_id === currentUser.user_id) {
+    if (id === currentUser.id) {
       return NextResponse.json(
         { error: "Cannot delete your own account" },
         { status: 400 }
@@ -58,7 +57,7 @@ export async function DELETE(req: Request) {
     // Check if user exists
     const existingUser = await prisma.user.findUnique({
       where: {
-        user_id,
+        id,
       },
     });
 
@@ -72,7 +71,7 @@ export async function DELETE(req: Request) {
     // Delete user
     await prisma.user.delete({
       where: {
-        user_id,
+        id,
       },
     });
 

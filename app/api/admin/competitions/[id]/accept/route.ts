@@ -18,7 +18,7 @@ export async function POST(
   try {
     // Verify user exists
     const user = await prisma.user.findUnique({
-      where: { user_id: session.user.id },
+      where: { id: session.user.id },
     });
     if (!user) {
       return NextResponse.json(

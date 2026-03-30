@@ -39,11 +39,15 @@ export const authOptions: AuthOptions = {
       },
       idToken: true,
       checks: ["pkce", "state"],
-      allowDangerousEmailAccountLinking: false,
+      allowDangerousEmailAccountLinking: true,
       profile(profile) {
+        const givenName = profile.given_name ?? "";
+        const familyName = profile.family_name ?? "";
+        const name = `${givenName} ${familyName}`.trim();
+
         return {
           id: profile.sub,
-          name: `${profile.given_name} ${profile.family_name}`.trim(),
+          name,
           email: profile.email,
           image: profile.picture ?? null,
           role: Role.STUDENT,

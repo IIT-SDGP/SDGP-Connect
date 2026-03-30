@@ -6,7 +6,7 @@ import { hash } from 'bcrypt';
 
 // Schema for validating user updates
 const userUpdateSchema = z.object({
-  user_id: z.string().uuid('Invalid user ID'),
+  id: z.string().uuid('Invalid user ID'),
   name: z.string().min(2, 'Name must be at least 2 characters').optional(),
   password: z.string().min(8, 'Password must be at least 8 characters').optional(),
   role: z.enum(['ADMIN', 'MODERATOR', 'DEVELOPER']).optional(),
@@ -26,8 +26,8 @@ export async function PATCH(req: Request) {
     // Check if user is admin
     const currentUser = await prisma.user.findFirst({
       where: {
-        // Assuming user_id is stored in session.user.id
-        user_id: (session.user as any).id,
+        // `id` is the NextAuth adapter primary key
+        id: (session.user as any).id,
       },
     });
 
@@ -47,12 +47,14 @@ export async function PATCH(req: Request) {
         { error: validationResult.error.errors },
         { status: 400 }
       );
-    }    const { user_id, name, password, role } = validationResult.data;
+    }
+
+    const { id, name, password, role } = validationResult.data;
 
     // Check if user exists
     const existingUser = await prisma.user.findUnique({
       where: {
-        user_id,
+        id,
       },
     });
 
@@ -74,14 +76,14 @@ export async function PATCH(req: Request) {
     // Update user
     const updatedUser = await prisma.user.update({
       where: {
-        user_id,
+        id,
       },
       data: updateData,
     });
 
     return NextResponse.json({
       user: {
-        user_id: updatedUser.user_id,
+        id: updatedUser.id,
         name: updatedUser.name,
         role: updatedUser.role,
         createdAt: updatedUser.createdAt,

@@ -25,8 +25,8 @@ export async function POST(req: Request) {
     // Check if user is admin
     const currentUser = await prisma.user.findFirst({
       where: {
-        // Assuming user_id is stored in session.user.id
-        user_id: (session.user as any).id,
+        // `id` is the NextAuth adapter primary key
+        id: (session.user as any).id,
       },
     });
 
@@ -71,7 +71,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       user: {
-        user_id: newUser.user_id,
+        id: newUser.id,
         name: newUser.name,
         role: newUser.role,
         createdAt: newUser.createdAt,

@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
       );
     }    // Check if the user exists in the database
     const user = await prisma.user.findUnique({
-      where: { user_id: userId }
+      where: { id: userId }
     });
 
     // Update status with the session.user.id, but only if user exists

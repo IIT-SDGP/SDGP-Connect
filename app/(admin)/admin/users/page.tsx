@@ -145,7 +145,7 @@ export default function UserManagement() {
     }
 
     const updateData = {
-      user_id: currentUser.user_id,
+      id: currentUser.id,
       ...data
     };
 
@@ -220,7 +220,7 @@ export default function UserManagement() {
     // Update user roles one by one
     for (const userId of selectedUsers) {
       const userData = {
-        user_id: userId,
+        id: userId,
         role: role as 'ADMIN' | 'MODERATOR' | 'DEVELOPER'
       };
 
@@ -329,7 +329,7 @@ password: ${newUserCredentials.password}`;
             </TableRow>
           ) : (
             filteredUsers.map((user) => (
-              <TableRow key={user.user_id}>                  <TableCell>{user.name}</TableCell>
+              <TableRow key={user.id}>                  <TableCell>{user.name}</TableCell>
                   <TableCell>
                     <Badge variant={
                     user.role === 'ADMIN'
@@ -364,7 +364,7 @@ password: ${newUserCredentials.password}`;
                       variant="destructive"
                       disabled={!isAdmin}
                       onClick={() => {
-                        setPendingDeleteUserId(user.user_id);
+                        setPendingDeleteUserId(user.id);
                         setDeleteUserDialog(true);
                       }}
                     >
