@@ -11,6 +11,11 @@ const sidebarItems = [
     href: '/student',
     icon: LayoutDashboard,
   },
+  {
+    title: 'Projects',
+    href: '/student/projects',
+    icon: LayoutDashboard,
+  },
 ];
 
 interface StudentSidebarProps {
@@ -52,4 +57,3 @@ export function StudentSidebar({ isOpen }: StudentSidebarProps) {
     </aside>
   );
 }
-

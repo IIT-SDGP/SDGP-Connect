@@ -137,6 +137,12 @@ enum ProjectApprovalStatus {
   REJECTED
 }
 
+enum ProjectEditStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 enum ApprovalStatus {
   PENDING
   APPROVED
@@ -215,6 +221,9 @@ model User {
   // Application relations
   approvedProjects ProjectStatus[]   @relation("ApprovedBy")
   featuredProjects ProjectMetadata[] @relation("FeaturedBy")
+  ownedProjects    ProjectMetadata[] @relation("ProjectOwner")
+  projectEditsCreated   ProjectEdit[] @relation("ProjectEditCreatedBy")
+  projectEditsReviewed  ProjectEdit[] @relation("ProjectEditReviewedBy")
   acceptedAwards   Award[]           @relation("AcceptedAwards")
   rejectedAwards   Award[]           @relation("RejectedAwards")
   acceptedCompetitions Competition[] @relation("AcceptedCompetitions")
@@ -266,6 +275,11 @@ model ProjectMetadata {
   featured_by_userId String?
   featured_by        User?           @relation("FeaturedBy", fields: [featured_by_userId], references: [id], onDelete: SetNull)
 
+  owner_userId String?
+  owner        User?           @relation("ProjectOwner", fields: [owner_userId], references: [id], onDelete: SetNull)
+
+  projectEdits ProjectEdit[] @relation("ProjectEditProject")
+
   projectContent     ProjectContent?
 
   createdAt          DateTime        @default(now())
@@ -273,6 +287,41 @@ model ProjectMetadata {
 
   @@index([project_id], name: "project_id_index")
   @@index([featured_by_userId], name: "featured_by_index")
+}
+
+model ProjectEdit {
+  id String @id @default(uuid())
+
+  // The project this edit request applies to.
+  project_id String
+  project    ProjectMetadata @relation("ProjectEditProject", fields: [project_id], references: [project_id], onDelete: Cascade)
+
+  // Student who submitted the edit request.
+  created_by_userId String
+  created_by        User   @relation("ProjectEditCreatedBy", fields: [created_by_userId], references: [id], onDelete: Cascade)
+
+  status ProjectEditStatus @default(PENDING)
+
+  // Admin/moderator who reviewed the edit.
+  reviewed_by_userId String?
+  reviewed_by        User?   @relation("ProjectEditReviewedBy", fields: [reviewed_by_userId], references: [id], onDelete: SetNull)
+
+  reviewed_at      DateTime?
+  rejected_reason  String?
+
+  // For conflict detection: the live ProjectContent.content_id this draft was based on.
+  base_content_id String?
+
+  // Full proposed project snapshot (JSON) + list of computed changes (JSON).
+  draft_snapshot Json
+  changes        Json
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([project_id])
+  @@index([created_by_userId])
+  @@index([status])
 }
 
 model ProjectContent {
