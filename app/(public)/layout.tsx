@@ -71,11 +71,12 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Geist:wght@400;700&display=swap"
         />
         <script
+          defer
           src="https://api.psycodelabs.lk/widget.js"
           data-key="pk_b3a99bccdb1c43c3d49599b7f2ad4fa3857306cd7cce0b2f"
           data-api="https://api.psycodelabs.lk"
-          async
         ></script>
+
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <ClientLayout>{children}</ClientLayout>
