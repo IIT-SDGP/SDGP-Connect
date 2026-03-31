@@ -53,9 +53,6 @@ export function InfiniteSlider({
         repeat: Infinity,
         repeatType: 'loop',
         repeatDelay: 0,
-        onRepeat: () => {
-          translation.set(from);
-        },
       });
     }
 
