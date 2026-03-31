@@ -46,6 +46,12 @@ function getQueue() {
   return new Queue(EMAIL_OUTBOX_QUEUE, { connection });
 }
 
+function kickInline(outboxId: string) {
+  void processOutboxEmail(outboxId).catch(() => {
+    // ignore
+  });
+}
+
 export async function enqueueEmail(input: QueueEmailInput) {
   const now = new Date();
   const outbox = await prisma.emailOutbox.create({
@@ -68,6 +74,7 @@ export async function enqueueEmail(input: QueueEmailInput) {
       { outboxId: outbox.id },
       { removeOnComplete: 2000, removeOnFail: 5000 }
     );
+    kickInline(outbox.id);
     return outbox;
   }
 
@@ -95,6 +102,7 @@ export async function retryOutboxEmail(outboxId: string) {
   const queue = getQueue();
   if (queue) {
     await queue.add("send", { outboxId }, { removeOnComplete: 2000, removeOnFail: 5000 });
+    kickInline(outboxId);
   } else {
     try {
       await processOutboxEmail(outboxId);
