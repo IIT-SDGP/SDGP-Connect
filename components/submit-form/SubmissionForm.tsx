@@ -1,3 +1,7 @@
+// © 2026 SDGP.lk
+// Licensed under the GNU Affero General Public License v3.0 or later,
+// with an additional restriction: Non-commercial use only.
+// See <https://www.gnu.org/licenses/agpl-3.0.html> for details.
 'use client'
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -15,7 +19,6 @@ import FormStep4 from "./FormStep4";
 import FormStep5 from "./FormStep5";
 import { toast } from "sonner";
 import { useSubmitProject } from "@/hooks/project/useSubmitProject";
-import { Loader2 } from "lucide-react";
 import useUploadImageToBlob from "@/hooks/azure/useUploadImageToBlob";
 import { UploadingSequence } from "@/components/ui/UploadingSequence";
 import { ProjectStatusEnum } from "@/types/prisma-types";
@@ -39,8 +42,8 @@ const ProjectSubmissionForm = () => {
   const { uploadImage } = useUploadImageToBlob();
   const router = useRouter();
 
-  // Use our custom submission hook
-  const { submitProject, isSubmitting, error } = useSubmitProject();
+  const { submitProject, isSubmitting } = useSubmitProject();
+
   const buildCopyPayload = (result: Partial<SubmitProjectResponse>, fallbackError?: unknown) => {
     const payload: Record<string, any> = {
       message: result.message,
@@ -73,10 +76,10 @@ const ProjectSubmissionForm = () => {
 
     const description = truncate(
       validationMessage ||
-        result.details ||
-        result.error ||
-        result.message ||
-        "There was an error submitting your project."
+      result.details ||
+      result.error ||
+      result.message ||
+      "There was an error submitting your project."
     );
 
     const copyPayload = buildCopyPayload(
@@ -115,8 +118,8 @@ const ProjectSubmissionForm = () => {
         title: "",
         subtitle: "",
         website: "",
-        cover_image: null, // Changed from placeholder URL to null
-        logo: null, // Changed from placeholder URL to null
+        cover_image: null,
+        logo: null,
       },
       projectDetails: {
         problem_statement: "",
@@ -139,12 +142,11 @@ const ProjectSubmissionForm = () => {
     mode: "onBlur",
   });
 
-  // Effect to restore slide previews when navigating back to step 2
+  // Restore slide previews when navigating back to step 2
   useEffect(() => {
     if (currentStep === 2) {
       const formSlides = methods.getValues("slides");
       if (formSlides && formSlides.length > 0 && slidePreviews.length === 0) {
-        // If form has slides but previews are empty, restore previews from form data
         const previewUrls = formSlides.map(slide => slide.slides_content);
         setSlidePreviews(previewUrls);
       }
@@ -152,16 +154,15 @@ const ProjectSubmissionForm = () => {
   }, [currentStep, methods, slidePreviews.length]);
 
   const handleNext = async () => {
-    // Updated field mapping with all required fields for each step
     const stepFieldsMap = {
       1: [
         "metadata.group_num",
         "metadata.sdgp_year",
         "metadata.title",
         "metadata.subtitle",
-        "metadata.website", // Added website validation
-        "metadata.cover_image", // Added cover image validation
-        "metadata.logo" // Added logo validation
+        "metadata.website",
+        "metadata.cover_image",
+        "metadata.logo"
       ],
       2: [
         "projectDetails.problem_statement",
@@ -179,9 +180,9 @@ const ProjectSubmissionForm = () => {
       4: [
         "socialLinks",
         "projectDetails.team_email",
-        "projectDetails.country_code",  
-        "projectDetails.phone_number", 
-        "projectDetails.team_phone"     
+        "projectDetails.country_code",
+        "projectDetails.phone_number",
+        "projectDetails.team_phone"
       ],
       5: [
         "team"
@@ -190,7 +191,6 @@ const ProjectSubmissionForm = () => {
 
     const fieldsToValidate = stepFieldsMap[currentStep as keyof typeof stepFieldsMap];
 
-    // Validate all fields for the current step
     const results = await Promise.all(
       fieldsToValidate.map(field => methods.trigger(field as any))
     );
@@ -198,17 +198,13 @@ const ProjectSubmissionForm = () => {
     const isValid = results.every(result => result === true);
 
     if (!isValid) {
-      // Get the current errors to provide more specific feedback
-      const errors = methods.formState.errors;
-
-
       toast.error("Please complete all required fields", {
         description: "Check the highlighted fields and ensure all required information is provided.",
       });
       return;
     }
 
-    // Additional validation for step 1 - ensure files are actually uploaded
+    // Step 1 — ensure files are actually selected then upload
     if (currentStep === 1) {
       if (!logoFile) {
         toast.error("Logo is required", {
@@ -223,7 +219,6 @@ const ProjectSubmissionForm = () => {
         return;
       }
 
-      // Upload images
       setUploading(true);
       try {
         const compressedLogo = await compressImageFile(logoFile, "logo");
@@ -241,7 +236,7 @@ const ProjectSubmissionForm = () => {
       setUploading(false);
     }
 
-    // Upload slides if on step 2
+    // Step 2 — upload slides
     if (currentStep === 2) {
       setUploading(true);
       try {
@@ -257,11 +252,8 @@ const ProjectSubmissionForm = () => {
             urls.map((url) => ({ slides_content: url })),
             { shouldValidate: true }
           );
-
-          // Don't clear the previews anymore - keep them for navigation
-          // Instead, update previews with the uploaded URLs
           setSlidePreviews(urls);
-          setSlideFiles([]); // Clear files but keep previews
+          setSlideFiles([]);
         }
       } catch (err) {
         toast.error("Slide image upload failed. Please try again.");
@@ -271,7 +263,7 @@ const ProjectSubmissionForm = () => {
       setUploading(false);
     }
 
-    // Upload team profile images if on step 5
+    // Step 5 — upload team profile images
     if (currentStep === 5) {
       setUploading(true);
       try {
@@ -311,57 +303,22 @@ const ProjectSubmissionForm = () => {
     }
   };
 
+  // By the time onSubmit fires, the page is guaranteed to be authenticated
+  // (the page itself redirects unauthenticated users before the form renders).
+  // All file uploads (cover, logo, slides, team profiles) have already been
+  // handled in handleNext — onSubmit only needs to call the API.
   const onSubmit: SubmitHandler<ProjectSubmissionSchema> = async (data) => {
     try {
-      // Handle team profile image uploads before final submission
-      // Check if there are any profile images to upload
-      const hasProfileImages = teamProfileFiles.some(file => file !== null);
-
-      if (hasProfileImages) {
-        setUploading(true);
-        try {
-          const currentTeam = [...data.team]; // Create a copy of the team array
-
-          const updatedTeam = await Promise.all(
-            currentTeam.map(async (member, i) => {
-              const file = teamProfileFiles[i];
-              if (file) {
-                const url = await uploadImage(file);
-                return { ...member, profile_image: url };
-              }
-              return member;
-            })
-          );
-
-          // Update the data that will be submitted with the new team data including image URLs
-          data = {
-            ...data,
-            team: updatedTeam
-          };
-
-        } catch (err) {
-          console.error("Error uploading team profile images:", err);
-          toast.error("Team profile image upload failed. Please try again.");
-          setUploading(false);
-          return;
-        }
-        setUploading(false);
-      }
-
-      // Submit the project using our hook
       const result = await submitProject(data);
 
       if (result.success && result.data?.projectId) {
-        // Show success message
         toast.success("Project Submitted!", {
           description: "Your project has been successfully submitted.",
         });
 
-        // Store the project ID for use in the success page
         setSubmittedProjectId(result.data.projectId);
         setIsSubmitted(true);
 
-        // redirect to the project page after a delay
         setTimeout(() => {
           router.push(`/project/${result?.data?.projectId}`);
         }, 3000);

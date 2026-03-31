@@ -47,6 +47,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { useToast } from '@/hooks/contact/use-toast';
 
 type Role = 'ADMIN' | 'MODERATOR' | 'DEVELOPER' | 'STUDENT';
 
@@ -82,6 +83,7 @@ export default function UserManagement() {
   const [pendingDeleteUserId, setPendingDeleteUserId] = useState<string | null>(null);
 
   const { isAdmin } = useCurrentUser();
+  const { toast } = useToast();
 
   const { users, loading: loadingUsers, refetch } = useFetchUsers();
   const { editUser } = useEditUser();
@@ -105,21 +107,47 @@ export default function UserManagement() {
 
   const handleEdit = async (data: UserFormValues) => {
     if (!isAdmin || !currentUser) return;
+
     const result = await editUser({ id: currentUser.id, ...data });
+
     if (result) {
+      toast({
+        title: 'User updated',
+        description: `${currentUser.name}'s role has been changed to ${data.role}.`,
+      });
       setEditDialog(false);
       form.reset();
       refetch();
+    } else {
+      toast({
+        title: 'Update failed',
+        description: 'Could not update the user. Please try again.',
+        variant: 'destructive',
+      });
     }
   };
 
   const confirmDelete = async () => {
-    if (pendingDeleteUserId) {
-      const result = await deleteUser(pendingDeleteUserId);
-      if (result) refetch();
-      setPendingDeleteUserId(null);
-      setDeleteUserDialog(false);
+    if (!pendingDeleteUserId) return;
+
+    const result = await deleteUser(pendingDeleteUserId);
+
+    if (result) {
+      toast({
+        title: 'User deleted',
+        description: 'The user has been removed successfully.',
+      });
+      refetch();
+    } else {
+      toast({
+        title: 'Delete failed',
+        description: 'Could not delete the user. Please try again.',
+        variant: 'destructive',
+      });
     }
+
+    setPendingDeleteUserId(null);
+    setDeleteUserDialog(false);
   };
 
   const filteredUsers = users
@@ -262,7 +290,7 @@ export default function UserManagement() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Edit User</DialogTitle>
-            <DialogDescription>Change the role for this user</DialogDescription>
+            <DialogDescription>Change the role for {currentUser?.name}</DialogDescription>
           </DialogHeader>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(handleEdit)} className="space-y-4">
@@ -291,10 +319,19 @@ export default function UserManagement() {
                 )}
               />
               <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setEditDialog(false)}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setEditDialog(false);
+                    form.reset();
+                  }}
+                >
                   Cancel
                 </Button>
-                <Button type="submit">Save Changes</Button>
+                <Button type="submit" disabled={form.formState.isSubmitting}>
+                  {form.formState.isSubmitting ? <LoadingSpinner /> : 'Save Changes'}
+                </Button>
               </DialogFooter>
             </form>
           </Form>
@@ -306,7 +343,9 @@ export default function UserManagement() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Confirm Delete</DialogTitle>
-            <DialogDescription>Are you sure you want to delete this user?</DialogDescription>
+            <DialogDescription>
+              Are you sure you want to delete this user? This action cannot be undone.
+            </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => setDeleteUserDialog(false)}>

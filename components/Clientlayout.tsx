@@ -15,26 +15,28 @@ import { SpeedInsights } from "@vercel/speed-insights/next"
 import { ExpandableChatAI } from "@/components/ai/ExpandableChatAI";
 import CookieBanner from "@/components/CookieBanner"
 import { usePathname } from "next/navigation";
+import { SessionProvider } from "next-auth/react";
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const isMobile = useIsMobile();
   const pathname = usePathname();
-  
-  // Pages that should not have horizontal margins
+
   const fullWidthPages = ['/contribute'];
   const shouldHaveMargins = !fullWidthPages.includes(pathname);
 
   return (
-    <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
-      <NavBar />
-      <div className={shouldHaveMargins ? "md:mx-24" : ""}>{children}</div>
-      {!isMobile && <CustomCursor />}
-      <Footer />
-      <CookieBanner />
-      <Analytics />
-      <SpeedInsights />
-      <Toaster />
-      <ExpandableChatAI />
-    </ThemeProvider>
+    <SessionProvider>
+      <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
+        <NavBar />
+        <div className={shouldHaveMargins ? "md:mx-24" : ""}>{children}</div>
+        {!isMobile && <CustomCursor />}
+        <Footer />
+        <CookieBanner />
+        <Analytics />
+        <SpeedInsights />
+        <Toaster />
+        <ExpandableChatAI />
+      </ThemeProvider>
+    </SessionProvider>
   );
 }

@@ -10,7 +10,7 @@ const userUpdateSchema = z.object({
   id: z.string().uuid('Invalid user ID'),
   name: z.string().min(2, 'Name must be at least 2 characters').optional(),
   password: z.string().min(8, 'Password must be at least 8 characters').optional(),
-  role: z.enum(['ADMIN', 'MODERATOR', 'DEVELOPER']).optional(),
+  role: z.enum(['ADMIN', 'MODERATOR', 'DEVELOPER', 'STUDENT']).optional(),
 });
 
 export async function PATCH(req: Request) {

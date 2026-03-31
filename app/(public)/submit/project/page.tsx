@@ -5,15 +5,24 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useSession, signIn } from 'next-auth/react'
 
 import ProjectSubmissionForm from '@/components/submit-form/SubmissionForm'
 import { MessageCircle, X } from 'lucide-react'
 
 const Page = () => {
+  const { status } = useSession()
   const [showPopup, setShowPopup] = useState(true)
   const [showTooltip, setShowTooltip] = useState(false)
   const [showHelpPopup, setShowHelpPopup] = useState(false)
   const [termsAccepted, setTermsAccepted] = useState(false)
+
+  // Redirect unauthenticated users to login, returning here after
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      signIn(undefined, { callbackUrl: '/submit/project' })
+    }
+  }, [status])
 
   const handleAgree = () => {
     setShowPopup(false)
@@ -33,6 +42,15 @@ const Page = () => {
 
   const closeHelpPopup = () => {
     setShowHelpPopup(false)
+  }
+
+  // Show a neutral loading state while session is resolving or redirecting
+  if (status === 'loading' || status === 'unauthenticated') {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <p className="text-neutral-400 text-sm">Checking authentication…</p>
+      </div>
+    )
   }
 
   return (
