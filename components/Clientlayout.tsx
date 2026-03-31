@@ -19,14 +19,15 @@ import { usePathname } from "next/navigation";
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const isMobile = useIsMobile();
   const pathname = usePathname();
+  const isHomePage = pathname === '/';
   
   // Pages that should not have horizontal margins
-  const fullWidthPages = ['/contribute'];
+  const fullWidthPages = ['/', '/contribute'];
   const shouldHaveMargins = !fullWidthPages.includes(pathname);
 
   return (
     <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
-      <NavBar />
+      {!isHomePage && <NavBar />}
       <div className={shouldHaveMargins ? "md:mx-24" : ""}>{children}</div>
       {!isMobile && <CustomCursor />}
       <Footer />
