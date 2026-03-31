@@ -5,7 +5,7 @@ interface EditUserData {
   id: string;
   name?: string;
   password?: string;
-  role?: 'ADMIN' | 'MODERATOR' | 'DEVELOPER';
+  role?: 'ADMIN' | 'MODERATOR' | 'DEVELOPER' | 'STUDENT';
 }
 
 export const useEditUser = () => {
