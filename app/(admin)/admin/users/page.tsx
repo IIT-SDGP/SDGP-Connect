@@ -5,7 +5,7 @@
 
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -45,35 +45,46 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { Copy } from "lucide-react";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { useSession } from "next-auth/react";
+import { Copy } from 'lucide-react';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { useSession } from 'next-auth/react';
 
-// Form validation schema for creating/editing users
-// Update userFormSchema to allow empty string in edit mode
+type Role = 'ADMIN' | 'MODERATOR' | 'DEVELOPER' | 'STUDENT';
+
+const ALL_ROLES: Role[] = ['ADMIN', 'MODERATOR', 'DEVELOPER', 'STUDENT'];
+
 const userFormSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   password: z
     .string()
     .min(8, 'Password must be at least 8 characters')
-    .or(z.literal(""))
-    .transform(val => val === "" ? undefined : val),
-  role: z.enum(['ADMIN', 'MODERATOR', 'DEVELOPER']),
+    .or(z.literal(''))
+    .transform((val) => (val === '' ? undefined : val)),
+  role: z.enum(['ADMIN', 'MODERATOR', 'DEVELOPER', 'STUDENT']),
 });
 
 type UserFormValues = z.infer<typeof userFormSchema>;
 
-const roles = ['ADMIN', 'MODERATOR', 'DEVELOPER'] as const;
+const roleBadgeVariant = (role: string): 'default' | 'secondary' | 'outline' | 'destructive' => {
+  switch (role) {
+    case 'ADMIN':
+      return 'default';
+    case 'MODERATOR':
+      return 'destructive';
+    case 'DEVELOPER':
+      return 'outline';
+    default:
+      return 'secondary';
+  }
+};
 
 export default function UserManagement() {
-  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [roleFilter, setRoleFilter] = useState<string | null>(null);
+  const [roleFilter, setRoleFilter] = useState<Role | null>(null);
   const [sortColumn, setSortColumn] = useState<string>('name');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [createDialog, setCreateDialog] = useState(false);
@@ -83,25 +94,21 @@ export default function UserManagement() {
   const [newUserCredentials, setNewUserCredentials] = useState<{ name: string; password: string } | null>(null);
   const [deleteUserDialog, setDeleteUserDialog] = useState(false);
   const [pendingDeleteUserId, setPendingDeleteUserId] = useState<string | null>(null);
-  const [bulkDeleteDialog, setBulkDeleteDialog] = useState(false);
-  const { data: session } = useSession();
 
-  // Authentication and user role check
+  const { data: session } = useSession();
   const { isAdmin } = useCurrentUser();
 
-  // Fetch users
-  const { users, loading: loadingUsers, error: fetchError, refetch } = useFetchUsers();
+  const { users, loading: loadingUsers, refetch } = useFetchUsers();
+  const { addUser } = useAddUser();
+  const { editUser } = useEditUser();
+  const { deleteUser } = useDeleteUser();
 
-  // User operations hooks
-  const { addUser, loading: addingUser } = useAddUser();
-  const { editUser, loading: editingUser } = useEditUser();
-  const { deleteUser, loading: deletingUser } = useDeleteUser();
   const form = useForm<UserFormValues>({
     resolver: zodResolver(userFormSchema),
     defaultValues: {
       name: '',
       password: '',
-      role: 'MODERATOR',
+      role: 'STUDENT',
     },
   });
 
@@ -113,25 +120,20 @@ export default function UserManagement() {
       setSortDirection('asc');
     }
   };
+
   const handleCreate = async (data: UserFormValues) => {
     if (!isAdmin) {
       toast.error('Only administrators can create users');
       return;
     }
-    // Ensure that a password is provided in create mode
     if (!data.password) {
       toast.error('Password is required');
       return;
     }
-    
     const result = await addUser(data as any);
     if (result) {
       setCreateDialog(false);
-      // Store credentials for sharing
-      setNewUserCredentials({
-        name: data.name,
-        password: data.password || ''
-      });
+      setNewUserCredentials({ name: data.name, password: data.password || '' });
       setShareDialog(true);
       form.reset();
       refetch();
@@ -143,107 +145,40 @@ export default function UserManagement() {
       toast.error('Only administrators can edit users');
       return;
     }
-
-    const updateData = {
-      id: currentUser.id,
-      ...data
-    };
-
-    // If password is empty, delete it from the payload
-    if (!updateData.password) {
-      delete updateData.password;
-    }
-
+    const updateData: any = { id: currentUser.id, ...data };
+    if (!updateData.password) delete updateData.password;
     const result = await editUser(updateData);
     if (result) {
       setEditDialog(false);
       form.reset();
-      refetch(); // Refresh the users list
-    }
-  };
-
-  const handleDelete = async (userId: string) => {
-    if (!isAdmin) {
-      toast.error('Only administrators can delete users');
-      return;
-    }
-    const result = await deleteUser(userId);
-    if (result) {
       refetch();
     }
   };
 
-  // New function to confirm single deletion from dialog
   const confirmDelete = async () => {
     if (pendingDeleteUserId) {
-      await handleDelete(pendingDeleteUserId);
+      const result = await deleteUser(pendingDeleteUserId);
+      if (result) refetch();
       setPendingDeleteUserId(null);
       setDeleteUserDialog(false);
     }
   };
 
-  const handleBulkDelete = () => {
-    if (!isAdmin) {
-      toast.error('Only administrators can delete users');
-      return;
-    }
-    setBulkDeleteDialog(true);
+  const copyCredentials = () => {
+    if (!newUserCredentials) return;
+    const message = `Hi ${newUserCredentials.name}!\nYour Credentials for SDGP-Connect is as below\nusername: ${newUserCredentials.name}\npassword: ${newUserCredentials.password}`;
+    navigator.clipboard.writeText(message)
+      .then(() => toast.success('Credentials copied to clipboard'))
+      .catch(() => toast.error('Failed to copy credentials'));
   };
 
-  // New function to confirm bulk deletion from dialog
-  const confirmBulkDelete = async () => {
-    let success = true;
-    for (const userId of selectedUsers) {
-      const result = await deleteUser(userId);
-      if (!result) {
-        success = false;
-      }
-    }
-    if (success) {
-      toast.success('Selected users deleted successfully');
-    } else {
-      toast.error('Some users could not be deleted');
-    }
-    setSelectedUsers([]);
-    refetch();
-    setBulkDeleteDialog(false);
-  };
-
-  const handleBulkRoleUpdate = async (role: string) => {
-    if (!isAdmin) {
-      toast.error('Only administrators can update user roles');
-      return;
-    }
-
-    let success = true;
-
-    // Update user roles one by one
-    for (const userId of selectedUsers) {
-      const userData = {
-        id: userId,
-        role: role as 'ADMIN' | 'MODERATOR' | 'DEVELOPER'
-      };
-
-      const result = await editUser(userData);
-      if (!result) {
-        success = false;
-      }
-    }
-
-    if (success) {
-      toast.success('User roles updated successfully');
-    } else {
-      toast.error('Some user roles could not be updated');
-    }
-
-    setSelectedUsers([]);
-    refetch(); // Refresh the users list
-  };  const filteredUsers = users
-    .filter(user =>
-      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.role.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredUsers = users
+    .filter(
+      (user) =>
+        user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.role.toLowerCase().includes(searchTerm.toLowerCase())
     )
-    .filter(user => !roleFilter || user.role === roleFilter)
+    .filter((user) => !roleFilter || user.role === roleFilter)
     .sort((a, b) => {
       const aValue = a[sortColumn as keyof User];
       const bValue = b[sortColumn as keyof User];
@@ -252,129 +187,137 @@ export default function UserManagement() {
         : String(bValue).localeCompare(String(aValue));
     });
 
-  // Function to copy credentials to clipboard
-  const copyCredentials = () => {
-    if (!newUserCredentials || !session?.user?.name) return;
-    
-    const message = `Hi ${newUserCredentials.name}!
-Your Credentials for SDGP-Connect is as below
-username: ${newUserCredentials.name}
-password: ${newUserCredentials.password}`;
-    
-    navigator.clipboard.writeText(message)
-      .then(() => {
-        toast.success('Credentials copied to clipboard');
-      })
-      .catch(() => {
-        toast.error('Failed to copy credentials');
-      });
-  };
+  const roleCounts = ALL_ROLES.reduce<Record<string, number>>((acc, role) => {
+    acc[role] = users.filter((u) => u.role === role).length;
+    return acc;
+  }, {});
 
   return (
-    <div className="space-y-6">      <div className="flex justify-between items-center">
-      <div>
-        <h1 className="text-3xl font-bold">User Management</h1>
-        <p className="text-muted-foreground">Manage user accounts and roles</p>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold">User Management</h1>
+          <p className="text-muted-foreground">Manage user accounts and roles</p>
+        </div>
+        <Button
+          onClick={() => {
+            if (!isAdmin) {
+              toast.error('Only administrators can create users');
+              return;
+            }
+            form.reset({ name: '', password: '', role: 'STUDENT' });
+            setCreateDialog(true);
+          }}
+          disabled={!isAdmin}
+        >
+          Create User
+        </Button>
       </div>
-      <Button
-        onClick={() => {
-          if (!isAdmin) {
-            toast.error('Only administrators can create users');
-            return;
-          }
-          setCreateDialog(true);
-        }}
-        disabled={!isAdmin}
-      >
-        Create User
-      </Button>
-    </div>
 
+      {/* Role Filter Tabs */}
+      <div className="flex gap-2 flex-wrap">
+        <Button
+          variant={roleFilter === null ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setRoleFilter(null)}
+        >
+          All
+          <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+            {users.length}
+          </span>
+        </Button>
+        {ALL_ROLES.map((role) => (
+          <Button
+            key={role}
+            variant={roleFilter === role ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setRoleFilter(role)}
+          >
+            {role}
+            <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+              {roleCounts[role] ?? 0}
+            </span>
+          </Button>
+        ))}
+      </div>
 
+      {/* Search */}
+      <Input
+        placeholder="Search by name or role..."
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        className="max-w-sm"
+      />
 
+      {/* Table */}
       <div className="rounded-md border">
         <Table>
-          <TableHeader><TableRow><TableHead
-                className="cursor-pointer"
-                onClick={() => handleSort('name')}
-              >
+          <TableHeader>
+            <TableRow>
+              <TableHead className="cursor-pointer" onClick={() => handleSort('name')}>
                 Name {sortColumn === 'name' && (sortDirection === 'asc' ? '↑' : '↓')}
               </TableHead>
-              <TableHead
-                className="cursor-pointer"
-                onClick={() => handleSort('role')}
-              >
+              <TableHead className="cursor-pointer" onClick={() => handleSort('role')}>
                 Role {sortColumn === 'role' && (sortDirection === 'asc' ? '↑' : '↓')}
               </TableHead>
-              <TableHead
-                className="cursor-pointer"
-                onClick={() => handleSort('createdAt')}
-              >
+              <TableHead className="cursor-pointer" onClick={() => handleSort('createdAt')}>
                 Created At {sortColumn === 'createdAt' && (sortDirection === 'asc' ? '↑' : '↓')}
               </TableHead>
               <TableHead>Actions</TableHead>
-            </TableRow></TableHeader>
+            </TableRow>
+          </TableHeader>
           <TableBody>
             {loadingUsers ? (
-            <TableRow>
-              <TableCell colSpan={5} className="text-center py-4">
-                <LoadingSpinner/>
-              </TableCell>
-            </TableRow>
-          ) : filteredUsers.length === 0 ? (
-            <TableRow>
-              <TableCell colSpan={5} className="text-center py-4">
-                No users found
-              </TableCell>
-            </TableRow>
-          ) : (
-            filteredUsers.map((user) => (
-              <TableRow key={user.id}>                  <TableCell>{user.name}</TableCell>
-                  <TableCell>
-                    <Badge variant={
-                    user.role === 'ADMIN'
-                        ? 'default'
-                        : 'secondary'
-                  }>
-                    {user.role}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  {format(new Date(user.createdAt), 'd MMM yyyy')}
-                </TableCell>
-                <TableCell>
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      disabled={!isAdmin}
-                      onClick={() => {                        setCurrentUser(user);
-                        form.reset({
-                          name: user.name,
-                          password: '',
-                          role: user.role as any,
-                        });
-                        setEditDialog(true);
-                      }}
-                    >
-                      Edit
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      disabled={!isAdmin}
-                      onClick={() => {
-                        setPendingDeleteUserId(user.id);
-                        setDeleteUserDialog(true);
-                      }}
-                    >
-                      Delete
-                    </Button>
-                  </div>
+              <TableRow>
+                <TableCell colSpan={4} className="text-center py-4">
+                  <LoadingSpinner />
                 </TableCell>
               </TableRow>
-            ))
-          )}
+            ) : filteredUsers.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={4} className="text-center py-4">
+                  No users found
+                </TableCell>
+              </TableRow>
+            ) : (
+              filteredUsers.map((user) => (
+                <TableRow key={user.id}>
+                  <TableCell>{user.name}</TableCell>
+                  <TableCell>
+                    <Badge variant={roleBadgeVariant(user.role)}>{user.role}</Badge>
+                  </TableCell>
+                  <TableCell>{format(new Date(user.createdAt), 'd MMM yyyy')}</TableCell>
+                  <TableCell>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={!isAdmin}
+                        onClick={() => {
+                          setCurrentUser(user);
+                          form.reset({ name: user.name, password: '', role: user.role as any });
+                          setEditDialog(true);
+                        }}
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        disabled={!isAdmin}
+                        onClick={() => {
+                          setPendingDeleteUserId(user.id);
+                          setDeleteUserDialog(true);
+                        }}
+                      >
+                        Delete
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>
@@ -384,11 +327,10 @@ password: ${newUserCredentials.password}`;
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Create User</DialogTitle>
-            <DialogDescription>
-              Add a new user to the system
-            </DialogDescription>
+            <DialogDescription>Add a new user to the system</DialogDescription>
           </DialogHeader>
-          <Form {...form}>            <form onSubmit={form.handleSubmit(handleCreate)} className="space-y-4">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleCreate)} className="space-y-4">
               <FormField
                 control={form.control}
                 name="name"
@@ -421,17 +363,14 @@ password: ${newUserCredentials.password}`;
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Role</FormLabel>
-                    <Select
-                      value={field.value}
-                      onValueChange={field.onChange}
-                    >
+                    <Select value={field.value} onValueChange={field.onChange}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {roles.map((role) => (
+                        {ALL_ROLES.map((role) => (
                           <SelectItem key={role} value={role}>
                             {role}
                           </SelectItem>
@@ -443,16 +382,10 @@ password: ${newUserCredentials.password}`;
                 )}
               />
               <DialogFooter>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setCreateDialog(false)}
-                >
+                <Button type="button" variant="outline" onClick={() => setCreateDialog(false)}>
                   Cancel
                 </Button>
-                <Button type="submit" >
-                  Create User
-                </Button>
+                <Button type="submit">Create User</Button>
               </DialogFooter>
             </form>
           </Form>
@@ -464,9 +397,7 @@ password: ${newUserCredentials.password}`;
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Edit User</DialogTitle>
-            <DialogDescription>
-              Modify user details
-            </DialogDescription>
+            <DialogDescription>Modify user details</DialogDescription>
           </DialogHeader>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(handleEdit)} className="space-y-4">
@@ -502,17 +433,14 @@ password: ${newUserCredentials.password}`;
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Role</FormLabel>
-                    <Select
-                      value={field.value}
-                      onValueChange={field.onChange}
-                    >
+                    <Select value={field.value} onValueChange={field.onChange}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {roles.map((role) => (
+                        {ALL_ROLES.map((role) => (
                           <SelectItem key={role} value={role}>
                             {role}
                           </SelectItem>
@@ -524,16 +452,10 @@ password: ${newUserCredentials.password}`;
                 )}
               />
               <DialogFooter>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setEditDialog(false)}
-                >
+                <Button type="button" variant="outline" onClick={() => setEditDialog(false)}>
                   Cancel
                 </Button>
-                <Button type="submit" >
-                  Save Changes
-                </Button>
+                <Button type="submit">Save Changes</Button>
               </DialogFooter>
             </form>
           </Form>
@@ -558,10 +480,11 @@ password: ${newUserCredentials.password}`;
                 id="credentials"
                 readOnly
                 className="h-[100px]"
-                value={newUserCredentials ? `Hi ${newUserCredentials.name}!
-Your Credentials for SDGP-Connect is
-username: ${newUserCredentials.name}
-password: ${newUserCredentials.password}` : ''}
+                value={
+                  newUserCredentials
+                    ? `Hi ${newUserCredentials.name}!\nYour Credentials for SDGP-Connect is\nusername: ${newUserCredentials.name}\npassword: ${newUserCredentials.password}`
+                    : ''
+                }
               />
             </div>
             <Button type="button" size="sm" className="px-3" onClick={copyCredentials}>
@@ -570,67 +493,25 @@ password: ${newUserCredentials.password}` : ''}
             </Button>
           </div>
           <DialogFooter className="sm:justify-start">
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => setShareDialog(false)}
-            >
+            <Button type="button" variant="secondary" onClick={() => setShareDialog(false)}>
               Close
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Single Delete Confirmation Dialog */}
+      {/* Delete Confirmation Dialog */}
       <Dialog open={deleteUserDialog} onOpenChange={setDeleteUserDialog}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Confirm Delete</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete this user?
-            </DialogDescription>
+            <DialogDescription>Are you sure you want to delete this user?</DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setDeleteUserDialog(false)}
-            >
+            <Button type="button" variant="outline" onClick={() => setDeleteUserDialog(false)}>
               Cancel
             </Button>
-            <Button
-              type="button"
-              variant="destructive"
-              onClick={confirmDelete}
-            >
-              Delete
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Bulk Delete Confirmation Dialog */}
-      <Dialog open={bulkDeleteDialog} onOpenChange={setBulkDeleteDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Confirm Bulk Delete</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete selected users?
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setBulkDeleteDialog(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              variant="destructive"
-              onClick={confirmBulkDelete}
-            >
+            <Button type="button" variant="destructive" onClick={confirmDelete}>
               Delete
             </Button>
           </DialogFooter>

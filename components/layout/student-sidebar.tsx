@@ -3,13 +3,18 @@
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import { LayoutDashboard } from 'lucide-react';
+import { LayoutDashboard, Upload } from 'lucide-react';
 
 const sidebarItems = [
   {
     title: 'Dashboard',
     href: '/student',
     icon: LayoutDashboard,
+  },
+  {
+    title: 'Submit Details',
+    href: '/submit/project',
+    icon: Upload,
   },
   {
     title: 'Projects',
