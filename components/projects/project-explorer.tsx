@@ -29,20 +29,41 @@ export default function ProjectExplorer({ currentParams, projects, isLoading, er
     const loadingRef = useRef<HTMLDivElement | null>(null);
     const [showScrollTop, setShowScrollTop] = useState(false);
 
+    // Use refs to store latest values without triggering observer recreation
+    const loadMoreRef = useRef(loadMore);
+    const hasMoreRef = useRef(hasMore);
+    const isLoadingRef = useRef(isLoading);
+
+    // Keep refs up to date
+    useEffect(() => {
+        loadMoreRef.current = loadMore;
+    }, [loadMore]);
+
+    useEffect(() => {
+        hasMoreRef.current = hasMore;
+    }, [hasMore]);
+
+    useEffect(() => {
+        isLoadingRef.current = isLoading;
+    }, [isLoading]);
+
     // Setup the intersection observer for infinite scrolling
+    // Only recreate when projects array length changes (new last element)
     const lastProjectElementRef = useCallback((node: HTMLDivElement) => {
-        if (isLoading) return;
-        
+        // Disconnect any existing observer
         if (observerRef.current) observerRef.current.disconnect();
-        
+
+        if (!node) return;
+
         observerRef.current = new IntersectionObserver(entries => {
-            if (entries[0].isIntersecting && hasMore) {
-                loadMore();
+            // Only trigger if: in view, has more pages, and not currently loading
+            if (entries[0].isIntersecting && hasMoreRef.current && !isLoadingRef.current) {
+                loadMoreRef.current();
             }
         }, { threshold: 0.5 });
-        
-        if (node) observerRef.current.observe(node);
-    }, [isLoading, hasMore, loadMore]);
+
+        observerRef.current.observe(node);
+    }, [projects.length]); // Only recreate when list length changes
 
     // Add scroll to top button functionality
     useEffect(() => {
