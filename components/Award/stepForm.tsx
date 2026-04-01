@@ -46,7 +46,6 @@ export default function Stepper({
   contentClassName = "",
   footerClassName = "",
   backButtonProps = {},
-  nextButtonProps = {},
   backButtonText = "Back",
   nextButtonText = "Continue",
   disableStepIndicators = false,
@@ -137,26 +136,36 @@ export default function Stepper({
           {stepsArray.map((_, index) => {
             const stepNumber = index + 1;
             const isNotLastStep = index < totalSteps - 1;
+            const isIndicatorLocked =
+              isCompleted || isFinalStepSubmitting || stepNumber > currentStep;
             return (
               <React.Fragment key={stepNumber}>
                 {renderStepIndicator ? (
                   renderStepIndicator({
                     step: stepNumber,
                     currentStep,
-                    onStepClick: (clicked) => {
-                      setDirection(clicked > currentStep ? 1 : -1);
-                      updateStep(clicked);
-                    },
+                    onStepClick: isIndicatorLocked
+                      ? () => {}
+                      : (clicked) => {
+                          setDirection(clicked > currentStep ? 1 : -1);
+                          updateStep(clicked);
+                        },
                   })
                 ) : (
                   <StepIndicator
                     step={stepNumber}
-                    disableStepIndicators={disableStepIndicators}
+                    disableStepIndicators={
+                      disableStepIndicators || isIndicatorLocked
+                    }
                     currentStep={currentStep}
-                    onClickStep={(clicked) => {
-                      setDirection(clicked > currentStep ? 1 : -1);
-                      updateStep(clicked);
-                    }}
+                    onClickStep={
+                      isIndicatorLocked
+                        ? () => {}
+                        : (clicked) => {
+                            setDirection(clicked > currentStep ? 1 : -1);
+                            updateStep(clicked);
+                          }
+                    }
                   />
                 )}
                 {isNotLastStep && (
@@ -210,7 +219,6 @@ export default function Stepper({
                 className={
                   isFinalStepSubmitting ? "pointer-events-none opacity-60" : ""
                 }
-                {...nextButtonProps}
               >
                 {isLastStep
                   ? isFinalStepSubmitting
@@ -350,7 +358,7 @@ function StepIndicator({
         : "complete";
 
   const handleClick = () => {
-    if (step !== currentStep && !disableStepIndicators) {
+    if (step < currentStep && !disableStepIndicators) {
       onClickStep(step);
     }
   };
@@ -358,7 +366,11 @@ function StepIndicator({
   return (
     <motion.div
       onClick={handleClick}
-      className="relative cursor-pointer outline-none focus:outline-none"
+      className={`relative outline-none focus:outline-none ${
+        step < currentStep && !disableStepIndicators
+          ? "cursor-pointer"
+          : "cursor-default"
+      }`}
       animate={status}
       initial={false}
     >
