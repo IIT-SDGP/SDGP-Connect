@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { z } from 'zod';
 import { awardSubmissionSchema, AwardSubmissionInput } from '@/validations/award';
 
 // Import upload image hook (same as project/competition)
@@ -50,8 +49,12 @@ export function useAwardSubmission() {
         body: JSON.stringify(payload),
       });
       if (!res.ok) {
-        const msg = await res.text();
-        setError(msg || 'Submission failed');
+        const responseBody = await res.json().catch(() => null);
+        const msg =
+          (responseBody && typeof responseBody.error === 'string' && responseBody.error) ||
+          (responseBody && typeof responseBody.message === 'string' && responseBody.message) ||
+          'Submission failed';
+        setError(msg);
         setIsSubmitting(false);
         return false;
       }

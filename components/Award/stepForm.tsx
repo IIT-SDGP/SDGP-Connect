@@ -2,12 +2,11 @@
 // Licensed under the GNU Affero General Public License v3.0 or later,
 // with an additional restriction: Non-commercial use only.
 // See <https://www.gnu.org/licenses/agpl-3.0.html> for details.
-'use client'
+"use client";
 import React, {
   useState,
   Children,
   useRef,
-  useLayoutEffect,
   HTMLAttributes,
   ReactNode,
   useEffect,
@@ -19,7 +18,7 @@ interface StepperProps extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode;
   initialStep?: number;
   onStepChange?: (step: number) => void;
-  onFinalStepCompleted?: () => void;
+  onFinalStepCompleted?: () => void | boolean | Promise<void | boolean>;
   stepCircleContainerClassName?: string;
   stepContainerClassName?: string;
   contentClassName?: string;
@@ -58,6 +57,7 @@ export default function Stepper({
   const [currentStep, setCurrentStep] = useState<number>(initialStep);
   const [direction, setDirection] = useState<number>(0);
   const [validationError, setValidationError] = useState<string | null>(null);
+  const [isFinalStepSubmitting, setIsFinalStepSubmitting] = useState(false);
   const stepsArray = Children.toArray(children);
   const totalSteps = stepsArray.length;
   const isCompleted = currentStep > totalSteps;
@@ -66,9 +66,7 @@ export default function Stepper({
   const updateStep = (newStep: number) => {
     setCurrentStep(newStep);
     setValidationError(null);
-    if (newStep > totalSteps) {
-      onFinalStepCompleted();
-    } else {
+    if (newStep <= totalSteps) {
       onStepChange(newStep);
     }
   };
@@ -85,7 +83,9 @@ export default function Stepper({
       if (stepValidation) {
         const { isValid, message } = stepValidation(currentStep);
         if (!isValid) {
-          setValidationError(message || 'Please complete this step before continuing.');
+          setValidationError(
+            message || "Please complete this step before continuing.",
+          );
           return;
         }
       }
@@ -94,21 +94,37 @@ export default function Stepper({
     }
   };
 
-  const handleComplete = () => {
+  const handleComplete = async () => {
+    if (isFinalStepSubmitting) return;
+
     if (stepValidation) {
       const { isValid, message } = stepValidation(currentStep);
       if (!isValid) {
-        setValidationError(message || 'Please complete this step before continuing.');
+        setValidationError(
+          message || "Please complete this step before continuing.",
+        );
         return;
       }
     }
+
+    setValidationError(null);
     setDirection(1);
-    updateStep(totalSteps + 1);
+    setIsFinalStepSubmitting(true);
+
+    try {
+      const submitResult = await onFinalStepCompleted();
+      if (submitResult === false) {
+        return;
+      }
+      updateStep(totalSteps + 1);
+    } finally {
+      setIsFinalStepSubmitting(false);
+    }
   };
 
   return (
     <div
-      className="flex min-h-full flex-1 flex-col items-center justify-center p-4 sm:aspect-[4/3] md:aspect-[2/1]"
+      className="flex min-h-full flex-1 flex-col items-center justify-center p-4 sm:aspect-4/3 md:aspect-2/1"
       {...rest}
     >
       <div
@@ -164,7 +180,9 @@ export default function Stepper({
           <div className={`px-8 pb-8 ${footerClassName}`}>
             {validationError && (
               <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
-                <p className="text-sm text-red-600 dark:text-red-400">{validationError}</p>
+                <p className="text-sm text-red-600 dark:text-red-400">
+                  {validationError}
+                </p>
               </div>
             )}
             <div
@@ -180,13 +198,26 @@ export default function Stepper({
                       ? "pointer-events-none opacity-50 text-neutral-400"
                       : "text-neutral-400 hover:text-neutral-700"
                   }`}
+                  disabled={isFinalStepSubmitting}
                   {...backButtonProps}
                 >
                   {backButtonText}
                 </button>
               )}
-            
-              <ShinyButton  onClick={isLastStep ? handleComplete : handleNext}>{isLastStep ? "Complete" : nextButtonText}</ShinyButton>
+
+              <ShinyButton
+                onClick={isLastStep ? handleComplete : handleNext}
+                className={
+                  isFinalStepSubmitting ? "pointer-events-none opacity-60" : ""
+                }
+                {...nextButtonProps}
+              >
+                {isLastStep
+                  ? isFinalStepSubmitting
+                    ? "Submitting..."
+                    : "Complete"
+                  : nextButtonText}
+              </ShinyButton>
             </div>
           </div>
         )}
@@ -247,18 +278,17 @@ function SlideTransition({
 }: SlideTransitionProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
 
- useEffect(() => {
-  const el = containerRef.current;
-  if (!el) return;
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
 
-  const resizeObserver = new ResizeObserver(() => {
-    onHeightReady(el.offsetHeight);
-  });
+    const resizeObserver = new ResizeObserver(() => {
+      onHeightReady(el.offsetHeight);
+    });
 
-  resizeObserver.observe(el);
-  return () => resizeObserver.disconnect();
-}, [onHeightReady]);
-
+    resizeObserver.observe(el);
+    return () => resizeObserver.disconnect();
+  }, [onHeightReady]);
 
   return (
     <motion.div
