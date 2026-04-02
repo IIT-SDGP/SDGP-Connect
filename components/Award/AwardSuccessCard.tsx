@@ -25,6 +25,8 @@ export function AwardSuccessCard({
   );
 
   useEffect(() => {
+    setSecondsLeft(Math.ceil(redirectDelayMs / 1000));
+
     const timer = setTimeout(() => {
       router.push(redirectTo);
     }, redirectDelayMs);
