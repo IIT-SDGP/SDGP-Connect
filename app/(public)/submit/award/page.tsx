@@ -218,9 +218,9 @@ const page = () => {
             <h2 className="text-xl font-semibold mb-4">Select Project</h2>
             <p className="text-muted-foreground mb-6">
               Choose the project you want to award
-            </p>{" "}
+            </p>
             <div className="mb-6">
-              <label className="block text-sm font-medium mb-2">Project</label>{" "}
+              <label className="block text-sm font-medium mb-2">Project</label>
               <AsyncSelect<ProjectOption>
                 fetcher={searchProjects}
                 renderOption={(project: ProjectOption) => (
@@ -273,7 +273,7 @@ const page = () => {
             <div className="mb-6">
               <label className="block text-sm font-medium mb-2">
                 Competition
-              </label>{" "}
+              </label>
               <AsyncSelect<CompetitionOption>
                 fetcher={searchCompetitions}
                 renderOption={(competition: CompetitionOption) => (
