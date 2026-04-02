@@ -32,7 +32,13 @@ export function AwardSuccessCard({
     }, redirectDelayMs);
 
     const interval = setInterval(() => {
-      setSecondsLeft((s) => Math.max(0, s - 1));
+      setSecondsLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          return 0;
+        }
+        return prev - 1;
+      });
     }, 1000);
 
     return () => {
