@@ -198,13 +198,13 @@ export default function Stepper({
             >
               {currentStep !== 1 && (
                 <button
+                  {...backButtonProps}
                   onClick={handleBack}
                   className={`duration-350 rounded px-2 py-1 transition ${
                     currentStep === 1
                       ? "pointer-events-none opacity-50 text-neutral-400"
                       : "text-neutral-400 hover:text-neutral-700"
-                  }`}
-                  {...backButtonProps}
+                  }${backButtonProps?.className ? ` ${backButtonProps.className}` : ""}`}
                   disabled={isFinalStepSubmitting || backButtonProps?.disabled}
                 >
                   {backButtonText}
