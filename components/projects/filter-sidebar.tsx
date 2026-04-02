@@ -2,13 +2,23 @@
 // Licensed under the GNU Affero General Public License v3.0 or later,
 // with an additional restriction: Non-commercial use only.
 // See <https://www.gnu.org/licenses/agpl-3.0.html> for details.
-"use client"
+"use client";
 
-import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { Check, ChevronDown, X as ClearIcon, Star } from "lucide-react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef,
+} from "react";
+import { ChevronDown, X as ClearIcon } from "lucide-react";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "../ui/collapsible";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "../ui/collapsible";
 import { cn } from "@/lib/utils";
 
 import {
@@ -17,7 +27,7 @@ import {
   projectDomainsOptions,
   sdgGoals,
   techStackOptions,
-  yearOptions
+  yearOptions,
 } from "@/lib/types/mapping";
 import { Checkbox } from "../ui/checkbox";
 import { Label } from "../ui/label";
@@ -49,12 +59,12 @@ type FeaturedSectionProps = {
 
 function FeaturedFilterSection({
   selection,
-  setSelection
+  setSelection,
 }: FeaturedSectionProps) {
   const [isOpen, setIsOpen] = useState(true);
 
   const toggleFeatured = useCallback(() => {
-    setSelection(prev => !prev);
+    setSelection((prev) => !prev);
   }, [setSelection]);
 
   return (
@@ -65,7 +75,12 @@ function FeaturedFilterSection({
           className="flex w-full justify-between p-2 font-medium hover:bg-muted/50"
         >
           Featured Projects
-          <ChevronDown className={cn("h-4 w-4 transition-transform", isOpen && "rotate-180")} />
+          <ChevronDown
+            className={cn(
+              "h-4 w-4 transition-transform",
+              isOpen && "rotate-180",
+            )}
+          />
         </Button>
       </CollapsibleTrigger>
       <CollapsibleContent className="px-2 data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up overflow-hidden">
@@ -77,8 +92,11 @@ function FeaturedFilterSection({
               onCheckedChange={toggleFeatured}
               className="flex-shrink-0"
             />
-            <Label htmlFor="featured" className="flex-grow truncate text-sm cursor-pointer">
-              Featured 
+            <Label
+              htmlFor="featured"
+              className="flex-grow truncate text-sm cursor-pointer"
+            >
+              Featured
             </Label>
           </div>
         </div>
@@ -103,27 +121,37 @@ function GenericFilterSection({
   options,
   selection,
   setSelection,
-  showIcons = false,
-  showAllOptions = false
+  showAllOptions = false,
 }: GenericSectionProps) {
   const [isOpen, setIsOpen] = useState(true);
   const [showAll, setShowAll] = useState(false);
 
   const initialOptionsCount = 5;
   // If showAllOptions is true, always show all options
-  const displayedOptions = useMemo(() =>
-    showAllOptions ? options : (showAll ? options : options.slice(0, initialOptionsCount)),
-    [options, showAll, initialOptionsCount, showAllOptions]
+  const displayedOptions = useMemo(
+    () =>
+      showAllOptions
+        ? options
+        : showAll
+          ? options
+          : options.slice(0, initialOptionsCount),
+    [options, showAll, initialOptionsCount, showAllOptions],
   );
-  const hasMore = useMemo(() => !showAllOptions && options.length > initialOptionsCount, [options, initialOptionsCount, showAllOptions]);
+  const hasMore = useMemo(
+    () => !showAllOptions && options.length > initialOptionsCount,
+    [options, initialOptionsCount, showAllOptions],
+  );
 
-  const toggleOption = useCallback((value: string) => {
-    setSelection((prev) =>
-      prev.includes(value)
-        ? prev.filter((item) => item !== value)
-        : [...prev, value]
-    );
-  }, [setSelection]);
+  const toggleOption = useCallback(
+    (value: string) => {
+      setSelection((prev) =>
+        prev.includes(value)
+          ? prev.filter((item) => item !== value)
+          : [...prev, value],
+      );
+    },
+    [setSelection],
+  );
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen} className="w-full">
@@ -133,7 +161,12 @@ function GenericFilterSection({
           className="flex w-full justify-between p-2 font-medium hover:bg-muted/50"
         >
           {title}
-          <ChevronDown className={cn("h-4 w-4 transition-transform", isOpen && "rotate-180")} />
+          <ChevronDown
+            className={cn(
+              "h-4 w-4 transition-transform",
+              isOpen && "rotate-180",
+            )}
+          />
         </Button>
       </CollapsibleTrigger>
       <CollapsibleContent className="px-2 data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up overflow-hidden">
@@ -141,14 +174,20 @@ function GenericFilterSection({
           {displayedOptions.map((option) => {
             const isSelected = selection.includes(option.value);
             return (
-              <div key={option.value} className="flex items-center gap-2 px-1 py-1">
+              <div
+                key={option.value}
+                className="flex items-center gap-2 px-1 py-1"
+              >
                 <Checkbox
                   id={option.value}
                   checked={isSelected}
                   onCheckedChange={() => toggleOption(option.value)}
                   className="flex-shrink-0"
                 />
-                <Label htmlFor={option.value} className="flex-grow truncate text-sm cursor-pointer">
+                <Label
+                  htmlFor={option.value}
+                  className="flex-grow truncate text-sm cursor-pointer"
+                >
                   {option.label}
                 </Label>
               </div>
@@ -162,7 +201,9 @@ function GenericFilterSection({
               className="w-full text-xs text-muted-foreground h-auto p-1 mt-1 justify-start"
               onClick={() => setShowAll(!showAll)}
             >
-              {showAll ? "Show less" : `Show ${options.length - initialOptionsCount} more`}
+              {showAll
+                ? "Show less"
+                : `Show ${options.length - initialOptionsCount} more`}
             </Button>
           )}
         </div>
@@ -178,20 +219,22 @@ type TechStackSectionProps = {
   setSelection: React.Dispatch<React.SetStateAction<string[]>>;
 };
 
-function TechStackSection({
-  selection,
-  setSelection
-}: TechStackSectionProps) {
+function TechStackSection({ selection, setSelection }: TechStackSectionProps) {
   const [isOpen, setIsOpen] = useState(true);
-  const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
+  const [expandedCategories, setExpandedCategories] = useState<
+    Record<string, boolean>
+  >({});
 
-  const toggleOption = useCallback((value: string) => {
-    setSelection((prev) =>
-      prev.includes(value)
-        ? prev.filter((item) => item !== value)
-        : [...prev, value]
-    );
-  }, [setSelection]);
+  const toggleOption = useCallback(
+    (value: string) => {
+      setSelection((prev) =>
+        prev.includes(value)
+          ? prev.filter((item) => item !== value)
+          : [...prev, value],
+      );
+    },
+    [setSelection],
+  );
 
   // Group tech stack options by type, memoize the result
   const grouped = useMemo(() => {
@@ -200,19 +243,23 @@ function TechStackSection({
       console.error("techStackOptions is not an array:", techStackOptions);
       return {}; // Return empty object if data is invalid
     }
-    return techStackOptions.reduce((acc, tech) => {
-      // Ensure tech object and tech.type are valid
-      if (typeof tech !== 'object' || tech === null) return acc;
-      const typeKey = typeof tech.type === 'string' && tech.type ? tech.type : 'Other';
-      if (!acc[typeKey]) {
-        acc[typeKey] = [];
-      }
-      // Ensure tech.value is valid before pushing
-      if (typeof tech.value === 'string') {
-        acc[typeKey].push(tech);
-      }
-      return acc;
-    }, {} as Record<string, Option[]>); // Type the accumulator
+    return techStackOptions.reduce(
+      (acc, tech) => {
+        // Ensure tech object and tech.type are valid
+        if (typeof tech !== "object" || tech === null) return acc;
+        const typeKey =
+          typeof tech.type === "string" && tech.type ? tech.type : "Other";
+        if (!acc[typeKey]) {
+          acc[typeKey] = [];
+        }
+        // Ensure tech.value is valid before pushing
+        if (typeof tech.value === "string") {
+          acc[typeKey].push(tech);
+        }
+        return acc;
+      },
+      {} as Record<string, Option[]>,
+    ); // Type the accumulator
   }, []); // Dependency array is empty as techStackOptions is imported
 
   const initialOptionsCount = 5;
@@ -225,36 +272,52 @@ function TechStackSection({
           className="flex w-full justify-between p-2 font-medium hover:bg-muted/50"
         >
           Tech Stack
-          <ChevronDown className={cn("h-4 w-4 transition-transform", isOpen && "rotate-180")} />
+          <ChevronDown
+            className={cn(
+              "h-4 w-4 transition-transform",
+              isOpen && "rotate-180",
+            )}
+          />
         </Button>
       </CollapsibleTrigger>
       <CollapsibleContent className="px-2 data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up overflow-hidden">
         <div className="pt-1 pb-2 space-y-3">
           {Object.entries(grouped).map(([category, options]) => {
             const isExpanded = expandedCategories[category] ?? false; // Use nullish coalescing
-            const displayed = isExpanded ? options : options.slice(0, initialOptionsCount);
+            const displayed = isExpanded
+              ? options
+              : options.slice(0, initialOptionsCount);
             const hasMore = options.length > initialOptionsCount;
 
             return (
               <div key={category} className="space-y-1">
-                <h4 className="text-xs font-semibold text-muted-foreground px-1 uppercase tracking-wider">{category}</h4>
+                <h4 className="text-xs font-semibold text-muted-foreground px-1 uppercase tracking-wider">
+                  {category}
+                </h4>
                 {displayed.map((option) => {
                   const Icon = option.icon;
                   const isSelected = selection.includes(option.value);
                   return (
-                    <div key={option.value} className="flex items-center gap-2 px-1 py-1">
-                    <Checkbox
-                      id={option.value}
-                      checked={isSelected}
-                      onCheckedChange={() => toggleOption(option.value)}
-                      className="h-4 w-4"
-                    />
-                    {Icon && <Icon className="h-4 w-4 text-muted-foreground flex-shrink-0" />}
-                    <Label htmlFor={option.value} className="flex-grow truncate text-sm cursor-pointer">
-                      {option.label}
-                    </Label>
-                  </div>
-                  
+                    <div
+                      key={option.value}
+                      className="flex items-center gap-2 px-1 py-1"
+                    >
+                      <Checkbox
+                        id={option.value}
+                        checked={isSelected}
+                        onCheckedChange={() => toggleOption(option.value)}
+                        className="h-4 w-4"
+                      />
+                      {Icon && (
+                        <Icon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                      )}
+                      <Label
+                        htmlFor={option.value}
+                        className="flex-grow truncate text-sm cursor-pointer"
+                      >
+                        {option.label}
+                      </Label>
+                    </div>
                   );
                 })}
                 {hasMore && (
@@ -265,11 +328,13 @@ function TechStackSection({
                     onClick={() =>
                       setExpandedCategories((prev) => ({
                         ...prev,
-                        [category]: !isExpanded
+                        [category]: !isExpanded,
                       }))
                     }
                   >
-                    {isExpanded ? "Show less" : `Show ${options.length - initialOptionsCount} more`}
+                    {isExpanded
+                      ? "Show less"
+                      : `Show ${options.length - initialOptionsCount} more`}
                   </Button>
                 )}
               </div>
@@ -292,27 +357,48 @@ interface FilterSidebarProps {
 // --- FilterSidebar Component ---
 export default function FilterSidebar({
   onFilterChange,
-  initialFilters
+  initialFilters,
 }: FilterSidebarProps) {
   // Internal state for each filter category, initialized from props
-  const [featuredOnly, setFeaturedOnly] = useState<boolean>(() => initialFilters.featured || false);
-  const [selectedStatuses, setSelectedStatuses] = useState<string[]>(() => initialFilters.status || []);
-  const [selectedYears, setSelectedYears] = useState<string[]>(() => initialFilters.years || []);
-  const [selectedProjectTypes, setSelectedProjectTypes] = useState<string[]>(() => initialFilters.projectTypes || []);
-  const [selectedDomains, setSelectedDomains] = useState<string[]>(() => initialFilters.domains || []);
-  const [selectedSDGs, setSelectedSDGs] = useState<string[]>(() => initialFilters.sdgGoals || []);
-  const [selectedTechStack, setSelectedTechStack] = useState<string[]>(() => initialFilters.techStack || []);
+  const [featuredOnly, setFeaturedOnly] = useState<boolean>(
+    () => initialFilters.featured || false,
+  );
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>(
+    () => initialFilters.status || [],
+  );
+  const [selectedYears, setSelectedYears] = useState<string[]>(
+    () => initialFilters.years || [],
+  );
+  const [selectedProjectTypes, setSelectedProjectTypes] = useState<string[]>(
+    () => initialFilters.projectTypes || [],
+  );
+  const [selectedDomains, setSelectedDomains] = useState<string[]>(
+    () => initialFilters.domains || [],
+  );
+  const [selectedSDGs, setSelectedSDGs] = useState<string[]>(
+    () => initialFilters.sdgGoals || [],
+  );
+  const [selectedTechStack, setSelectedTechStack] = useState<string[]>(
+    () => initialFilters.techStack || [],
+  );
+
+  // Use a ref for onFilterChange to avoid re-triggering when the parent's
+  // callback identity changes (e.g., on page navigation)
+  const onFilterChangeRef = useRef(onFilterChange);
+  useEffect(() => {
+    onFilterChangeRef.current = onFilterChange;
+  }, [onFilterChange]);
 
   // Memoized callback to notify the parent component of filter changes
   const notifyFilterChange = useCallback(() => {
-    onFilterChange({
+    onFilterChangeRef.current({
       featured: featuredOnly,
       status: selectedStatuses,
       years: selectedYears,
       projectTypes: selectedProjectTypes,
       domains: selectedDomains,
-      sdgGoals: selectedSDGs, // Pass the raw value (e.g., 'GOAL_1')
-      techStack: selectedTechStack
+      sdgGoals: selectedSDGs,
+      techStack: selectedTechStack,
     });
   }, [
     featuredOnly,
@@ -322,19 +408,44 @@ export default function FilterSidebar({
     selectedDomains,
     selectedSDGs,
     selectedTechStack,
-    onFilterChange // Include onFilterChange in dependencies
+    // onFilterChange removed — using ref instead
   ]);
+
+  // Track if this is the initial mount - skip first notification
+  const isInitialMount = useRef(true);
+  // Track the previous initialFilters to detect URL-driven changes
+  const prevInitialFiltersRef = useRef(initialFilters);
 
   // Effect to call the notification callback when any internal filter state changes
   useEffect(() => {
+    // Skip on initial mount
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+
+    // Skip if initialFilters just changed (URL-driven update, not user interaction)
+    // Compare by checking if all filter arrays are the same as the previous initialFilters
+    const urlJustChanged = prevInitialFiltersRef.current !== initialFilters;
+
+    if (urlJustChanged) {
+      // URL changed, update the ref but don't notify (not a user action)
+      prevInitialFiltersRef.current = initialFilters;
+      return;
+    }
+
     notifyFilterChange();
-  }, [notifyFilterChange]); // Dependency is the memoized callback
+  }, [notifyFilterChange, initialFilters]);
 
   // Effect to update internal state if the initialFilters prop changes (e.g., from URL)
   useEffect(() => {
     // Helper to compare arrays, prevents unnecessary state updates
-    const arraysAreEqual = (a: string[] | undefined, b: string[] | undefined): boolean =>
-      JSON.stringify(a?.sort() || []) === JSON.stringify(b?.sort() || []);
+    const arraysAreEqual = (
+      a: string[] | undefined,
+      b: string[] | undefined,
+    ): boolean =>
+      JSON.stringify([...(a || [])].sort()) ===
+      JSON.stringify([...(b || [])].sort());
 
     if (initialFilters.featured !== featuredOnly) {
       setFeaturedOnly(initialFilters.featured || false);
@@ -364,13 +475,19 @@ export default function FilterSidebar({
   // Map SDG goals for the filter section, memoized
   const sdgOptions: ReadonlyArray<Option> = useMemo(() => {
     // Ensure sdgGoals is an array of objects with a 'name' property
-    if (!Array.isArray(sdgGoals) || !sdgGoals.every(g => typeof g === 'object' && g !== null && typeof g.name === 'string')) {
+    if (
+      !Array.isArray(sdgGoals) ||
+      !sdgGoals.every(
+        (g) =>
+          typeof g === "object" && g !== null && typeof g.name === "string",
+      )
+    ) {
       console.error("Invalid sdgGoals data structure:", sdgGoals);
       return [];
     }
     return sdgGoals.map((goal) => ({
       value: goal.name, // Use the name (e.g., 'GOAL_1') as the value
-      label: goal.name.replace(/_/g, " ").replace(/^GOAL /i, '') // Make label readable (e.g., '1')
+      label: goal.name.replace(/_/g, " ").replace(/^GOAL /i, ""), // Make label readable (e.g., '1')
     }));
   }, []); // Depends on imported sdgGoals
 
@@ -383,9 +500,13 @@ export default function FilterSidebar({
       ...projectTypeOptions,
       ...projectDomainsOptions,
       ...sdgOptions, // Use the mapped sdgOptions
-      ...techStackOptions
-    ].forEach(opt => {
-      if (opt && typeof opt.value === 'string' && typeof opt.label === 'string') {
+      ...techStackOptions,
+    ].forEach((opt) => {
+      if (
+        opt &&
+        typeof opt.value === "string" &&
+        typeof opt.label === "string"
+      ) {
         map.set(opt.value, opt.label);
       }
     });
@@ -395,24 +516,61 @@ export default function FilterSidebar({
   // Create a list of active filters with their labels for display, memoized
   const activeFiltersList = useMemo(() => {
     const filters = [];
-    
+
     // Add featured filter if active
     if (featuredOnly) {
-      filters.push({ type: 'featured' as keyof FilterState, value: 'true', label: 'Featured Only' });
+      filters.push({
+        type: "featured" as keyof FilterState,
+        value: "true",
+        label: "Featured Only",
+      });
     }
-    
+
     // Add other filters
     filters.push(
-      ...selectedStatuses.map(value => ({ type: 'status' as keyof FilterState, value, label: labelMap.get(value) ?? value })),
-      ...selectedYears.map(value => ({ type: 'years' as keyof FilterState, value, label: value })), // Year value is the label
-      ...selectedProjectTypes.map(value => ({ type: 'projectTypes' as keyof FilterState, value, label: labelMap.get(value) ?? value })),
-      ...selectedDomains.map(value => ({ type: 'domains' as keyof FilterState, value, label: labelMap.get(value) ?? value })),
-      ...selectedSDGs.map(value => ({ type: 'sdgGoals' as keyof FilterState, value, label: labelMap.get(value) ?? value })), // Use sdgOptions label
-      ...selectedTechStack.map(value => ({ type: 'techStack' as keyof FilterState, value, label: labelMap.get(value) ?? value })),
+      ...selectedStatuses.map((value) => ({
+        type: "status" as keyof FilterState,
+        value,
+        label: labelMap.get(value) ?? value,
+      })),
+      ...selectedYears.map((value) => ({
+        type: "years" as keyof FilterState,
+        value,
+        label: value,
+      })), // Year value is the label
+      ...selectedProjectTypes.map((value) => ({
+        type: "projectTypes" as keyof FilterState,
+        value,
+        label: labelMap.get(value) ?? value,
+      })),
+      ...selectedDomains.map((value) => ({
+        type: "domains" as keyof FilterState,
+        value,
+        label: labelMap.get(value) ?? value,
+      })),
+      ...selectedSDGs.map((value) => ({
+        type: "sdgGoals" as keyof FilterState,
+        value,
+        label: labelMap.get(value) ?? value,
+      })), // Use sdgOptions label
+      ...selectedTechStack.map((value) => ({
+        type: "techStack" as keyof FilterState,
+        value,
+        label: labelMap.get(value) ?? value,
+      })),
     );
-    
+
     return filters;
-  }, [featuredOnly, selectedStatuses, selectedYears, selectedProjectTypes, selectedDomains, selectedSDGs, selectedTechStack, labelMap]);
+  }, [
+    featuredOnly,
+    selectedStatuses,
+    selectedYears,
+    selectedProjectTypes,
+    selectedDomains,
+    selectedSDGs,
+    selectedTechStack,
+    labelMap,
+  ]);
 
   const hasActiveFilters = activeFiltersList.length > 0;
 
@@ -431,26 +589,30 @@ export default function FilterSidebar({
   }, []);
 
   // Callback to remove a single specific filter internally
-  const removeFilter = useCallback((filterType: keyof FilterState, filterValue: string) => {
-    if (filterType === 'featured') {
-      setFeaturedOnly(false);
-      return;
-    }
+  const removeFilter = useCallback(
+    (filterType: keyof FilterState, filterValue: string) => {
+      if (filterType === "featured") {
+        setFeaturedOnly(false);
+        return;
+      }
 
-    const setterMap = {
-      status: setSelectedStatuses,
-      years: setSelectedYears,
-      projectTypes: setSelectedProjectTypes,
-      domains: setSelectedDomains,
-      sdgGoals: setSelectedSDGs,
-      techStack: setSelectedTechStack,
-    };
-    const setter = setterMap[filterType as Exclude<keyof FilterState, 'featured'>];
-    if (setter) {
-      setter(prev => prev.filter(f => f !== filterValue));
-    }
-    // Parent notification happens via useEffect watching state
-  }, []);
+      const setterMap = {
+        status: setSelectedStatuses,
+        years: setSelectedYears,
+        projectTypes: setSelectedProjectTypes,
+        domains: setSelectedDomains,
+        sdgGoals: setSelectedSDGs,
+        techStack: setSelectedTechStack,
+      };
+      const setter =
+        setterMap[filterType as Exclude<keyof FilterState, "featured">];
+      if (setter) {
+        setter((prev) => prev.filter((f) => f !== filterValue));
+      }
+      // Parent notification happens via useEffect watching state
+    },
+    [],
+  );
 
   // --- JSX Rendering ---
   return (
@@ -459,7 +621,12 @@ export default function FilterSidebar({
       <div className="flex justify-between items-center mb-3 pb-2 border-b">
         <h3 className="font-semibold text-base">Filters</h3>
         {hasActiveFilters && (
-          <Button variant="ghost" size="sm" onClick={clearFilters} className="text-xs h-7 text-muted-foreground hover:text-foreground">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={clearFilters}
+            className="text-xs h-7 text-muted-foreground hover:text-foreground"
+          >
             Clear all
           </Button>
         )}
@@ -469,7 +636,11 @@ export default function FilterSidebar({
       {hasActiveFilters && (
         <div className="flex flex-wrap gap-1 mb-3 flex-shrink-0">
           {activeFiltersList.map((filter) => (
-            <Badge key={`${filter.type}-${filter.value}`} variant="secondary" className="flex items-center gap-1 pr-0.5">
+            <Badge
+              key={`${filter.type}-${filter.value}`}
+              variant="secondary"
+              className="flex items-center gap-1 pr-0.5"
+            >
               <span className="text-xs">{filter.label}</span>
               <Button
                 variant="ghost"
