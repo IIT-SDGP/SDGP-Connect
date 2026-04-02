@@ -214,6 +214,7 @@ export default function Stepper({
               <ShinyButton
                 {...nextButtonProps}
                 onClick={isLastStep ? handleComplete : handleNext}
+                disabled={isFinalStepSubmitting || nextButtonProps?.disabled}
                 className={`${isFinalStepSubmitting ? "pointer-events-none opacity-60" : ""}${nextButtonProps?.className ? ` ${nextButtonProps.className}` : ""}`}
               >
                 {isLastStep
