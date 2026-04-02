@@ -4,88 +4,75 @@
 // See <https://www.gnu.org/licenses/agpl-3.0.html> for details.
 
 import React from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import { normalizeMarkdownContent } from '@/components/ai/markdown-utils';
 
 interface MarkdownAnswerProps {
   content: string;
 }
 
-const parseMarkdown = (text: string): React.ReactElement => {
-  const lines = text.split('\n');
-  const elements: React.ReactElement[] = [];
-  let currentList: string[] = [];
-  let listKey = 0;
-
-  const flushList = () => {
-    if (currentList.length > 0) {
-      elements.push(
-        <ul key={`list-${listKey++}`} className="list-disc ml-6 mb-4 space-y-1">
-          {currentList.map((item, idx) => (
-            <li key={idx}>{item}</li>
-          ))}
-        </ul>
-      );
-      currentList = [];
-    }
-  };
-
-  lines.forEach((line, index) => {
-    const trimmedLine = line.trim();
-    
-    const numberedMatch = trimmedLine.match(/^(\d+)\.\s*(.+)$/);
-    if (numberedMatch) {
-      flushList();
-      elements.push(
-        <div key={index} className="mb-2">
-          <span className="font-semibold mr-2">{numberedMatch[1]}.</span>
-          <span>{numberedMatch[2]}</span>
-        </div>
-      );
-      return;
-    }
-
-    // Handle bullet points (* or -)
-    const bulletMatch = trimmedLine.match(/^[*-]\s*(.+)$/);
-    if (bulletMatch) {
-      currentList.push(bulletMatch[1]);
-      return;
-    }
-
-    flushList();
-
-    if (!trimmedLine) {
-      elements.push(<br key={index} />);
-      return;
-    }
-
-    // Handle bold text (**text**)
-    const boldRegex = /\*\*([^*]+)\*\*/g;
-    const parts = trimmedLine.split(boldRegex);
-    const formattedLine = parts.map((part, partIndex) => {
-      if (partIndex % 2 === 1) {
-        return <strong key={partIndex} className="font-semibold">{part}</strong>;
-      }
-      return part;
-    });
-
-    elements.push(
-      <p key={index} className="mb-3 leading-relaxed">
-        {formattedLine}
-      </p>
-    );
-  });
-
-  flushList();
-  return <div className="space-y-2">{elements}</div>;
-};
-
 export function MarkdownAnswer({ content }: MarkdownAnswerProps) {
-  const thinkMatch = content.match(/<think>([\s\S]*?)<\/think>/);
-  const think = thinkMatch ? thinkMatch[1].trim() : null;
-  const mainContent = thinkMatch ? content.replace(thinkMatch[0], "") : content;
+  const mainContent = normalizeMarkdownContent(content);
 
   return (
-    <div className="prose max-w-none">
-      {parseMarkdown(mainContent)}
+    <div className="prose prose-sm max-w-none dark:prose-invert">
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
+        components={{
+          // Headings
+          h1: ({ ...props }) => <h1 className="text-2xl font-bold mb-3 mt-4" {...props} />,
+          h2: ({ ...props }) => <h2 className="text-xl font-bold mb-2 mt-3" {...props} />,
+          h3: ({ ...props }) => <h3 className="text-lg font-semibold mb-2 mt-3" {...props} />,
+          h4: ({ ...props }) => <h4 className="text-base font-semibold mb-2 mt-2" {...props} />,
+
+          // Paragraphs
+          p: ({ ...props }) => <p className="mb-3 leading-relaxed" {...props} />,
+
+          // Lists
+          ul: ({ ...props }) => <ul className="list-disc ml-6 mb-4 space-y-1" {...props} />,
+          ol: ({ ...props }) => <ol className="list-decimal ml-6 mb-4 space-y-1" {...props} />,
+          li: ({ ...props }) => <li className="leading-relaxed" {...props} />,
+
+          // Emphasis
+          strong: ({ ...props }) => <strong className="font-semibold" {...props} />,
+          em: ({ ...props }) => <em className="italic" {...props} />,
+
+          // Code
+          code: ({ className, children, ...props }) => {
+            const isInline = !className;
+            return isInline ? (
+              <code className="bg-muted px-1.5 py-0.5 rounded text-sm font-mono" {...props}>
+                {children}
+              </code>
+            ) : (
+              <code className="block bg-muted p-3 rounded-lg text-sm font-mono overflow-x-auto mb-4" {...props}>
+                {children}
+              </code>
+            );
+          },
+
+          // Links
+          a: ({ ...props }) => (
+            <a
+              className="text-primary hover:underline"
+              target="_blank"
+              rel="noopener noreferrer"
+              {...props}
+            />
+          ),
+
+          // Blockquotes
+          blockquote: ({ ...props }) => (
+            <blockquote className="border-l-4 border-muted pl-4 italic my-4" {...props} />
+          ),
+
+          // Horizontal rule
+          hr: ({ ...props }) => <hr className="my-4 border-muted" {...props} />,
+        }}
+      >
+        {mainContent}
+      </ReactMarkdown>
     </div>
   );
 }
