@@ -204,8 +204,8 @@ export default function Stepper({
                       ? "pointer-events-none opacity-50 text-neutral-400"
                       : "text-neutral-400 hover:text-neutral-700"
                   }`}
-                  disabled={isFinalStepSubmitting}
                   {...backButtonProps}
+                  disabled={isFinalStepSubmitting || backButtonProps?.disabled}
                 >
                   {backButtonText}
                 </button>
