@@ -26,7 +26,7 @@ interface StepperProps extends HTMLAttributes<HTMLDivElement> {
   backButtonProps?: React.ButtonHTMLAttributes<HTMLButtonElement>;
   nextButtonProps?: Omit<
     React.ComponentPropsWithoutRef<typeof ShinyButton>,
-    "children"
+    "children" | "onClick"
   >;
   backButtonText?: string;
   nextButtonText?: string;
