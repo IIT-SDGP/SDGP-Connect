@@ -4,6 +4,10 @@
 // See <https://www.gnu.org/licenses/agpl-3.0.html> for details.
 
 import type { Metadata } from 'next'
+import { redirect } from 'next/navigation'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/app/api/auth/[...nextauth]/route'
+import { Role } from '@/types/prisma-types'
 import { Rocket, Trophy, Award } from 'lucide-react'
 import StudentDashboardClient from '@/components/dashboard/StudentDashboardClient'
 
@@ -38,6 +42,18 @@ const actionCards = [
   },
 ]
 
-export default function StudentDashboardPage() {
+export default async function StudentDashboardPage() {
+  const session = await getServerSession(authOptions)
+
+  // Must be authenticated
+  if (!session?.user) {
+    redirect('/login')
+  }
+
+  // Must be a STUDENT
+  if (session.user.role !== Role.STUDENT) {
+    redirect('/unauthorized')
+  }
+
   return <StudentDashboardClient actionCards={actionCards} />
 }

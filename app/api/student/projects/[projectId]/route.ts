@@ -1,3 +1,8 @@
+// © 2026 SDGP.lk
+// Licensed under the GNU Affero General Public License v3.0 or later,
+// with an additional restriction: Non-commercial use only.
+// See <https://www.gnu.org/licenses/agpl-3.0.html> for details.
+
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
@@ -128,6 +133,7 @@ export async function GET(
         }
         : null,
       approvalStatus: projectMetadata.projectContent.status.approved_status,
+      memberIds: [projectMetadata.owner_userId],
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
