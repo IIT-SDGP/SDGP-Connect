@@ -11,7 +11,7 @@ import React, {
   ReactNode,
   useEffect,
 } from "react";
-import { motion, AnimatePresence, Variants } from "framer-motion";
+import { motion, AnimatePresence, Variants, MotionProps } from "framer-motion";
 import { ShinyButton } from "../magicui/shiny-button";
 
 interface StepperProps extends HTMLAttributes<HTMLDivElement> {
@@ -24,7 +24,10 @@ interface StepperProps extends HTMLAttributes<HTMLDivElement> {
   contentClassName?: string;
   footerClassName?: string;
   backButtonProps?: React.ButtonHTMLAttributes<HTMLButtonElement>;
-  nextButtonProps?: React.ButtonHTMLAttributes<HTMLButtonElement>;
+  nextButtonProps?: Omit<
+    React.ButtonHTMLAttributes<HTMLButtonElement>,
+    keyof MotionProps
+  >;
   backButtonText?: string;
   nextButtonText?: string;
   disableStepIndicators?: boolean;
