@@ -4,7 +4,7 @@
 // See <https://www.gnu.org/licenses/agpl-3.0.html> for details.
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { CheckCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -20,13 +20,23 @@ export function AwardSuccessCard({
   redirectDelayMs = 5000,
 }: AwardSuccessCardProps) {
   const router = useRouter();
+  const [secondsLeft, setSecondsLeft] = useState(
+    Math.ceil(redirectDelayMs / 1000),
+  );
 
   useEffect(() => {
     const timer = setTimeout(() => {
       router.push(redirectTo);
     }, redirectDelayMs);
 
-    return () => clearTimeout(timer);
+    const interval = setInterval(() => {
+      setSecondsLeft((s) => Math.max(0, s - 1));
+    }, 1000);
+
+    return () => {
+      clearTimeout(timer);
+      clearInterval(interval);
+    };
   }, [router, redirectTo, redirectDelayMs]);
 
   return (
@@ -71,7 +81,7 @@ export function AwardSuccessCard({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
         >
-          Redirecting in 5 seconds...
+          Redirecting in {secondsLeft} second{secondsLeft !== 1 ? "s" : ""}...
         </motion.p>
 
         <motion.div
