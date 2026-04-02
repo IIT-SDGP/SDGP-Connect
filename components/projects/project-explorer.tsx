@@ -3,6 +3,8 @@
 // with an additional restriction: Non-commercial use only.
 // See <https://www.gnu.org/licenses/agpl-3.0.html> for details.
 // filepath: d:\MyProjects\LEXi\SDGP-Connect\components\projects\project-explorer.tsx
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
 import { Skeleton } from "../ui/skeleton";
@@ -18,7 +20,6 @@ interface ProjectExplorerProps {
   projects: any[];
   isLoading: boolean;
   error: string | null;
-  meta: any;
   hasMore: boolean;
   loadMore: () => void;
 }
@@ -28,7 +29,6 @@ export default function ProjectExplorer({
   projects,
   isLoading,
   error,
-  meta,
   hasMore,
   loadMore,
 }: ProjectExplorerProps) {
@@ -72,6 +72,8 @@ export default function ProjectExplorer({
             hasMoreRef.current &&
             !isLoadingRef.current
           ) {
+            // Immediately mark as loading to prevent duplicate calls
+            isLoadingRef.current = true;
             loadMoreRef.current();
           }
         },

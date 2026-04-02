@@ -53,6 +53,8 @@ export default function AwardsPage() {
     observerRef.current = new IntersectionObserver((entries) => {
       const target = entries[0]
       if (target.isIntersecting && hasMoreRef.current && !isLoadingRef.current) {
+        // Immediate in-flight guard to prevent multiple rapid fetchMore calls
+        isLoadingRef.current = true
         fetchMoreRef.current()
       }
     }, option)
