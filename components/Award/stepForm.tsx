@@ -144,6 +144,7 @@ export default function Stepper({
                     step: stepNumber,
                     currentStep,
                     onStepClick: (clicked) => {
+                      if (isFinalStepSubmitting) return;
                       setDirection(clicked > currentStep ? 1 : -1);
                       updateStep(clicked);
                     },
@@ -151,7 +152,9 @@ export default function Stepper({
                 ) : (
                   <StepIndicator
                     step={stepNumber}
-                    disableStepIndicators={disableStepIndicators}
+                    disableStepIndicators={
+                      disableStepIndicators || isFinalStepSubmitting
+                    }
                     currentStep={currentStep}
                     onClickStep={(clicked) => {
                       setDirection(clicked > currentStep ? 1 : -1);
