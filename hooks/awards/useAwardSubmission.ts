@@ -49,11 +49,34 @@ export function useAwardSubmission() {
         body: JSON.stringify(payload),
       });
       if (!res.ok) {
-        const responseBody = await res.json().catch(() => null);
-        const msg =
-          (responseBody && typeof responseBody.error === 'string' && responseBody.error) ||
-          (responseBody && typeof responseBody.message === 'string' && responseBody.message) ||
-          'Submission failed';
+        const contentType = res.headers.get('content-type') || '';
+        const responseText = await res.text().catch(() => '');
+        let msg = 'Submission failed';
+
+        if (responseText.trim()) {
+          if (contentType.includes('application/json')) {
+            try {
+              const responseBody = JSON.parse(responseText) as unknown;
+              if (responseBody && typeof responseBody === 'object') {
+                const body = responseBody as { error?: unknown; message?: unknown };
+                if (typeof body.error === 'string') {
+                  msg = body.error;
+                } else if (typeof body.message === 'string') {
+                  msg = body.message;
+                } else {
+                  msg = responseText.trim();
+                }
+              } else {
+                msg = responseText.trim();
+              }
+            } catch {
+              msg = responseText.trim();
+            }
+          } else {
+            msg = responseText.trim();
+          }
+        }
+
         setError(msg);
         setIsSubmitting(false);
         return false;
