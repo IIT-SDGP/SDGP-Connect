@@ -2,7 +2,9 @@
 // Licensed under the GNU Affero General Public License v3.0 or later,
 // with an additional restriction: Non-commercial use only.
 // See <https://www.gnu.org/licenses/agpl-3.0.html> for details.
+// filepath: d:\MyProjects\LEXi\SDGP-Connect\components\projects\project-explorer.tsx
 "use client";
+
 import Link from "next/link";
 import Image from "next/image";
 import { Skeleton } from "../ui/skeleton";
