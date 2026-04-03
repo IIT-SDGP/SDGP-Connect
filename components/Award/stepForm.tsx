@@ -49,6 +49,7 @@ export default function Stepper({
   contentClassName = "",
   footerClassName = "",
   backButtonProps = {},
+  nextButtonProps = {},
   backButtonText = "Back",
   nextButtonText = "Continue",
   disableStepIndicators = false,
@@ -64,6 +65,11 @@ export default function Stepper({
   const totalSteps = stepsArray.length;
   const isCompleted = currentStep > totalSteps;
   const isLastStep = currentStep === totalSteps;
+  const {
+    className: nextButtonClassName = "",
+    disabled: isNextButtonDisabled,
+    ...restNextButtonProps
+  } = nextButtonProps;
   const {
     className: backButtonClassName = "",
     onClick: onBackButtonClick,
@@ -227,10 +233,12 @@ export default function Stepper({
               )}
 
               <ShinyButton
-                {...nextButtonProps}
+                {...restNextButtonProps}
                 onClick={isLastStep ? handleComplete : handleNext}
-                disabled={isFinalStepSubmitting || nextButtonProps?.disabled}
-                className={`${isFinalStepSubmitting ? "pointer-events-none opacity-60" : ""}${nextButtonProps?.className ? ` ${nextButtonProps.className}` : ""}`}
+                disabled={
+                  isFinalStepSubmitting || Boolean(isNextButtonDisabled)
+                }
+                className={`${isFinalStepSubmitting ? "pointer-events-none opacity-60" : ""}${nextButtonClassName ? ` ${nextButtonClassName}` : ""}`}
               >
                 {isLastStep
                   ? isFinalStepSubmitting
