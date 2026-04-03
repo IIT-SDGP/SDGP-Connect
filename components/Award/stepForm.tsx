@@ -116,6 +116,10 @@ export default function Stepper({
         return;
       }
       updateStep(totalSteps + 1);
+    } catch {
+      setValidationError(
+        "An unexpected error occurred while submitting. Please try again.",
+      );
     } finally {
       setIsFinalStepSubmitting(false);
     }
