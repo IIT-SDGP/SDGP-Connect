@@ -15,7 +15,6 @@ function useProjects(currentParams: ProjectQueryParams) {
     PaginatedResponse<ProjectCardType>["meta"] | null
   >(null);
 
-  // Fetch projects for the given page (always replaces, never appends)
   const fetchProjects = useCallback(
     async (page: number) => {
       setIsLoading(true);
@@ -123,6 +122,7 @@ function useProjects(currentParams: ProjectQueryParams) {
         }
 
         setProjects(projectsData);
+
         setMeta(metaData);
       } catch (err) {
         setError(

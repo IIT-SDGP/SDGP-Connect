@@ -2,65 +2,71 @@
 // Licensed under the GNU Affero General Public License v3.0 or later,
 // with an additional restriction: Non-commercial use only.
 // See <https://www.gnu.org/licenses/agpl-3.0.html> for details.
-"use client";
+"use client"
 
-import CompetitionCard from "@/components/competition/CompetitionCard";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { useApprovedCompetitions } from "@/hooks/competition/useApprovedCompetitions";
-import { ArrowRight, Award, Pen, Play, Target } from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import CompetitionCard from "@/components/competition/CompetitionCard"
+import { Button } from "@/components/ui/button"
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
+import { useApprovedCompetitions } from "@/hooks/competition/useApprovedCompetitions"
+import { ArrowRight, Award, Pen, Play, Target } from "lucide-react"
+import Image from "next/image"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { useEffect, useRef, useState } from "react"
 
 export default function AwardsPage() {
-  const [videoOpen, setVideoOpen] = useState(false);
-  const router = useRouter();
+  const [videoOpen, setVideoOpen] = useState(false)
+  const router = useRouter()
 
   // Infinite scroll logic
-  const { competitions, isLoading, error, fetchMore, hasMore } =
-    useApprovedCompetitions(9);
-  const loaderRef = useRef<HTMLDivElement | null>(null);
-  const observerRef = useRef<IntersectionObserver | null>(null);
+  const { competitions, isLoading, error, fetchMore, hasMore } = useApprovedCompetitions(9)
+  const loaderRef = useRef<HTMLDivElement | null>(null)
+  const observerRef = useRef<IntersectionObserver | null>(null)
 
-  // Store live values in refs to avoid recreating observer on each state change
-  const fetchMoreRef = useRef(fetchMore);
-  const hasMoreRef = useRef(hasMore);
-  const isLoadingRef = useRef(isLoading);
+  // Use refs to store latest values without triggering observer recreation
+  const fetchMoreRef = useRef(fetchMore)
+  const hasMoreRef = useRef(hasMore)
+  const isLoadingRef = useRef(isLoading)
 
-  // Keep refs in sync with latest values
+  // Keep refs up to date
   useEffect(() => {
-    fetchMoreRef.current = fetchMore;
-    hasMoreRef.current = hasMore;
-    isLoadingRef.current = isLoading;
-  }, [fetchMore, hasMore, isLoading]);
+    fetchMoreRef.current = fetchMore
+  }, [fetchMore])
+
+  useEffect(() => {
+    hasMoreRef.current = hasMore
+  }, [hasMore])
+
+  useEffect(() => {
+    isLoadingRef.current = isLoading
+  }, [isLoading])
 
   const handleClick = () => {
-    router.push("/contact");
-  };
+    router.push("/contact")
+  }
 
-  // Intersection Observer for infinite scroll
-  // Only recreate when competitions.length changes (new page loaded)
+  // Setup intersection observer and recreate only when list length changes
   useEffect(() => {
-    const option = { root: null, rootMargin: "20px", threshold: 0 };
+    if (observerRef.current) observerRef.current.disconnect()
+
+    const option = { root: null, rootMargin: "20px", threshold: 0 }
     observerRef.current = new IntersectionObserver((entries) => {
-      const target = entries[0];
-      if (
-        target.isIntersecting &&
-        hasMoreRef.current &&
-        !isLoadingRef.current
-      ) {
+      const target = entries[0]
+      if (target.isIntersecting && hasMoreRef.current && !isLoadingRef.current) {
         // Immediate in-flight guard to prevent multiple rapid fetchMore calls
-        isLoadingRef.current = true;
-        fetchMoreRef.current();
+        isLoadingRef.current = true
+        fetchMoreRef.current()
       }
-    }, option);
-    if (loaderRef.current) observerRef.current.observe(loaderRef.current);
+    }, option)
+
+    if (loaderRef.current) {
+      observerRef.current.observe(loaderRef.current)
+    }
+
     return () => {
-      if (observerRef.current) observerRef.current.disconnect();
-    };
-  }, [competitions.length]);
+      if (observerRef.current) observerRef.current.disconnect()
+    }
+  }, [competitions.length])
 
   return (
     <div className="min-h-screen bg-#0c0a09">
@@ -73,9 +79,7 @@ export default function AwardsPage() {
               <div className="space-y-4 sm:space-y-6 lg:space-y-8">
                 {/* Badge */}
                 <div className="inline-flex items-center gap-2 rounded-full bg-gray-800 border border-gray-700 px-4 py-2">
-                  <span className="text-sm font-medium text-white">
-                    International & Local Competition
-                  </span>
+                  <span className="text-sm font-medium text-white">International & Local Competition</span>
                 </div>
 
                 {/* Heading */}
@@ -85,11 +89,11 @@ export default function AwardsPage() {
 
                 {/* Description */}
                 <p className="text-base sm:text-lg lg:text-xl text-gray-400 max-w-2xl leading-relaxed">
-                  Discover the innovative teams and groundbreaking projects that
-                  have shaped our competitive landscape through creativity,
-                  technology, and determination.
+                  Discover the innovative teams and groundbreaking projects that have shaped our competitive landscape
+                  through creativity, technology, and determination.
                 </p>
                 <div className="flex flex-wrap  gap-4 sm:gap-6 lg:gap-8">
+
                   <div className="rounded-xl p-6">
                     <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full border-2 border-primary/30 bg-primary/10 text-primary">
                       <Target className="h-6 w-6" />
@@ -97,9 +101,7 @@ export default function AwardsPage() {
                     <h3 className="text-4xl font-bold tracking-tight text-foreground">
                       50 +
                     </h3>
-                    <p className="mt-2 text-sm text-muted-foreground">
-                      Competitions
-                    </p>
+                    <p className="mt-2 text-sm text-muted-foreground">Competitions</p>
                   </div>
                   <div className="rounded-xl p-6">
                     <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full border-2 border-primary/30 bg-primary/10 text-primary">
@@ -108,9 +110,7 @@ export default function AwardsPage() {
                     <h3 className="text-4xl font-bold tracking-tight text-foreground">
                       100 +
                     </h3>
-                    <p className="mt-2 text-sm text-muted-foreground">
-                      Competition Winners
-                    </p>
+                    <p className="mt-2 text-sm text-muted-foreground">Competition Winners</p>
                   </div>
                 </div>
               </div>
@@ -121,6 +121,7 @@ export default function AwardsPage() {
               <div className="absolute -inset-4 -z-10 rounded-2xl bg-blue-950/10 blur-sm" />
 
               <div className="grid gap-4 rounded-xl bg-accent/50 p-6 md:gap-6">
+
                 <Image
                   src={"/assets/Dialog.webp"}
                   alt={"Mission 1"}
@@ -130,7 +131,8 @@ export default function AwardsPage() {
                 />
 
                 <div className="grid grid-cols-2 gap-4 md:gap-6">
-                  <div className="overflow-hidden rounded-xl shadow-md transition-transform hover:scale-[1.02]">
+
+                    <div className="overflow-hidden rounded-xl shadow-md transition-transform hover:scale-[1.02]">
                     <Image
                       src={"/assets/1.webp"}
                       alt={"Mission 2"}
@@ -139,9 +141,9 @@ export default function AwardsPage() {
                       className={"rounded-xl object-cover"}
                       style={{ height: "200px", width: "auto" }}
                     />
-                  </div>
+                    </div>
 
-                  <div className="overflow-hidden rounded-xl shadow-md transition-transform hover:scale-[1.02]">
+                    <div className="overflow-hidden rounded-xl shadow-md transition-transform hover:scale-[1.02]">
                     <Image
                       src={"/assets/2.webp"}
                       alt={"Mission 3"}
@@ -150,53 +152,51 @@ export default function AwardsPage() {
                       className={"rounded-xl object-cover"}
                       style={{ height: "200px", width: "auto" }}
                     />
-                  </div>
+                    </div>
+
                 </div>
               </div>
             </div>
           </div>
+
         </div>
       </section>
 
       {/* Competitions Grid */}
       <div className="relative container mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16 py-12 sm:py-16 lg:py-20">
         <div className="text-center mb-12 sm:mb-16">
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-4">
-            All Competitions
-          </h2>
-          <p className="text-base text-gray-400">
-            Explore our competitive events and their winners
-          </p>
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-4">All Competitions</h2>
+          <p className="text-base text-gray-400">Explore our competitive events and their winners</p>
         </div>
         {/* Responsive Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6 lg:gap-8">
           {isLoading && competitions.length === 0
             ? Array.from({ length: 6 }).map((_, idx) => (
-                <div
-                  key={idx}
-                  className="animate-pulse rounded-xl border border-gray-700 bg-gray-800 p-6 flex flex-col gap-4 shadow-lg"
-                >
-                  <div className="h-40 bg-gray-700 rounded-md mb-4" />
-                  <div className="h-6 bg-gray-700 rounded w-3/4 mb-2" />
-                  <div className="h-4 bg-gray-700 rounded w-1/2 mb-2" />
-                  <div className="h-4 bg-gray-700 rounded w-1/3" />
-                </div>
-              ))
+              <div
+                key={idx}
+                className="animate-pulse rounded-xl border border-gray-700 bg-gray-800 p-6 flex flex-col gap-4 shadow-lg"
+              >
+                <div className="h-40 bg-gray-700 rounded-md mb-4" />
+                <div className="h-6 bg-gray-700 rounded w-3/4 mb-2" />
+                <div className="h-4 bg-gray-700 rounded w-1/2 mb-2" />
+                <div className="h-4 bg-gray-700 rounded w-1/3" />
+              </div>
+            ))
             : competitions.map((competition) => (
-                <CompetitionCard
-                  key={competition.id}
-                  id={competition.id}
-                  title={competition.name}
-                  cover={competition.cover || "/assets/placeholder.svg"}
-                  type={competition.type || ""}
-                  startDate={competition.startDate}
-                  endDate={competition.endDate}
-                  logo={competition.logo || "/assets/placeholder.svg"}
-                  viewLink={`/competitions/${competition.id}`}
-                  description={competition.description}
-                  winnersCount={competition.winnersCount}
-                />
-              ))}
+              <CompetitionCard
+                key={competition.id}
+                id={competition.id}
+                title={competition.name}
+                cover={competition.cover || "/assets/placeholder.svg"}
+                type={competition.type || ""}
+                startDate={competition.startDate}
+                endDate={competition.endDate}
+                logo={competition.logo || "/assets/placeholder.svg"}
+                viewLink={`/competitions/${competition.id}`}
+                description={competition.description}
+                winnersCount={competition.winnersCount}
+              />
+            ))}
         </div>
         <div ref={loaderRef} className="flex justify-center py-8">
           {isLoading && <span className="text-gray-400">Loading...</span>}
@@ -209,29 +209,30 @@ export default function AwardsPage() {
       <section className="relative m-16 overflow-hidden rounded-2xl bg-gradient-to-br from-accent via-accent/80 to-accent/60 p-8 md:p-12 border border-accent/20 shadow-2xl">
         <div className="mx-auto max-w-4xl text-center relative z-10">
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            Want to share your winning project with the community?
+        Want to share your winning project with the community?
           </h2>
           <p className="mt-4 text-lg text-muted-foreground">
-            If you have participated in a competition and won an award, we would
-            love to feature your project. share your achievement with us and
-            inspire others in the community.
-          </p>
+        If you have participated in a competition and won an award, we would love to feature your project.
+        share your achievement with us and inspire others in the community.
+        </p>
           <div className="mt-8 flex flex-wrap justify-center gap-4">
-            <Link href="/submit/competition">
-              <Button size="lg" variant="default">
-                Enter a missing Competition
-              </Button>
-            </Link>
-            <Link href="/submit/award">
-              <Button size="lg" variant="outline">
-                Submit your Award Win
-              </Button>
-            </Link>
+          
+          <Link href="/submit/competition">
+          <Button size="lg" variant="default">
+          
+           Enter a missing Competition
+          </Button>
+        </Link>
+        <Link href="/submit/award">
+          <Button size="lg" variant="outline" >
+           Submit your Award Win
+          </Button>
+        </Link>
           </div>
         </div>
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 opacity-50" />
         <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.2)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.2)_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:linear-gradient(135deg,black_0%,black_20%,transparent_80%,transparent_100%)] opacity-40" />
       </section>
     </div>
-  );
+  )
 }
