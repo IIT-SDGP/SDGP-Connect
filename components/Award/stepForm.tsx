@@ -24,7 +24,10 @@ interface StepperProps extends HTMLAttributes<HTMLDivElement> {
   contentClassName?: string;
   footerClassName?: string;
   backButtonProps?: React.ButtonHTMLAttributes<HTMLButtonElement>;
-  nextButtonProps?: React.ButtonHTMLAttributes<HTMLButtonElement>;
+  nextButtonProps?: Omit<
+    React.ComponentPropsWithoutRef<typeof ShinyButton>,
+    "children" | "onClick"
+  >;
   backButtonText?: string;
   nextButtonText?: string;
   disableStepIndicators?: boolean;
@@ -154,18 +157,17 @@ export default function Stepper({
                   renderStepIndicator({
                     step: stepNumber,
                     currentStep,
-                    onStepClick: isIndicatorLocked
-                      ? () => {}
-                      : (clicked) => {
-                          setDirection(clicked > currentStep ? 1 : -1);
-                          updateStep(clicked);
-                        },
+                    onStepClick: (clicked) => {
+                      if (isFinalStepSubmitting) return;
+                      setDirection(clicked > currentStep ? 1 : -1);
+                      updateStep(clicked);
+                    },
                   })
                 ) : (
                   <StepIndicator
                     step={stepNumber}
                     disableStepIndicators={
-                      disableStepIndicators || isIndicatorLocked
+                      disableStepIndicators || isFinalStepSubmitting
                     }
                     currentStep={currentStep}
                     onClickStep={
@@ -211,38 +213,24 @@ export default function Stepper({
             >
               {currentStep !== 1 && (
                 <button
-                  {...restBackButtonProps}
-                  onClick={(event) => {
-                    if (isFinalStepSubmitting) {
-                      event.preventDefault();
-                      return;
-                    }
-
-                    onBackButtonClick?.(event);
-                    if (event.defaultPrevented) {
-                      return;
-                    }
-
-                    handleBack();
-                  }}
+                  {...backButtonProps}
+                  onClick={handleBack}
                   className={`duration-350 rounded px-2 py-1 transition ${
                     currentStep === 1
                       ? "pointer-events-none opacity-50 text-neutral-400"
                       : "text-neutral-400 hover:text-neutral-700"
-                  } ${backButtonClassName}`}
-                  disabled={
-                    isFinalStepSubmitting || Boolean(isBackButtonDisabled)
-                  }
+                  }${backButtonProps?.className ? ` ${backButtonProps.className}` : ""}`}
+                  disabled={isFinalStepSubmitting || backButtonProps?.disabled}
                 >
                   {backButtonText}
                 </button>
               )}
 
               <ShinyButton
+                {...nextButtonProps}
                 onClick={isLastStep ? handleComplete : handleNext}
-                className={
-                  isFinalStepSubmitting ? "pointer-events-none opacity-60" : ""
-                }
+                disabled={isFinalStepSubmitting || nextButtonProps?.disabled}
+                className={`${isFinalStepSubmitting ? "pointer-events-none opacity-60" : ""}${nextButtonProps?.className ? ` ${nextButtonProps.className}` : ""}`}
               >
                 {isLastStep
                   ? isFinalStepSubmitting

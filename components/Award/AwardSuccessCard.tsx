@@ -4,7 +4,7 @@
 // See <https://www.gnu.org/licenses/agpl-3.0.html> for details.
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { CheckCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -20,15 +20,31 @@ export function AwardSuccessCard({
   redirectDelayMs = 5000,
 }: AwardSuccessCardProps) {
   const router = useRouter();
-  const redirectDelaySeconds = Math.max(1, Math.ceil(redirectDelayMs / 1000));
-  const redirectDestination = redirectTo === "/" ? "home page" : redirectTo;
+  const [secondsLeft, setSecondsLeft] = useState(
+    Math.ceil(redirectDelayMs / 1000),
+  );
 
   useEffect(() => {
+    setSecondsLeft(Math.ceil(redirectDelayMs / 1000));
+
     const timer = setTimeout(() => {
       router.push(redirectTo);
     }, redirectDelayMs);
 
-    return () => clearTimeout(timer);
+    const interval = setInterval(() => {
+      setSecondsLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => {
+      clearTimeout(timer);
+      clearInterval(interval);
+    };
   }, [router, redirectTo, redirectDelayMs]);
 
   return (
@@ -73,8 +89,7 @@ export function AwardSuccessCard({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
         >
-          Redirecting to {redirectDestination} in {redirectDelaySeconds} second
-          {redirectDelaySeconds === 1 ? "" : "s"}...
+          Redirecting in {secondsLeft} second{secondsLeft !== 1 ? "s" : ""}...
         </motion.p>
 
         <motion.div

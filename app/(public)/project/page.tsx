@@ -166,7 +166,6 @@ function ProjectsPageContent() {
                             projects={projects || []}
                             isLoading={isLoading}
                             error={error}
-                            meta={meta}
                             hasMore={hasMore}
                             loadMore={loadMore}
                         />

@@ -35,16 +35,13 @@ const getAvatarUrl = (name: string): string => {
 };
 
 const formatDate = (dateString: string): string => {
-  try {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  } catch {
-    return dateString;
-  }
+  const date = new Date(dateString);
+  if (Number.isNaN(date.getTime())) return dateString;
+  return date.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
 };
 
 const page = () => {
@@ -273,7 +270,7 @@ const page = () => {
             <div className="mb-6">
               <label className="block text-sm font-medium mb-2">
                 Competition
-              </label>{" "}
+              </label>
               <AsyncSelect<CompetitionOption>
                 fetcher={searchCompetitions}
                 renderOption={(competition: CompetitionOption) => (
