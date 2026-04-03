@@ -20,6 +20,7 @@ export function AwardSuccessCard({
   redirectDelayMs = 5000,
 }: AwardSuccessCardProps) {
   const router = useRouter();
+  const redirectDelaySeconds = Math.max(1, Math.ceil(redirectDelayMs / 1000));
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -71,7 +72,8 @@ export function AwardSuccessCard({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
         >
-          Redirecting in 5 seconds...
+          Redirecting in {redirectDelaySeconds} second
+          {redirectDelaySeconds === 1 ? "" : "s"}...
         </motion.p>
 
         <motion.div
