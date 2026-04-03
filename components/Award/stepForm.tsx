@@ -61,6 +61,12 @@ export default function Stepper({
   const totalSteps = stepsArray.length;
   const isCompleted = currentStep > totalSteps;
   const isLastStep = currentStep === totalSteps;
+  const {
+    className: backButtonClassName = "",
+    onClick: onBackButtonClick,
+    disabled: isBackButtonDisabled,
+    ...restBackButtonProps
+  } = backButtonProps;
 
   const updateStep = (newStep: number) => {
     setCurrentStep(newStep);
@@ -205,14 +211,28 @@ export default function Stepper({
             >
               {currentStep !== 1 && (
                 <button
-                  onClick={handleBack}
+                  {...restBackButtonProps}
+                  onClick={(event) => {
+                    if (isFinalStepSubmitting) {
+                      event.preventDefault();
+                      return;
+                    }
+
+                    onBackButtonClick?.(event);
+                    if (event.defaultPrevented) {
+                      return;
+                    }
+
+                    handleBack();
+                  }}
                   className={`duration-350 rounded px-2 py-1 transition ${
                     currentStep === 1
                       ? "pointer-events-none opacity-50 text-neutral-400"
                       : "text-neutral-400 hover:text-neutral-700"
-                  }`}
-                  disabled={isFinalStepSubmitting}
-                  {...backButtonProps}
+                  } ${backButtonClassName}`}
+                  disabled={
+                    isFinalStepSubmitting || Boolean(isBackButtonDisabled)
+                  }
                 >
                   {backButtonText}
                 </button>
