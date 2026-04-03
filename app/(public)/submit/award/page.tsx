@@ -59,8 +59,8 @@ const page = () => {
 
   useEffect(() => {
     if (success) {
-      toast.success("Achievement submitted successfully!", {
-        description: "Your achievement is now pending review.",
+      toast.success("Award submitted successfully!", {
+        description: "Your award is now pending review.",
       });
     }
   }, [success]);
