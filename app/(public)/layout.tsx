@@ -18,6 +18,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://sdgp.lk"),
+
   title: "SDGP",
   description: "Where Your Future is Shaped",
   icons: {

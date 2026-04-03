@@ -2,10 +2,10 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 
 interface EditUserData {
-  user_id: string;
+  id: string;
   name?: string;
   password?: string;
-  role?: 'ADMIN' | 'MODERATOR' | 'DEVELOPER';
+  role?: 'ADMIN' | 'MODERATOR' | 'DEVELOPER' | 'STUDENT';
 }
 
 export const useEditUser = () => {

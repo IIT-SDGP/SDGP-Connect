@@ -13,7 +13,7 @@ export const useDeleteUser = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ user_id: userId }),
+        body: JSON.stringify({ id: userId }),
       });
 
       if (!response.ok) {

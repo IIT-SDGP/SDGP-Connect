@@ -4,6 +4,8 @@ import { AssociationType, ProjectApprovalStatus, Prisma } from '@prisma/client';
 import { revalidatePath } from 'next/cache';
 import { NextResponse } from 'next/server';
 import { getModuleFromYear } from '@/lib/utils/module';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 
 function isPrivateIpv4(ip: string) {
   const match = ip.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
@@ -63,6 +65,45 @@ export async function OPTIONS() {
 
 export async function POST(request: Request) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      const res = NextResponse.json(
+        { success: false, message: 'Unauthorized', code: 'UNAUTHORIZED' },
+        { status: 401 }
+      );
+      res.headers.set('Access-Control-Allow-Origin', '*');
+      res.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+      res.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+      res.headers.set('Access-Control-Max-Age', '86400');
+      return res;
+    }
+
+    const role = (session.user as any).role as string | undefined;
+    const userId = (session.user as any).id as string | undefined;
+    if (!userId) {
+      const res = NextResponse.json(
+        { success: false, message: 'Unauthorized', code: 'UNAUTHORIZED' },
+        { status: 401 }
+      );
+      res.headers.set('Access-Control-Allow-Origin', '*');
+      res.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+      res.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+      res.headers.set('Access-Control-Max-Age', '86400');
+      return res;
+    }
+
+    if (role !== 'STUDENT') {
+      const res = NextResponse.json(
+        { success: false, message: 'Forbidden', code: 'FORBIDDEN' },
+        { status: 403 }
+      );
+      res.headers.set('Access-Control-Allow-Origin', '*');
+      res.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+      res.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+      res.headers.set('Access-Control-Max-Age', '86400');
+      return res;
+    }
+
     // Parse the request body
     const body = await request.json();
 
@@ -92,6 +133,46 @@ export async function POST(request: Request) {
       validatedData.metadata.module = getModuleFromYear(validatedData.metadata.sdgp_year);
     }
 
+    // Prevent new project submissions while the student has a locked project.
+    // This is what displays the "edit locked" behavior for PENDING/REJECTED.
+    const lockedProjectContent = (await prisma.projectContent.findFirst({
+      where: {
+        // Prisma typings for nested relation filters can be finicky during schema changes;
+        // cast to `any` to keep the logic correct and unblock compilation.
+        metadata: { owner_userId: userId } as any,
+        status: {
+          approved_status: {
+            in: [ProjectApprovalStatus.PENDING, ProjectApprovalStatus.REJECTED],
+          },
+        },
+      },
+      include: {
+        metadata: true,
+        status: true,
+      },
+    })) as any;
+
+    if (lockedProjectContent?.metadata && lockedProjectContent.status) {
+      const res = NextResponse.json(
+        {
+          success: false,
+          message: 'Edit locked for your project',
+          code: 'EDIT_LOCKED',
+          details: `Your project is currently ${lockedProjectContent.status.approved_status}. You cannot submit a new project until an admin re-opens it (approves it).`,
+          data: {
+            projectId: lockedProjectContent.metadata.project_id,
+            status: lockedProjectContent.status.approved_status,
+          },
+        },
+        { status: 409 }
+      );
+      res.headers.set('Access-Control-Allow-Origin', '*');
+      res.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+      res.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+      res.headers.set('Access-Control-Max-Age', '86400');
+      return res;
+    }
+
     // Start a transaction to ensure all database operations succeed or fail together
     const result = await prisma.$transaction(async (tx) => {
       // 1. Create ProjectMetadata - This has our main project_id
@@ -106,10 +187,11 @@ export async function POST(request: Request) {
           logo: validatedData.metadata.logo || null,
           featured: false,
           module: validatedData.metadata.module,
-        }
+          owner_userId: userId,
+        } as any
       });
 
-   
+
 
       // 2. Create ProjectContent - This links to ProjectMetadata via project_id
       const projectContent = await tx.projectContent.create({
@@ -246,8 +328,8 @@ export async function POST(request: Request) {
         contentId: projectContent.content_id
       };
     },
-    { timeout: 60000 }
-  );
+      { timeout: 60000 }
+    );
 
     // Revalidate the projects paths to update the cache
     revalidatePath('/project');
@@ -336,7 +418,7 @@ export async function POST(request: Request) {
     response.headers.set('Access-Control-Allow-Origin', '*');
     response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
     response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    response.headers.set('Access-Control-Max-Age', '86400');  
+    response.headers.set('Access-Control-Max-Age', '86400');
 
     return response;
   }

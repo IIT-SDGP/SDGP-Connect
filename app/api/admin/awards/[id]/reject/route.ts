@@ -21,7 +21,7 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
   try {
     // Verify user exists
     const user = await prisma.user.findUnique({
-      where: { user_id: session.user.id },
+      where: { id: session.user.id },
     });
     if (!user) {
       return NextResponse.json(
@@ -33,7 +33,7 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
     await prisma.award.update({
       where: { id },      data: {
         approval_status: ApprovalStatus.REJECTED,
-        rejected_by: { connect: { user_id: session.user.id } },
+        rejected_by: { connect: { id: session.user.id } },
         rejected_reason: reason,
         accepted_by: { disconnect: true },
       },

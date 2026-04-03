@@ -3,14 +3,14 @@ import { prisma } from '@/prisma/prismaClient';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import * as z from 'zod';
-import { hash } from 'bcrypt';
+import bcrypt from 'bcryptjs';
 
 // Schema for validating user updates
 const userUpdateSchema = z.object({
-  user_id: z.string().uuid('Invalid user ID'),
+  id: z.string().uuid('Invalid user ID'),
   name: z.string().min(2, 'Name must be at least 2 characters').optional(),
   password: z.string().min(8, 'Password must be at least 8 characters').optional(),
-  role: z.enum(['ADMIN', 'MODERATOR', 'DEVELOPER']).optional(),
+  role: z.enum(['ADMIN', 'MODERATOR', 'DEVELOPER', 'STUDENT']).optional(),
 });
 
 export async function PATCH(req: Request) {
@@ -41,12 +41,14 @@ export async function PATCH(req: Request) {
         { error: validationResult.error.errors },
         { status: 400 }
       );
-    }    const { user_id, name, password, role } = validationResult.data;
+    }
+
+    const { id, name, password, role } = validationResult.data;
 
     // Check if user exists
     const existingUser = await prisma.user.findUnique({
       where: {
-        user_id,
+        id,
       },
     });
 
@@ -62,20 +64,20 @@ export async function PATCH(req: Request) {
 
     // Hash password if provided
     if (password) {
-      updateData.password = await hash(password, 12);
+      updateData.password = await bcrypt.hash(password, 12);
     }
 
     // Update user
     const updatedUser = await prisma.user.update({
       where: {
-        user_id,
+        id,
       },
       data: updateData,
     });
 
     return NextResponse.json({
       user: {
-        user_id: updatedUser.user_id,
+        id: updatedUser.id,
         name: updatedUser.name,
         role: updatedUser.role,
         createdAt: updatedUser.createdAt,

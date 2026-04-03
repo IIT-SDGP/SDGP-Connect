@@ -18,7 +18,7 @@ export async function DELETE(req: NextRequest, context: { params: Promise<{ id: 
 
   // Check user role in DB
   const user = await prisma.user.findUnique({
-    where: { user_id: session.user.id },
+    where: { id: session.user.id },
     select: { role: true },
   });
   if (!user || (user.role !== Role.ADMIN && user.role !== Role.MODERATOR)) {

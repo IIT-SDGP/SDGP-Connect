@@ -33,6 +33,11 @@ const sidebarItems = [
     icon: FolderKanban,
   },
   {
+    title: 'Edit Requests',
+    href: '/admin/edit-requests',
+    icon: FolderKanban,
+  },
+  {
     title: 'Blog Management',
     href: '/admin/blogs',
     icon: BookOpen,

@@ -3,7 +3,7 @@ import { prisma } from '@/prisma/prismaClient';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import * as z from 'zod';
-import { hash } from 'bcrypt';
+import bcrypt from 'bcryptjs';
 
 // Schema for validating user creation
 const userCreateSchema = z.object({
@@ -52,7 +52,7 @@ export async function POST(req: Request) {
     }
 
     // Hash password
-    const hashedPassword = await hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     // Create user
     const newUser = await prisma.user.create({
@@ -65,7 +65,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       user: {
-        user_id: newUser.user_id,
+        id: newUser.id,
         name: newUser.name,
         role: newUser.role,
         createdAt: newUser.createdAt,
