@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { z } from 'zod';
 import { awardSubmissionSchema, AwardSubmissionInput } from '@/validations/award';
 
 // Import upload image hook (same as project/competition)
@@ -50,8 +49,35 @@ export function useAwardSubmission() {
         body: JSON.stringify(payload),
       });
       if (!res.ok) {
-        const msg = await res.text();
-        setError(msg || 'Submission failed');
+        const contentType = res.headers.get('content-type') || '';
+        const responseText = await res.text().catch(() => '');
+        let msg = 'Submission failed';
+
+        if (responseText.trim()) {
+          if (contentType.includes('application/json')) {
+            try {
+              const responseBody = JSON.parse(responseText) as unknown;
+              if (responseBody && typeof responseBody === 'object') {
+                const body = responseBody as { error?: unknown; message?: unknown };
+                if (typeof body.error === 'string') {
+                  msg = body.error;
+                } else if (typeof body.message === 'string') {
+                  msg = body.message;
+                } else {
+                  msg = responseText.trim();
+                }
+              } else {
+                msg = responseText.trim();
+              }
+            } catch {
+              msg = responseText.trim();
+            }
+          } else {
+            msg = responseText.trim();
+          }
+        }
+
+        setError(msg);
         setIsSubmitting(false);
         return false;
       }
