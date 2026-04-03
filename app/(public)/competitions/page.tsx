@@ -12,7 +12,7 @@ import { ArrowRight, Award, Pen, Play, Target } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 
 export default function AwardsPage() {
   const [videoOpen, setVideoOpen] = useState(false)
@@ -21,25 +21,52 @@ export default function AwardsPage() {
   // Infinite scroll logic
   const { competitions, isLoading, error, fetchMore, hasMore } = useApprovedCompetitions(9)
   const loaderRef = useRef<HTMLDivElement | null>(null)
+  const observerRef = useRef<IntersectionObserver | null>(null)
+
+  // Use refs to store latest values without triggering observer recreation
+  const fetchMoreRef = useRef(fetchMore)
+  const hasMoreRef = useRef(hasMore)
+  const isLoadingRef = useRef(isLoading)
+
+  // Keep refs up to date
+  useEffect(() => {
+    fetchMoreRef.current = fetchMore
+  }, [fetchMore])
+
+  useEffect(() => {
+    hasMoreRef.current = hasMore
+  }, [hasMore])
+
+  useEffect(() => {
+    isLoadingRef.current = isLoading
+  }, [isLoading])
 
   const handleClick = () => {
     router.push("/contact")
   }
 
-  // Intersection Observer for infinite scroll
-  const handleObserver = useCallback((entries: IntersectionObserverEntry[]) => {
-    const target = entries[0]
-    if (target.isIntersecting && hasMore && !isLoading) {
-      fetchMore()
-    }
-  }, [hasMore, isLoading, fetchMore])
-
+  // Setup intersection observer once - uses refs to avoid recreating on every state change
   useEffect(() => {
+    if (observerRef.current) observerRef.current.disconnect()
+
     const option = { root: null, rootMargin: "20px", threshold: 0 }
-    const observer = new window.IntersectionObserver(handleObserver, option)
-    if (loaderRef.current) observer.observe(loaderRef.current)
-    return () => { if (loaderRef.current) observer.unobserve(loaderRef.current) }
-  }, [handleObserver])
+    observerRef.current = new IntersectionObserver((entries) => {
+      const target = entries[0]
+      if (target.isIntersecting && hasMoreRef.current && !isLoadingRef.current) {
+        // Immediate in-flight guard to prevent multiple rapid fetchMore calls
+        isLoadingRef.current = true
+        fetchMoreRef.current()
+      }
+    }, option)
+
+    if (loaderRef.current) {
+      observerRef.current.observe(loaderRef.current)
+    }
+
+    return () => {
+      if (observerRef.current) observerRef.current.disconnect()
+    }
+  }, []) // Empty dependency array - only run once on mount
 
   return (
     <div className="min-h-screen bg-#0c0a09">
