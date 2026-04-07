@@ -65,6 +65,17 @@ export default function Stepper({
   const totalSteps = stepsArray.length;
   const isCompleted = currentStep > totalSteps;
   const isLastStep = currentStep === totalSteps;
+  const {
+    className: nextButtonClassName = "",
+    disabled: isNextButtonDisabled,
+    ...restNextButtonProps
+  } = nextButtonProps;
+  const {
+    className: backButtonClassName = "",
+    onClick: onBackButtonClick,
+    disabled: isBackButtonDisabled,
+    ...restBackButtonProps
+  } = backButtonProps;
 
   const updateStep = (newStep: number) => {
     setCurrentStep(newStep);
@@ -120,6 +131,10 @@ export default function Stepper({
         return;
       }
       updateStep(totalSteps + 1);
+    } catch {
+      setValidationError(
+        "An unexpected error occurred while submitting. Please try again.",
+      );
     } finally {
       setIsFinalStepSubmitting(false);
     }
@@ -140,6 +155,8 @@ export default function Stepper({
           {stepsArray.map((_, index) => {
             const stepNumber = index + 1;
             const isNotLastStep = index < totalSteps - 1;
+            const isIndicatorLocked =
+              isCompleted || isFinalStepSubmitting || stepNumber > currentStep;
             return (
               <React.Fragment key={stepNumber}>
                 {renderStepIndicator ? (
@@ -159,10 +176,14 @@ export default function Stepper({
                       disableStepIndicators || isFinalStepSubmitting
                     }
                     currentStep={currentStep}
-                    onClickStep={(clicked) => {
-                      setDirection(clicked > currentStep ? 1 : -1);
-                      updateStep(clicked);
-                    }}
+                    onClickStep={
+                      isIndicatorLocked
+                        ? () => {}
+                        : (clicked) => {
+                            setDirection(clicked > currentStep ? 1 : -1);
+                            updateStep(clicked);
+                          }
+                    }
                   />
                 )}
                 {isNotLastStep && (
@@ -212,10 +233,12 @@ export default function Stepper({
               )}
 
               <ShinyButton
-                {...nextButtonProps}
+                {...restNextButtonProps}
                 onClick={isLastStep ? handleComplete : handleNext}
-                disabled={isFinalStepSubmitting || nextButtonProps?.disabled}
-                className={`${isFinalStepSubmitting ? "pointer-events-none opacity-60" : ""}${nextButtonProps?.className ? ` ${nextButtonProps.className}` : ""}`}
+                disabled={
+                  isFinalStepSubmitting || Boolean(isNextButtonDisabled)
+                }
+                className={`${isFinalStepSubmitting ? "pointer-events-none opacity-60" : ""}${nextButtonClassName ? ` ${nextButtonClassName}` : ""}`}
               >
                 {isLastStep
                   ? isFinalStepSubmitting
@@ -355,7 +378,7 @@ function StepIndicator({
         : "complete";
 
   const handleClick = () => {
-    if (step !== currentStep && !disableStepIndicators) {
+    if (step < currentStep && !disableStepIndicators) {
       onClickStep(step);
     }
   };
@@ -363,7 +386,11 @@ function StepIndicator({
   return (
     <motion.div
       onClick={handleClick}
-      className="relative cursor-pointer outline-none focus:outline-none"
+      className={`relative outline-none focus:outline-none ${
+        step < currentStep && !disableStepIndicators
+          ? "cursor-pointer"
+          : "cursor-default"
+      }`}
       animate={status}
       initial={false}
     >
