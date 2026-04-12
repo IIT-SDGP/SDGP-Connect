@@ -36,6 +36,7 @@ async function seedUsers() {
 
     await prisma.user.create({
         data: {
+            email: 'admin@sdgp.lk',
             role: 'ADMIN', 
             password: hashedPassword,
             name: 'Admin',
