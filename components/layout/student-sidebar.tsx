@@ -3,7 +3,7 @@
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import { LayoutDashboard, Upload } from 'lucide-react';
+import { Award, BookOpen, LayoutDashboard, Upload } from 'lucide-react';
 
 const sidebarItems = [
   {
@@ -20,6 +20,16 @@ const sidebarItems = [
     title: 'Projects',
     href: '/student/projects',
     icon: LayoutDashboard,
+  },
+  {
+    title: 'Blogs',
+    href: '/student/blogs',
+    icon: BookOpen,
+  },
+  {
+    title: 'Awards',
+    href: '/student/awards',
+    icon: Award,
   },
 ];
 
