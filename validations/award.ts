@@ -5,10 +5,18 @@
 
 import { z } from 'zod';
 
-export const awardSubmissionSchema = z.object({
+const awardNameSchema = z
+  .string()
+  .min(1, 'Award name is required')
+  .max(25, 'Award name must be 25 words or less');
+
+const awardBaseSchema = z.object({
   projectId: z.string().min(1, 'Project is required'),
   competitionId: z.string().min(1, 'Competition is required'),
-  awardName: z.string().min(1, 'Award name is required').max(25, 'Award name must be 25 words or less'),
+  awardName: awardNameSchema,
+});
+
+export const awardSubmissionSchema = awardBaseSchema.extend({
   imageFile: z
     .instanceof(File)
     .refine((file) => ['image/jpeg', 'image/png'].includes(file.type), {
@@ -19,4 +27,9 @@ export const awardSubmissionSchema = z.object({
     }),
 });
 
+export const awardPayloadSchema = awardBaseSchema.extend({
+  image: z.string().url('Award image is required'),
+});
+
 export type AwardSubmissionInput = z.infer<typeof awardSubmissionSchema>;
+export type AwardPayloadInput = z.infer<typeof awardPayloadSchema>;
