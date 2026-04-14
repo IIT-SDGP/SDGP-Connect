@@ -23,6 +23,50 @@ type StudentBlogRow = {
   createdAt: string;
 };
 
+function BlogTitleCell({ blog, status }: { blog: StudentBlogRow; status: ReturnType<typeof getBlogStatus> }) {
+  return (
+    <div className='space-y-1'>
+      <div className='font-medium'>{blog.title}</div>
+      <div className='text-muted-foreground max-w-xl text-sm line-clamp-2'>{blog.excerpt}</div>
+      {status === 'rejected' && blog.rejectedReason ? (
+        <div className='text-destructive text-xs'>Reason: {blog.rejectedReason}</div>
+      ) : null}
+    </div>
+  );
+}
+
+function BlogRowActions({
+  blog,
+  status,
+  onDelete,
+}: {
+  blog: StudentBlogRow;
+  status: ReturnType<typeof getBlogStatus>;
+  onDelete: () => void;
+}) {
+  const isEditable = status !== 'approved';
+
+  return (
+    <div className='flex justify-end gap-2'>
+      {status === 'approved' ? (
+        <Button size='sm' variant='outline' asChild>
+          <Link href={`/blog/${blog.id}`}>View</Link>
+        </Button>
+      ) : null}
+      {isEditable ? (
+        <Button size='sm' variant='outline' asChild>
+          <Link href={`/student/blogs/${blog.id}/edit`}>Edit</Link>
+        </Button>
+      ) : (
+        <Button size='sm' variant='outline' disabled>Edit</Button>
+      )}
+      {isEditable ? (
+        <Button size='sm' variant='destructive' onClick={onDelete}>Delete</Button>
+      ) : null}
+    </div>
+  );
+}
+
 export default function StudentBlogsClient() {
   const [filter, setFilter] = useState<BlogFilter>('all');
   const [blogs, setBlogs] = useState<StudentBlogRow[]>([]);
@@ -135,51 +179,17 @@ export default function StudentBlogsClient() {
           <TableBody>
             {blogs.map((blog) => {
               const status = getBlogStatus(blog);
-              const isEditable = status !== 'approved';
-
               return (
                 <TableRow key={blog.id}>
-                  <TableCell className='space-y-1'>
-                    <div className='font-medium'>{blog.title}</div>
-                    <div className='text-muted-foreground max-w-xl text-sm line-clamp-2'>
-                      {blog.excerpt}
-                    </div>
-                    {status === 'rejected' && blog.rejectedReason ? (
-                      <div className='text-destructive text-xs'>
-                        Reason: {blog.rejectedReason}
-                      </div>
-                    ) : null}
-                  </TableCell>
+                  <TableCell><BlogTitleCell blog={blog} status={status} /></TableCell>
                   <TableCell>{new Date(blog.createdAt).toLocaleDateString()}</TableCell>
-                  <TableCell>
-                    <BlogStatusBadge {...blog} />
-                  </TableCell>
+                  <TableCell><BlogStatusBadge {...blog} /></TableCell>
                   <TableCell className='text-right'>
-                    <div className='flex justify-end gap-2'>
-                      {status === 'approved' ? (
-                        <Button size='sm' variant='outline' asChild>
-                          <Link href={`/blog/${blog.id}`}>View</Link>
-                        </Button>
-                      ) : null}
-                      {isEditable ? (
-                        <Button size='sm' variant='outline' asChild>
-                          <Link href={`/student/blogs/${blog.id}/edit`}>Edit</Link>
-                        </Button>
-                      ) : (
-                        <Button size='sm' variant='outline' disabled>
-                          Edit
-                        </Button>
-                      )}
-                      {isEditable ? (
-                        <Button
-                          size='sm'
-                          variant='destructive'
-                          onClick={() => void handleDelete(blog.id)}
-                        >
-                          Delete
-                        </Button>
-                      ) : null}
-                    </div>
+                    <BlogRowActions
+                      blog={blog}
+                      status={status}
+                      onDelete={() => void handleDelete(blog.id)}
+                    />
                   </TableCell>
                 </TableRow>
               );

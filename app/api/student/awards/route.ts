@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth/next";
 
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/prisma/prismaClient";
-import { getStudentSessionUser } from "@/lib/student-dashboard/session";
-import { ApprovalStatus } from "@/types/prisma-types";
+import { ApprovalStatus, Role } from "@/types/prisma-types";
 import { awardPayloadSchema } from "@/validations/award";
 
 function applyAwardStatusFilter(where: Record<string, unknown>, status: string | null) {
@@ -28,8 +29,18 @@ async function ensureOwnedProject(projectId: string, userId: string) {
 }
 
 export async function GET(request: Request) {
-  const auth = await getStudentSessionUser();
-  if (auth.response) return auth.response;
+  const session = await getServerSession(authOptions);
+  if (!session?.user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  const role = (session.user as any)?.role as Role | undefined;
+  if (role !== Role.STUDENT) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+  const userId = (session.user as any)?.id as string | undefined;
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   try {
     const { searchParams } = new URL(request.url);
@@ -41,7 +52,7 @@ export async function GET(request: Request) {
     const where: Record<string, unknown> = {
       project: {
         is: {
-          owner_userId: auth.user.id,
+          owner_userId: userId,
         },
       },
     };
@@ -81,14 +92,24 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const auth = await getStudentSessionUser();
-  if (auth.response) return auth.response;
+  const session = await getServerSession(authOptions);
+  if (!session?.user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  const role = (session.user as any)?.role as Role | undefined;
+  if (role !== Role.STUDENT) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+  const userId = (session.user as any)?.id as string | undefined;
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   try {
     const body = await request.json();
     const validatedData = awardPayloadSchema.parse(body);
 
-    const ownedProject = await ensureOwnedProject(validatedData.projectId, auth.user.id);
+    const ownedProject = await ensureOwnedProject(validatedData.projectId, userId);
     if (!ownedProject) {
       return NextResponse.json(
         { error: "Project not found" },

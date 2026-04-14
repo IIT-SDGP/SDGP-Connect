@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth/next";
 
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/prisma/prismaClient";
 import { blogSubmissionSchema } from "@/validations/blog";
-import { getStudentSessionUser } from "@/lib/student-dashboard/session";
+import { Role } from "@/types/prisma-types";
 
 function applyBlogStatusFilter(where: Record<string, unknown>, status: string | null) {
   if (status === "pending") {
@@ -17,8 +19,18 @@ function applyBlogStatusFilter(where: Record<string, unknown>, status: string | 
 }
 
 export async function GET(request: Request) {
-  const auth = await getStudentSessionUser();
-  if (auth.response) return auth.response;
+  const session = await getServerSession(authOptions);
+  if (!session?.user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  const role = (session.user as any)?.role as Role | undefined;
+  if (role !== Role.STUDENT) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+  const userEmail = session.user.email;
+  if (!userEmail) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   try {
     const { searchParams } = new URL(request.url);
@@ -30,7 +42,7 @@ export async function GET(request: Request) {
     const where: Record<string, unknown> = {
       author: {
         is: {
-          email: auth.user.email,
+          email: userEmail,
         },
       },
     };
@@ -69,14 +81,24 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const auth = await getStudentSessionUser();
-  if (auth.response) return auth.response;
+  const session = await getServerSession(authOptions);
+  if (!session?.user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  const role = (session.user as any)?.role as Role | undefined;
+  if (role !== Role.STUDENT) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+  const userEmail = session.user.email;
+  if (!userEmail) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   try {
     const body = await request.json();
     const validatedData = blogSubmissionSchema.parse(body);
 
-    if (validatedData.author.email !== auth.user.email) {
+    if (validatedData.author.email !== userEmail) {
       return NextResponse.json(
         { error: "Blog author email must match the logged-in student" },
         { status: 403 }
@@ -85,7 +107,7 @@ export async function POST(request: Request) {
 
     const result = await prisma.$transaction(async (tx) => {
       const author = await tx.blogAuthor.upsert({
-        where: { email: auth.user.email },
+        where: { email: userEmail },
         update: {
           name: validatedData.author.name,
           avatarUrl: validatedData.author.avatarUrl || null,
@@ -98,7 +120,7 @@ export async function POST(request: Request) {
         },
         create: {
           name: validatedData.author.name,
-          email: auth.user.email,
+          email: userEmail,
           avatarUrl: validatedData.author.avatarUrl || null,
           instagram: validatedData.author.instagram || null,
           twitter: validatedData.author.twitter || null,

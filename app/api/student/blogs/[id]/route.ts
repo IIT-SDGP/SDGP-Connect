@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth/next";
 
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/prisma/prismaClient";
 import { blogSubmissionSchema } from "@/validations/blog";
-import { getStudentSessionUser } from "@/lib/student-dashboard/session";
+import { Role } from "@/types/prisma-types";
 
 async function getOwnedBlog(blogId: string, email: string) {
   return prisma.blogPost.findFirst({
@@ -24,12 +26,22 @@ export async function GET(
   _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const auth = await getStudentSessionUser();
-  if (auth.response) return auth.response;
+  const session = await getServerSession(authOptions);
+  if (!session?.user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  const role = (session.user as any)?.role as Role | undefined;
+  if (role !== Role.STUDENT) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+  const userEmail = session.user.email;
+  if (!userEmail) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   try {
     const { id } = await params;
-    const post = await getOwnedBlog(id, auth.user.email);
+    const post = await getOwnedBlog(id, userEmail);
 
     if (!post) {
       return NextResponse.json({ error: "Blog post not found" }, { status: 404 });
@@ -49,12 +61,22 @@ export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const auth = await getStudentSessionUser();
-  if (auth.response) return auth.response;
+  const session = await getServerSession(authOptions);
+  if (!session?.user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  const role = (session.user as any)?.role as Role | undefined;
+  if (role !== Role.STUDENT) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+  const userEmail = session.user.email;
+  if (!userEmail) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   try {
     const { id } = await params;
-    const existing = await getOwnedBlog(id, auth.user.email);
+    const existing = await getOwnedBlog(id, userEmail);
 
     if (!existing) {
       return NextResponse.json({ error: "Blog post not found" }, { status: 404 });
@@ -70,7 +92,7 @@ export async function PATCH(
     const body = await request.json();
     const validatedData = blogSubmissionSchema.parse(body);
 
-    if (validatedData.author.email !== auth.user.email) {
+    if (validatedData.author.email !== userEmail) {
       return NextResponse.json(
         { error: "Blog author email must match the logged-in student" },
         { status: 403 }
@@ -79,7 +101,7 @@ export async function PATCH(
 
     const updated = await prisma.$transaction(async (tx) => {
       const author = await tx.blogAuthor.upsert({
-        where: { email: auth.user.email },
+        where: { email: userEmail },
         update: {
           name: validatedData.author.name,
           avatarUrl: validatedData.author.avatarUrl || null,
@@ -92,7 +114,7 @@ export async function PATCH(
         },
         create: {
           name: validatedData.author.name,
-          email: auth.user.email,
+          email: userEmail,
           avatarUrl: validatedData.author.avatarUrl || null,
           instagram: validatedData.author.instagram || null,
           twitter: validatedData.author.twitter || null,
@@ -145,12 +167,22 @@ export async function DELETE(
   _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const auth = await getStudentSessionUser();
-  if (auth.response) return auth.response;
+  const session = await getServerSession(authOptions);
+  if (!session?.user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  const role = (session.user as any)?.role as Role | undefined;
+  if (role !== Role.STUDENT) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+  const userEmail = session.user.email;
+  if (!userEmail) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   try {
     const { id } = await params;
-    const existing = await getOwnedBlog(id, auth.user.email);
+    const existing = await getOwnedBlog(id, userEmail);
 
     if (!existing) {
       return NextResponse.json({ error: "Blog post not found" }, { status: 404 });

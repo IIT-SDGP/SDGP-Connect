@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth/next";
 
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/prisma/prismaClient";
-import { getStudentSessionUser } from "@/lib/student-dashboard/session";
-import { ApprovalStatus } from "@/types/prisma-types";
+import { ApprovalStatus, Role } from "@/types/prisma-types";
 import { awardPayloadSchema } from "@/validations/award";
 
 async function getOwnedAward(awardId: string, userId: string) {
@@ -38,12 +39,22 @@ export async function GET(
   _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const auth = await getStudentSessionUser();
-  if (auth.response) return auth.response;
+  const session = await getServerSession(authOptions);
+  if (!session?.user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  const role = (session.user as any)?.role as Role | undefined;
+  if (role !== Role.STUDENT) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+  const userId = (session.user as any)?.id as string | undefined;
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   try {
     const { id } = await params;
-    const award = await getOwnedAward(id, auth.user.id);
+    const award = await getOwnedAward(id, userId);
 
     if (!award) {
       return NextResponse.json({ error: "Award not found" }, { status: 404 });
@@ -63,12 +74,22 @@ export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const auth = await getStudentSessionUser();
-  if (auth.response) return auth.response;
+  const session = await getServerSession(authOptions);
+  if (!session?.user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  const role = (session.user as any)?.role as Role | undefined;
+  if (role !== Role.STUDENT) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+  const userId = (session.user as any)?.id as string | undefined;
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   try {
     const { id } = await params;
-    const existing = await getOwnedAward(id, auth.user.id);
+    const existing = await getOwnedAward(id, userId);
 
     if (!existing) {
       return NextResponse.json({ error: "Award not found" }, { status: 404 });
@@ -84,7 +105,7 @@ export async function PATCH(
     const body = await request.json();
     const validatedData = awardPayloadSchema.parse(body);
 
-    const ownedProject = await ensureOwnedProject(validatedData.projectId, auth.user.id);
+    const ownedProject = await ensureOwnedProject(validatedData.projectId, userId);
     if (!ownedProject) {
       return NextResponse.json({ error: "Project not found" }, { status: 404 });
     }
@@ -137,12 +158,22 @@ export async function DELETE(
   _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const auth = await getStudentSessionUser();
-  if (auth.response) return auth.response;
+  const session = await getServerSession(authOptions);
+  if (!session?.user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  const role = (session.user as any)?.role as Role | undefined;
+  if (role !== Role.STUDENT) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+  const userId = (session.user as any)?.id as string | undefined;
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   try {
     const { id } = await params;
-    const existing = await getOwnedAward(id, auth.user.id);
+    const existing = await getOwnedAward(id, userId);
 
     if (!existing) {
       return NextResponse.json({ error: "Award not found" }, { status: 404 });
