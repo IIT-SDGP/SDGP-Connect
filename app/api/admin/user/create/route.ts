@@ -7,10 +7,9 @@ import bcrypt from 'bcryptjs';
 
 // Schema for validating user creation
 const userCreateSchema = z.object({
-  email: z.string().email('A valid email is required'),
   name: z.string().min(2, 'Name must be at least 2 characters'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
-  role: z.enum(['ADMIN', 'MODERATOR', 'DEVELOPER', 'STUDENT']),
+  role: z.enum(['ADMIN', 'MODERATOR', 'DEVELOPER']),
 });
 
 export async function POST(req: Request) {
@@ -41,15 +40,13 @@ export async function POST(req: Request) {
         { error: validationResult.error.errors },
         { status: 400 }
       );
-    }
+    }    const { name, password, role } = validationResult.data;
 
-    const { email, name, password, role } = validationResult.data;
-
-    // Check if user with the same email already exists
-    const existingUser = await prisma.user.findUnique({ where: { email } });
+    // Check if user with the same name already exists
+    const existingUser = await prisma.user.findFirst({ where: { name } });
     if (existingUser) {
       return NextResponse.json(
-        { error: "User with this email already exists" },
+        { error: "User with this name already exists" },
         { status: 400 }
       );
     }
@@ -60,7 +57,6 @@ export async function POST(req: Request) {
     // Create user
     const newUser = await prisma.user.create({
       data: {
-        email,
         name,
         password: hashedPassword,
         role,
@@ -79,10 +75,10 @@ export async function POST(req: Request) {
     console.error("Error creating user:", error);
     const errorMessage =
       (error as any)?.message && (error as any)?.message.includes("Unique constraint failed")
-        ? "User with this email already exists"
+        ? "User with this name already exists"
         : "Failed to create user";
 
-    const statusCode = errorMessage === "User with this email already exists" ? 400 : 500;
+    const statusCode = errorMessage === "User with this name already exists" ? 400 : 500;
 
     return NextResponse.json(
       { error: errorMessage },

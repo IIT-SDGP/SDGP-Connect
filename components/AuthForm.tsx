@@ -26,7 +26,9 @@ const AuthForm: React.FC = () => {
         <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-8 shadow-[0_8px_40px_-12px_rgba(0,0,0,0.5)] transition-shadow duration-300 hover:shadow-[0_16px_50px_-12px_rgba(0,0,0,0.5)] sm:p-12">
           <Logo />
           <Header />
-          <LoginForm />
+          <React.Suspense fallback={<RedirectingState />}>
+            <LoginForm />
+          </React.Suspense>
         </div>
       </motion.div>
       <BackgroundDecoration />
@@ -119,15 +121,17 @@ const LoginForm: React.FC = () => {
         </motion.div>
       )}
 
-      {!error && (
-        <div className="flex items-center justify-center gap-2 text-zinc-400 text-sm">
-          <div className="size-4 animate-spin rounded-full border-2 border-zinc-600 border-t-zinc-200" />
-          <span>Redirecting to Asgardeo...</span>
-        </div>
-      )}
+      {!error && <RedirectingState />}
     </div>
   )
 }
+
+const RedirectingState: React.FC = () => (
+  <div className="flex items-center justify-center gap-2 text-zinc-400 text-sm">
+    <div className="size-4 animate-spin rounded-full border-2 border-zinc-600 border-t-zinc-200" />
+    <span>Redirecting to Asgardeo...</span>
+  </div>
+)
 
 const BackgroundDecoration: React.FC = () => (
   <div className="fixed inset-0 bg-[radial-gradient(circle_800px_at_50%_50%,#18181b,transparent)]" />
