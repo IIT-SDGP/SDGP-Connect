@@ -3,11 +3,13 @@ import { Button } from '@/components/ui/button';
 import { Pagination, PaginationPrevious, PaginationNext } from '@/components/ui/pagination';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { RejectedProject } from '@/types/project/response';
-import { ArrowUpDown, ChevronDown, ChevronUp } from 'lucide-react';
+import { ArrowUpDown, ChevronDown, ChevronUp, Trash2 } from 'lucide-react';
 
 interface RejectedProjectsTableProps {
   projects: RejectedProject[];
   onViewDetails: (project: RejectedProject) => void;
+  onDelete?: (project: RejectedProject) => void;
+  showDeleteButton?: boolean;
   sortBy: string;
   sortDir: 'asc' | 'desc';
   onSortChange: (column: string) => void;
@@ -20,6 +22,8 @@ interface RejectedProjectsTableProps {
 export function RejectedProjectsTable({
   projects,
   onViewDetails,
+  onDelete,
+  showDeleteButton = false,
   sortBy,
   sortDir,
   onSortChange,
@@ -91,9 +95,25 @@ export function RejectedProjectsTable({
               </TableCell>
 
               <TableCell>
-                <Button size="sm" onClick={() => onViewDetails(project)}>
-                  View Details
-                </Button>
+                <div className="flex gap-2">
+                  <Button size="sm" onClick={() => onViewDetails(project)}>
+                    View Details
+                  </Button>
+                  {showDeleteButton && onDelete && (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => onDelete(project)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Delete Project</TooltipContent>
+                    </Tooltip>
+                  )}
+                </div>
               </TableCell>
             </TableRow>
           ))}
