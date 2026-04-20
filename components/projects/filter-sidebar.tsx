@@ -4,7 +4,7 @@
 // See <https://www.gnu.org/licenses/agpl-3.0.html> for details.
 "use client"
 
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { Check, ChevronDown, X as ClearIcon, Star } from "lucide-react";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
@@ -303,9 +303,15 @@ export default function FilterSidebar({
   const [selectedSDGs, setSelectedSDGs] = useState<string[]>(() => initialFilters.sdgGoals || []);
   const [selectedTechStack, setSelectedTechStack] = useState<string[]>(() => initialFilters.techStack || []);
 
+  // Keep a stable callback reference so parent callback identity changes don't trigger loops.
+  const onFilterChangeRef = useRef(onFilterChange);
+  useEffect(() => {
+    onFilterChangeRef.current = onFilterChange;
+  }, [onFilterChange]);
+
   // Memoized callback to notify the parent component of filter changes
   const notifyFilterChange = useCallback(() => {
-    onFilterChange({
+    onFilterChangeRef.current({
       featured: featuredOnly,
       status: selectedStatuses,
       years: selectedYears,
@@ -322,19 +328,33 @@ export default function FilterSidebar({
     selectedDomains,
     selectedSDGs,
     selectedTechStack,
-    onFilterChange // Include onFilterChange in dependencies
+    // onFilterChange intentionally excluded (tracked via ref)
   ]);
+
+  const isInitialMount = useRef(true);
+  const prevInitialFiltersRef = useRef(initialFilters);
 
   // Effect to call the notification callback when any internal filter state changes
   useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+
+    const urlJustChanged = JSON.stringify(prevInitialFiltersRef.current) !== JSON.stringify(initialFilters);
+    if (urlJustChanged) {
+      prevInitialFiltersRef.current = initialFilters;
+      return;
+    }
+
     notifyFilterChange();
-  }, [notifyFilterChange]); // Dependency is the memoized callback
+  }, [notifyFilterChange, initialFilters]);
 
   // Effect to update internal state if the initialFilters prop changes (e.g., from URL)
   useEffect(() => {
     // Helper to compare arrays, prevents unnecessary state updates
     const arraysAreEqual = (a: string[] | undefined, b: string[] | undefined): boolean =>
-      JSON.stringify(a?.sort() || []) === JSON.stringify(b?.sort() || []);
+      JSON.stringify([...(a || [])].sort()) === JSON.stringify([...(b || [])].sort());
 
     if (initialFilters.featured !== featuredOnly) {
       setFeaturedOnly(initialFilters.featured || false);
@@ -357,6 +377,8 @@ export default function FilterSidebar({
     if (!arraysAreEqual(initialFilters.techStack, selectedTechStack)) {
       setSelectedTechStack(initialFilters.techStack || []);
     }
+
+    prevInitialFiltersRef.current = initialFilters;
   }, [initialFilters]); // Depend on the entire initialFilters object
 
   // --- Data Transformations for Display ---
