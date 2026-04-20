@@ -5,7 +5,6 @@
 "use client"
 
 import FilterSidebar from "@/components/projects/filter-sidebar";
-import ProjectHeroSection from "@/components/home/ProjectHeroSection";
 import ProjectExplorer from "@/components/projects/project-explorer";
 import SearchHeader from "@/components/projects/search-header";
 import { Button } from "@/components/ui/button";
@@ -13,7 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ProjectQueryParams, useProjects } from "@/hooks/project/useGetProjects";
 import { X } from "lucide-react";
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 interface FilterState {
     featured: boolean;
@@ -44,8 +43,8 @@ function ProjectsPageContent() {
         techStack: searchParams.getAll('techStack'),
     }), [searchParams]);
 
-    // Use the hook with added infinite scroll capabilities
-    const { projects, isLoading, error, meta, hasMore, loadMore } = useProjects(currentParams);
+    // Use the hook with pagination capabilities
+    const { projects, isLoading, error, meta } = useProjects(currentParams);
 
     // Set initial load to false after first load completes
     useEffect(() => {
@@ -65,14 +64,33 @@ function ProjectsPageContent() {
     }), [currentParams]);
 
     const toggleFilters = useCallback(() => {
-        console.log('toggleFilters called, current state:', showMobileFilters);
-        setShowMobileFilters(prev => {
-            console.log('Setting showMobileFilters from', prev, 'to', !prev);
-            return !prev;
-        });
-    }, [showMobileFilters]);
+        setShowMobileFilters((prev) => !prev);
+    }, []);
+
+    // Track previous filters so unchanged selections do not reset page/push URL
+    const prevFiltersRef = useRef(initialFilters);
+
+    useEffect(() => {
+        prevFiltersRef.current = initialFilters;
+    }, [initialFilters]);
 
     const handleFilterChange = useCallback((newFilters: FilterState) => {
+        const prev = prevFiltersRef.current;
+        const isSame =
+            prev.featured === newFilters.featured &&
+            JSON.stringify([...prev.status].sort()) === JSON.stringify([...newFilters.status].sort()) &&
+            JSON.stringify([...prev.years].sort()) === JSON.stringify([...newFilters.years].sort()) &&
+            JSON.stringify([...prev.projectTypes].sort()) === JSON.stringify([...newFilters.projectTypes].sort()) &&
+            JSON.stringify([...prev.domains].sort()) === JSON.stringify([...newFilters.domains].sort()) &&
+            JSON.stringify([...prev.sdgGoals].sort()) === JSON.stringify([...newFilters.sdgGoals].sort()) &&
+            JSON.stringify([...prev.techStack].sort()) === JSON.stringify([...newFilters.techStack].sort());
+
+        if (isSame) {
+            return;
+        }
+
+        prevFiltersRef.current = newFilters;
+
         const params = new URLSearchParams();
         params.append('page', '1');
         params.append('limit', String(currentParams.limit || 15));
@@ -103,9 +121,16 @@ function ProjectsPageContent() {
     }, [router, currentParams.limit, currentParams.title]);
 
     const handleSearch = useCallback((value: string) => {
+        const normalizedValue = value.trim();
+        const currentTitle = (searchParams.get('title') || '').trim();
+
+        if (normalizedValue === currentTitle) {
+            return;
+        }
+
         const params = new URLSearchParams(searchParams.toString());
-        if (value) {
-            params.set('title', value);
+        if (normalizedValue) {
+            params.set('title', normalizedValue);
         } else {
             params.delete('title');
         }
@@ -140,11 +165,8 @@ function ProjectsPageContent() {
         return <LoadingSkeleton />;
     }
 
-    console.log('Rendering with showMobileFilters:', showMobileFilters); // Debug log
-
     return (
         <div className="relative">
-            <ProjectHeroSection />
             <div className="container mx-auto py-8 px-4">
                 <SearchHeader
                     toggleFilters={toggleFilters}
@@ -169,8 +191,13 @@ function ProjectsPageContent() {
                             isLoading={isLoading}
                             error={error}
                             meta={meta}
-                            hasMore={hasMore}
-                            loadMore={loadMore}
+                            onPageChange={(page) => {
+                                const params = new URLSearchParams(searchParams.toString());
+                                params.set('page', String(page));
+                                router.push(`${window.location.pathname}?${params.toString()}`, {
+                                    scroll: true,
+                                });
+                            }}
                         />
                     </div>
                 </div>
