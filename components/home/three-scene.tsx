@@ -4,10 +4,10 @@
 // See <https://www.gnu.org/licenses/agpl-3.0.html> for details.
 'use client';
 
-import { useRef, Suspense, useMemo } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
+import { useRef, Suspense, useMemo, useEffect, type RefObject } from 'react';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Points, PointMaterial } from '@react-three/drei';
-import { Points as ThreePoints } from 'three';
+import { Points as ThreePoints, PerspectiveCamera } from 'three';
 
 function Stars() {
   const ref = useRef<ThreePoints>(null);
@@ -86,16 +86,46 @@ function Stars() {
   );
 }
 
+function CanvasSizeSync({ containerRef }: { containerRef: RefObject<HTMLDivElement> }) {
+  const { gl, camera } = useThree();
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const updateSize = () => {
+      const { width, height } = container.getBoundingClientRect();
+      if (!width || !height) return;
+      gl.setSize(width, height, false);
+      if (camera instanceof PerspectiveCamera) {
+        camera.aspect = width / height;
+        camera.updateProjectionMatrix();
+      }
+    };
+
+    updateSize();
+    const observer = new ResizeObserver(updateSize);
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, [camera, gl, containerRef]);
+
+  return null;
+}
+
 export default function ThreeScene() {
+  const containerRef = useRef<HTMLDivElement>(null);
+
   return (
-    <div className="absolute inset-0 bg-background">
+    <div ref={containerRef} className="absolute inset-0 bg-background">
       <Suspense fallback={<div className="absolute inset-0 bg-background" />}>
         <Canvas 
           camera={{ position: [0, 0, 1] }}
           onError={(error) => {
             console.warn('Three.js Canvas error:', error);
           }}
+          className="h-full w-full"
         >
+          <CanvasSizeSync containerRef={containerRef} />
           <Stars />
         </Canvas>
       </Suspense>
