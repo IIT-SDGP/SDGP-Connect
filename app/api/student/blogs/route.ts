@@ -58,7 +58,7 @@ export async function GET(request: Request) {
       prisma.blogPost.count({ where }),
       prisma.blogPost.findMany({
         where,
-        orderBy: { updatedAt: "desc" },
+        orderBy: { createdAt: "desc" },
         skip,
         take: limit,
         select: {

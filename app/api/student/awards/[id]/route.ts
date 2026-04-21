@@ -128,7 +128,7 @@ export async function PATCH(
       where: { id },
       data: {
         name: validatedData.awardName,
-        image: validatedData.image,
+        image: validatedData.image ?? null,
         competition_id: validatedData.competitionId,
         project_id: validatedData.projectId,
         approval_status: ApprovalStatus.PENDING,

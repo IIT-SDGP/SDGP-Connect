@@ -104,6 +104,13 @@ export default function StudentAwardForm({ awardId }: StudentAwardFormProps) {
           }
 
           const award = awardPayload.data;
+
+          if (award.approval_status === ApprovalStatus.APPROVED) {
+            toast.info('Approved awards cannot be edited.');
+            router.replace('/student/awards');
+            return;
+          }
+
           setFormData({
             projectId: award.project_id,
             competitionId: award.competition_id,
@@ -133,7 +140,7 @@ export default function StudentAwardForm({ awardId }: StudentAwardFormProps) {
     };
 
     void load();
-  }, [awardId]);
+  }, [awardId, router]);
 
   useEffect(() => {
     return () => {

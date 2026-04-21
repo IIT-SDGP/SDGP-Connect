@@ -102,6 +102,13 @@ export default function StudentBlogForm({ blogId }: StudentBlogFormProps) {
           if (!response.ok) throw new Error(payload?.error ?? 'Failed to load blog post');
 
           const blog = payload.data as Record<string, unknown> & { author?: Record<string, unknown> };
+
+          if (blog.approved) {
+            toast.info('Approved posts cannot be edited.');
+            router.replace('/student/blogs');
+            return;
+          }
+
           setFormData({
             author: {
               name: String(blog.author?.name ?? sessionName),
@@ -161,7 +168,7 @@ export default function StudentBlogForm({ blogId }: StudentBlogFormProps) {
     };
 
     void load();
-  }, [blogId, session?.user.email, session?.user.name, status]);
+  }, [blogId, router, session?.user.email, session?.user.name, status]);
 
   const updateAuthor = (key: keyof BlogAuthorFields, value: string) => {
     setFormData((prev) => ({ ...prev, author: { ...prev.author, [key]: value } }));

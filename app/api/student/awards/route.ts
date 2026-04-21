@@ -70,7 +70,7 @@ export async function GET(request: Request) {
         where,
         skip,
         take: limit,
-        orderBy: { updatedAt: "desc" },
+        orderBy: { createdAt: "desc" },
         select: {
           id: true,
           name: true,
@@ -153,7 +153,7 @@ export async function POST(request: Request) {
     const award = await prisma.award.create({
       data: {
         name: validatedData.awardName,
-        image: validatedData.image,
+        image: validatedData.image ?? null,
         competition_id: validatedData.competitionId,
         project_id: validatedData.projectId,
         approval_status: ApprovalStatus.PENDING,

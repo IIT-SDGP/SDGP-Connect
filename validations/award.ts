@@ -30,8 +30,9 @@ export const awardSubmissionSchema = awardBaseSchema.extend({
 export const awardPayloadSchema = awardBaseSchema.extend({
   image: z
     .string()
-    .min(1, 'Award image is required')
-    .url('Award image must be a valid URL'),
+    .url('Award image must be a valid URL')
+    .nullable()
+    .optional(),
 });
 
 export type AwardSubmissionInput = z.infer<typeof awardSubmissionSchema>;
