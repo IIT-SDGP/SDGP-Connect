@@ -17,17 +17,20 @@ const awardBaseSchema = z.object({
 });
 
 export const awardSubmissionSchema = awardBaseSchema.extend({
-  imageFile: z
-    .custom<File>(
-      (value) => typeof File !== 'undefined' && value instanceof File,
-      { message: 'Image file is required' }
-    )
-    .refine((file) => ['image/jpeg', 'image/png'].includes(file.type), {
-      message: 'Image must be JPG or PNG',
-    })
-    .refine((file) => file.size <= 5 * 1024 * 1024, {
-      message: 'Image size must be less than 5MB',
-    }),
+  imageFile: z.custom<File>().superRefine((value, ctx) => {
+    if (typeof File === 'undefined' || !(value instanceof File)) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Image file is required' });
+      return;
+    }
+
+    if (!['image/jpeg', 'image/png'].includes(value.type)) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Image must be JPG or PNG' });
+    }
+
+    if (value.size > 5 * 1024 * 1024) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Image size must be less than 5MB' });
+    }
+  }),
 });
 
 export const awardPayloadSchema = awardBaseSchema.extend({
