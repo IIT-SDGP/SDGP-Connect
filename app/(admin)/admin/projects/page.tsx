@@ -205,8 +205,14 @@ export default function ProjectManagement() {
   };
 
   const handleConfirmDelete = async () => {
-    if (currentProject?.id) {
+    if (!currentProject?.id) {
+      return;
+    }
+
+    try {
       await deleteProject(currentProject.id);
+    } catch {
+      // Error feedback is handled by the delete hook; keep the rejection contained to this UI flow.
     }
   };
 

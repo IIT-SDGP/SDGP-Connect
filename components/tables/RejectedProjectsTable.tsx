@@ -106,6 +106,7 @@ export function RejectedProjectsTable({
                           size="sm"
                           variant="destructive"
                           onClick={() => onDelete(project)}
+                          aria-label="Delete project"
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>

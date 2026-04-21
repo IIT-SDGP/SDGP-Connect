@@ -16,7 +16,8 @@ function extractBlobName(url: string | null | undefined): string | null {
     // Path is like /{container}/{blobName}
     const pathParts = urlObj.pathname.split("/").filter(Boolean);
     if (pathParts.length >= 2) {
-      return pathParts[1]; // The blob name is the second part
+      // Join all parts after the container name to handle virtual folders
+      return pathParts.slice(1).join('/');
     }
     return null;
   } catch {
@@ -29,9 +30,10 @@ function extractBlobName(url: string | null | undefined): string | null {
  * Fails silently to avoid blocking project deletion.
  */
 async function deleteBlob(blobName: string): Promise<void> {
-  const account = process.env.NEXT_PUBLIC_AZURE_STORAGE_ACCOUNT_NAME;
-  const container = process.env.NEXT_PUBLIC_AZURE_STORAGE_CONTAINER_NAME;
-  const sas = process.env.NEXT_PUBLIC_AZURE_SAS_TOKEN;
+  // Use server-only env vars for sensitive credentials 
+  const account = process.env.AZURE_STORAGE_ACCOUNT_NAME || process.env.NEXT_PUBLIC_AZURE_STORAGE_ACCOUNT_NAME;
+  const container = process.env.AZURE_STORAGE_CONTAINER_NAME || process.env.NEXT_PUBLIC_AZURE_STORAGE_CONTAINER_NAME;
+  const sas = process.env.AZURE_SAS_TOKEN || process.env.NEXT_PUBLIC_AZURE_SAS_TOKEN;
 
   if (!account || !container || !sas) {
     console.warn("Azure blob storage not configured, skipping blob deletion");
@@ -104,6 +106,14 @@ export async function DELETE(
       return NextResponse.json({ error: "Project not found" }, { status: 404 });
     }
 
+    // Only allow deletion of rejected projects
+    if (project.projectContent?.status?.approved_status !== "REJECTED") {
+      return NextResponse.json(
+        { error: "Only rejected projects can be deleted" },
+        { status: 409 }
+      );
+    }
+
     // Collect blob URLs for deletion
     const blobsToDelete: string[] = [];
 
@@ -124,7 +134,7 @@ export async function DELETE(
 
     // Delete in the correct order due to FK constraints (onDelete: Restrict)
     // All child tables must be deleted before their parent
-    await prisma.$transaction(async (tx: typeof prisma) => {
+    await prisma.$transaction(async (tx) => {
       const contentId = project.projectContent?.content_id;
 
       if (contentId) {
@@ -170,10 +180,18 @@ export async function DELETE(
       });
     });
 
-    // Delete blobs in the background (non-blocking)
-    Promise.all(blobsToDelete.map(deleteBlob)).catch((error) => {
-      console.error("Error deleting blobs:", error);
-    });
+    // Attempt blob cleanup before returning so deletion is reliable in serverless runtimes
+    const blobDeletionResults = await Promise.allSettled(
+      blobsToDelete.map(deleteBlob)
+    );
+
+    const blobDeletionErrors = blobDeletionResults.filter(
+      (result): result is PromiseRejectedResult => result.status === "rejected"
+    );
+
+    if (blobDeletionErrors.length > 0) {
+      console.error("Error deleting one or more blobs:", blobDeletionErrors);
+    }
 
     console.log(`Project ${projectId} deleted successfully by user ${session.user.id}`);
 

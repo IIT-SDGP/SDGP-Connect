@@ -23,30 +23,41 @@ export default function DeleteProjectDialog({
   projectTitle,
   groupNumber,
 }: DeleteProjectDialogProps) {
+  // Prevent dialog close while delete is in progress
+  const handleOpenChange = (newOpen: boolean) => {
+    if (loading) return;
+    onOpenChange(newOpen);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent
+        onEscapeKeyDown={(e) => loading && e.preventDefault()}
+        onPointerDownOutside={(e) => loading && e.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle>Delete Project?</DialogTitle>
-          <DialogDescription>
-            {projectTitle && groupNumber ? (
-              <>
-                You are about to delete <b>&quot;{projectTitle}&quot;</b> (Group {groupNumber}).
-                <br /><br />
-              </>
-            ) : null}
-            This will permanently delete:
-            <ul className="list-disc list-inside mt-2 space-y-1">
-              <li>All project details, slides, and team information</li>
-              <li>All associated images from storage</li>
-              <li>Any awards linked to this project</li>
-            </ul>
-            <br />
-            <span className="text-destructive font-semibold">This action cannot be undone.</span>
+          <DialogDescription asChild>
+            <div>
+              {projectTitle && groupNumber ? (
+                <>
+                  You are about to delete <b>&quot;{projectTitle}&quot;</b> (Group {groupNumber}).
+                  <br /><br />
+                </>
+              ) : null}
+              This will permanently delete:
+              <ul className="list-disc list-inside mt-2 space-y-1">
+                <li>All project details, slides, and team information</li>
+                <li>All associated images from storage</li>
+                <li>Any awards linked to this project</li>
+              </ul>
+              <br />
+              <span className="text-destructive font-semibold">This action cannot be undone.</span>
+            </div>
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
+          <Button variant="outline" onClick={() => handleOpenChange(false)} disabled={loading}>
             Cancel
           </Button>
           <Button variant="destructive" onClick={onConfirm} disabled={loading}>
