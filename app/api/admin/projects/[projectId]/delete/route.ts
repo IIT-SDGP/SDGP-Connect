@@ -2,6 +2,7 @@ import { prisma } from "@/prisma/prismaClient";
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { ProjectApprovalStatus } from "@prisma/client";
 import { BlobServiceClient } from "@azure/storage-blob";
 
 /**
@@ -82,18 +83,25 @@ export async function DELETE(
   const userId = session.user.id;
 
   try {
-    // Fetch the project with all related data for deletion
+    // Fetch only the fields needed for deletion checks and blob cleanup
     const project = await prisma.projectMetadata.findUnique({
       where: { project_id: projectId },
-      include: {
+      select: {
+        cover_image: true,
+        logo: true,
         projectContent: {
-          include: {
-            projectDetails: true,
-            status: true,
-            associations: true,
-            slides: true,
-            team: true,
-            socialLinks: true,
+          select: {
+            content_id: true,
+            status: {
+              select: {
+                approved_status: true,
+              },
+            },
+            team: {
+              select: {
+                profile_image: true,
+              },
+            },
           },
         },
       },
@@ -104,7 +112,7 @@ export async function DELETE(
     }
 
     // Only allow deletion of rejected projects
-    if (project.projectContent?.status?.approved_status !== "REJECTED") {
+    if (project.projectContent?.status?.approved_status !== ProjectApprovalStatus.REJECTED) {
       return NextResponse.json(
         { error: "Only rejected projects can be deleted" },
         { status: 409 }
@@ -178,17 +186,8 @@ export async function DELETE(
     });
 
     // Attempt blob cleanup before returning so deletion is reliable in serverless runtimes
-    const blobDeletionResults = await Promise.allSettled(
-      blobsToDelete.map(deleteBlob)
-    );
-
-    const blobDeletionErrors = blobDeletionResults.filter(
-      (result): result is PromiseRejectedResult => result.status === "rejected"
-    );
-
-    if (blobDeletionErrors.length > 0) {
-      console.error("Error deleting one or more blobs:", blobDeletionErrors);
-    }
+    // Note: deleteBlob handles errors internally and logs them, so Promise.all won't reject
+    await Promise.all(blobsToDelete.map(deleteBlob));
 
     console.log(`Project ${projectId} deleted successfully by user ${userId}`);
 
