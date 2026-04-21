@@ -54,22 +54,29 @@ export function AuthorSection({ author, fieldErrors, onUpdateAuthor, onUploadAva
       </div>
 
       <div className='space-y-2'>
-        <Label>Avatar</Label>
-        <div className='flex flex-wrap items-center gap-3'>
-          <Input
-            value={author.avatarUrl}
-            onChange={(e) => onUpdateAuthor('avatarUrl', e.target.value)}
-            placeholder='https://...'
-          />
-          <Input
-            type='file'
-            accept='image/*'
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) onUploadAvatar(file);
-            }}
-            className='max-w-xs'
-          />
+        <div className='flex flex-wrap items-start gap-3'>
+          <div className='min-w-0 flex-1 space-y-2'>
+            <Label htmlFor='author-avatar-url'>Avatar URL</Label>
+            <Input
+              id='author-avatar-url'
+              value={author.avatarUrl}
+              onChange={(e) => onUpdateAuthor('avatarUrl', e.target.value)}
+              placeholder='https://...'
+            />
+          </div>
+          <div className='space-y-2'>
+            <Label htmlFor='author-avatar-file'>Upload Avatar</Label>
+            <Input
+              id='author-avatar-file'
+              type='file'
+              accept='image/*'
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) onUploadAvatar(file);
+              }}
+              className='max-w-xs'
+            />
+          </div>
         </div>
         {author.avatarUrl ? (
           <img src={author.avatarUrl} alt='Author avatar' className='h-16 w-16 rounded-full border object-cover' />

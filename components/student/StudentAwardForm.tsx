@@ -157,22 +157,19 @@ export default function StudentAwardForm({ awardId }: StudentAwardFormProps) {
     setFieldErrors({});
 
     try {
-      let imageUrl = formData.image;
-      if (pendingImageFile) {
-        imageUrl = await uploadImage(pendingImageFile);
-      }
-
-      const payload = {
+      const basePayload = {
         projectId: formData.projectId,
         competitionId: formData.competitionId,
         awardName: formData.awardName,
-        image: imageUrl,
       };
 
-      const validation = awardPayloadSchema.safeParse(payload);
-      if (!validation.success) {
+      const baseValidation = awardPayloadSchema
+        .pick({ projectId: true, competitionId: true, awardName: true })
+        .safeParse(basePayload);
+
+      if (!baseValidation.success) {
         const errors: Record<string, string> = {};
-        for (const issue of validation.error.errors) {
+        for (const issue of baseValidation.error.errors) {
           const key = Array.isArray(issue.path) ? issue.path.join('.') : String(issue.path);
           if (!errors[key]) {
             errors[key] = issue.message;
@@ -181,6 +178,21 @@ export default function StudentAwardForm({ awardId }: StudentAwardFormProps) {
         setFieldErrors(errors);
         return;
       }
+
+      if (!formData.image && !pendingImageFile) {
+        setFieldErrors({ image: 'Award image is required' });
+        return;
+      }
+
+      let imageUrl = formData.image;
+      if (pendingImageFile) {
+        imageUrl = await uploadImage(pendingImageFile);
+      }
+
+      const payload = {
+        ...basePayload,
+        image: imageUrl,
+      };
 
       const response = await fetch(awardId ? `/api/student/awards/${awardId}` : '/api/student/awards', {
         method: awardId ? 'PATCH' : 'POST',

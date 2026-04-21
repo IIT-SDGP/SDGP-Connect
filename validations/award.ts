@@ -18,7 +18,10 @@ const awardBaseSchema = z.object({
 
 export const awardSubmissionSchema = awardBaseSchema.extend({
   imageFile: z
-    .instanceof(File)
+    .custom<File>(
+      (value) => typeof File !== 'undefined' && value instanceof File,
+      { message: 'Image file is required' }
+    )
     .refine((file) => ['image/jpeg', 'image/png'].includes(file.type), {
       message: 'Image must be JPG or PNG',
     })

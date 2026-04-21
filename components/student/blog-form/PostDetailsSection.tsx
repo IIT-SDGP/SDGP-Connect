@@ -111,8 +111,9 @@ export function PostDetailsSection({ post, fieldErrors, onUpdatePost, onUploadCo
       </div>
 
       <div className='space-y-2'>
-        <Label>Content</Label>
+        <Label htmlFor='blog-content'>Content</Label>
         <MarkdownEditor
+          id='blog-content'
           value={post.content}
           onChange={(value) => onUpdatePost('content', value)}
           placeholder='Write your blog post in Markdown...'
