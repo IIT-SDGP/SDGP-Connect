@@ -190,14 +190,8 @@ function ProjectsPageContent() {
                             projects={projects || []}
                             isLoading={isLoading}
                             error={error}
-                            meta={meta}
-                            onPageChange={(page) => {
-                                const params = new URLSearchParams(searchParams.toString());
-                                params.set('page', String(page));
-                                router.push(`${window.location.pathname}?${params.toString()}`, {
-                                    scroll: true,
-                                });
-                            }}
+                            hasMore={hasMore}
+                            loadMore={loadMore}
                         />
                     </div>
                 </div>

@@ -2,24 +2,50 @@
 // Licensed under the GNU Affero General Public License v3.0 or later,
 // with an additional restriction: Non-commercial use only.
 // See <https://www.gnu.org/licenses/agpl-3.0.html> for details.
-'use client';
+"use client";
 
-import React, { useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { CheckCircle } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
+import React, { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import { CheckCircle } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
 
-export function AwardSuccessCard() {
+interface AwardSuccessCardProps {
+  redirectTo?: string;
+  redirectDelayMs?: number;
+}
+
+export function AwardSuccessCard({
+  redirectTo = "/competitions",
+  redirectDelayMs = 5000,
+}: AwardSuccessCardProps) {
   const router = useRouter();
+  const [secondsLeft, setSecondsLeft] = useState(
+    Math.ceil(redirectDelayMs / 1000),
+  );
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      router.push('/');
-    }, 5000);
+    setSecondsLeft(Math.ceil(redirectDelayMs / 1000));
 
-    return () => clearTimeout(timer);
-  }, [router]);
+    const timer = setTimeout(() => {
+      router.push(redirectTo);
+    }, redirectDelayMs);
+
+    const interval = setInterval(() => {
+      setSecondsLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => {
+      clearTimeout(timer);
+      clearInterval(interval);
+    };
+  }, [router, redirectTo, redirectDelayMs]);
 
   return (
     <div className="min-h-screen flex items-center justify-center p-6 bg-background">
@@ -27,18 +53,18 @@ export function AwardSuccessCard() {
         <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
-          transition={{ 
-            type: "spring", 
-            stiffness: 260, 
+          transition={{
+            type: "spring",
+            stiffness: 260,
             damping: 20,
-            delay: 0.2 
+            delay: 0.2,
           }}
           className="w-24 h-24 rounded-full bg-green-100 flex items-center justify-center mb-6 dark:bg-green-900/30 mx-auto"
         >
           <CheckCircle className="w-12 h-12 text-green-600 dark:text-green-400" />
         </motion.div>
 
-        <motion.h1 
+        <motion.h1
           className="text-2xl font-semibold text-foreground mb-4"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -47,23 +73,23 @@ export function AwardSuccessCard() {
           Award Submitted Successfully!
         </motion.h1>
 
-        <motion.p 
+        <motion.p
           className="text-muted-foreground mb-6"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
         >
-          Your award submission has been submitted and is now under review. 
-          You will be notified once it's approved.
+          Your award submission has been submitted and is now under review. You
+          will be notified once it's approved.
         </motion.p>
 
-        <motion.p 
+        <motion.p
           className="text-sm text-muted-foreground mb-4"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
         >
-          Redirecting to home page in 5 seconds...
+          Redirecting in {secondsLeft} second{secondsLeft !== 1 ? "s" : ""}...
         </motion.p>
 
         <motion.div
@@ -71,11 +97,8 @@ export function AwardSuccessCard() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.7 }}
         >
-          <Button
-            onClick={() => router.push('/')}
-            className="mt-4"
-          >
-            Go to Home Now
+          <Button onClick={() => router.push(redirectTo)} className="mt-4">
+            Go Now
           </Button>
         </motion.div>
       </div>

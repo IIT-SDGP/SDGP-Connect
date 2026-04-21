@@ -12,17 +12,16 @@ import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { ProjectQueryParams } from "@/hooks/project/useGetProjects";
 import { EmptyState } from "../ui/empty-state";
-import { FileX2, ChevronLeft, ChevronRight } from "lucide-react";
-import { PaginatedResponse } from "@/types/project/pagination";
-import { ProjectCardType } from "@/types/project/card";
+import { FileX2, ArrowUp } from "lucide-react";
+import { useEffect, useRef, useCallback, useState } from "react";
 
 interface ProjectExplorerProps {
   currentParams: ProjectQueryParams;
   projects: any[];
   isLoading: boolean;
   error: string | null;
-  meta: PaginatedResponse<ProjectCardType>["meta"] | null;
-  onPageChange: (page: number) => void;
+  hasMore: boolean;
+  loadMore: () => void;
 }
 
 export default function ProjectExplorer({
@@ -30,9 +29,80 @@ export default function ProjectExplorer({
   projects,
   isLoading,
   error,
-  meta,
-  onPageChange,
+  hasMore,
+  loadMore,
 }: ProjectExplorerProps) {
+  // Create a ref for the loader element (at bottom of list)
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const loadingRef = useRef<HTMLDivElement | null>(null);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  // Use refs to store latest values without triggering observer recreation
+  const loadMoreRef = useRef(loadMore);
+  const hasMoreRef = useRef(hasMore);
+  const isLoadingRef = useRef(isLoading);
+
+  // Keep refs up to date
+  useEffect(() => {
+    loadMoreRef.current = loadMore;
+  }, [loadMore]);
+
+  useEffect(() => {
+    hasMoreRef.current = hasMore;
+  }, [hasMore]);
+
+  useEffect(() => {
+    isLoadingRef.current = isLoading;
+  }, [isLoading]);
+
+  // Setup the intersection observer for infinite scrolling
+  // Only recreate when projects array length changes (new last element)
+  const lastProjectElementRef = useCallback(
+    (node: HTMLDivElement) => {
+      // Disconnect any existing observer
+      if (observerRef.current) observerRef.current.disconnect();
+
+      if (!node) return;
+
+      observerRef.current = new IntersectionObserver(
+        (entries) => {
+          // Only trigger if: in view, has more pages, and not currently loading
+          if (
+            entries[0].isIntersecting &&
+            hasMoreRef.current &&
+            !isLoadingRef.current
+          ) {
+            // Immediately mark as loading to prevent duplicate calls
+            isLoadingRef.current = true;
+            loadMoreRef.current();
+          }
+        },
+        { threshold: 0.5 },
+      );
+
+      observerRef.current.observe(node);
+    },
+    [projects.length],
+  ); // Only recreate when list length changes
+
+  // Add scroll to top button functionality
+  useEffect(() => {
+    const handleScroll = () => {
+      // Show button when user scrolls down 500px
+      setShowScrollTop(window.scrollY > 500);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  };
+
   if (error) {
     return (
       <div className="text-center py-10 text-red-500">
@@ -67,19 +137,21 @@ export default function ProjectExplorer({
     );
   }
 
-  const currentPage = meta?.currentPage || 1;
-  const totalPages = meta?.totalPages || 1;
-  const hasNextPage = meta?.hasNextPage ?? currentPage < totalPages;
-  const hasPrevPage = meta?.hasPrevPage ?? currentPage > 1;
-
-  // Render projects with pagination controls
+  // Render projects with infinite scroll
   return (
     <div className="flex flex-col gap-8">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* Map through loaded projects */}
-        {projects.map((project) => {
+        {projects.map((project, index) => {
+          // Check if this is the last project
+          const isLastProject = index === projects.length - 1;
+
           return (
-            <div key={project.id} className="project-card-container">
+            <div
+              key={project.id}
+              ref={isLastProject ? lastProjectElementRef : null}
+              className="project-card-container"
+            >
               <Link
                 href={`/project/${project.id}`}
                 className="project-card group block rounded-xl overflow-hidden border bg-card shadow-sm hover:shadow-lg transition-all duration-300 ease-in-out"
@@ -173,42 +245,22 @@ export default function ProjectExplorer({
         })}
       </div>
 
-      {/* Loading overlay for page transitions */}
+      {/* Loading indicator for infinite scroll */}
       {isLoading && projects.length > 0 && (
-        <div className="flex justify-center py-4">
+        <div className="flex justify-center py-4" ref={loadingRef}>
           <div className="w-8 h-8 border-2 border-primary/50 border-t-primary rounded-full animate-spin"></div>
         </div>
       )}
 
-      {/* Pagination Controls */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-4 py-4">
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={!hasPrevPage || isLoading}
-            onClick={() => onPageChange(currentPage - 1)}
-            className="flex items-center gap-1"
-          >
-            <ChevronLeft className="w-4 h-4" />
-            Previous
-          </Button>
-
-          <span className="text-sm text-muted-foreground">
-            Page {currentPage} of {totalPages}
-          </span>
-
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={!hasNextPage || isLoading}
-            onClick={() => onPageChange(currentPage + 1)}
-            className="flex items-center gap-1"
-          >
-            Next
-            <ChevronRight className="w-4 h-4" />
-          </Button>
-        </div>
+      {/* Scroll to Top button */}
+      {showScrollTop && (
+        <button
+          onClick={scrollToTop}
+          className="fixed bottom-4 right-4 p-3 bg-primary text-white rounded-full shadow-md hover:shadow-lg transition-all duration-300 ease-in-out"
+          aria-label="Scroll to top"
+        >
+          <ArrowUp className="w-5 h-5 text-black" />
+        </button>
       )}
     </div>
   );
