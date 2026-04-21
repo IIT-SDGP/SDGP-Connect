@@ -47,11 +47,12 @@ export function PostDetailsSection({ post, fieldErrors, onUpdatePost, onUploadCo
 
       <div className='grid gap-4 md:grid-cols-2'>
         <div className='space-y-2'>
-          <Label>Category</Label>
+          <Label htmlFor='blog-category'>Category</Label>
           <select
+            id='blog-category'
             value={post.category}
             onChange={(e) => onUpdatePost('category', e.target.value)}
-            className='border-input bg-background ring-offset-background flex h-10 w-full rounded-md border px-3 py-2 text-sm'
+            className='border-input bg-background ring-offset-background flex h-10 w-full rounded-md border px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
           >
             <option value=''>Select a category</option>
             {CATEGORY_OPTIONS.map((option) => (
@@ -66,16 +67,19 @@ export function PostDetailsSection({ post, fieldErrors, onUpdatePost, onUploadCo
         </div>
 
         <div className='space-y-2'>
-          <Label>Cover Image</Label>
+          <Label htmlFor='blog-cover-url'>Cover Image</Label>
           <div className='flex flex-wrap items-center gap-3'>
             <Input
+              id='blog-cover-url'
               value={post.imageUrl}
               onChange={(e) => onUpdatePost('imageUrl', e.target.value)}
               placeholder='https://...'
             />
             <Input
+              id='blog-cover-file'
               type='file'
               accept='image/*'
+              aria-label='Upload cover image'
               onChange={(e) => {
                 const file = e.target.files?.[0];
                 if (file) onUploadCover(file);

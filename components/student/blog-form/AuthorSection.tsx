@@ -37,8 +37,8 @@ export function AuthorSection({ author, fieldErrors, onUpdateAuthor, onUploadAva
 
       <div className='grid gap-4 md:grid-cols-2'>
         <div className='space-y-2'>
-          <Label>Email</Label>
-          <Input value={author.email} readOnly />
+          <Label htmlFor='author-email'>Email</Label>
+          <Input id='author-email' value={author.email} readOnly />
         </div>
         <div className='space-y-2'>
           <Label htmlFor='author-name'>Display Name</Label>

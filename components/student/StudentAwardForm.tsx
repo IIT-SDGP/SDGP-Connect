@@ -47,6 +47,7 @@ export default function StudentAwardForm({ awardId }: StudentAwardFormProps) {
     image: '',
   });
   const [pendingImageFile, setPendingImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const previewObjectUrlRef = useRef<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -234,11 +235,12 @@ export default function StudentAwardForm({ awardId }: StudentAwardFormProps) {
 
         <div className='grid gap-4 md:grid-cols-2'>
           <div className='space-y-2'>
-            <Label>Project</Label>
+            <Label htmlFor='award-project'>Project</Label>
             <select
+              id='award-project'
               value={formData.projectId}
               onChange={(event) => setFormData((current) => ({ ...current, projectId: event.target.value }))}
-              className='border-input bg-background ring-offset-background flex h-10 w-full rounded-md border px-3 py-2 text-sm'
+              className='border-input bg-background ring-offset-background flex h-10 w-full rounded-md border px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
             >
               <option value=''>Select one of your projects</option>
               {projects.map((project) => (
@@ -253,13 +255,14 @@ export default function StudentAwardForm({ awardId }: StudentAwardFormProps) {
           </div>
 
           <div className='space-y-2'>
-            <Label>Competition</Label>
+            <Label htmlFor='award-competition'>Competition</Label>
             <select
+              id='award-competition'
               value={formData.competitionId}
               onChange={(event) =>
                 setFormData((current) => ({ ...current, competitionId: event.target.value }))
               }
-              className='border-input bg-background ring-offset-background flex h-10 w-full rounded-md border px-3 py-2 text-sm'
+              className='border-input bg-background ring-offset-background flex h-10 w-full rounded-md border px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
             >
               <option value=''>Select a competition</option>
               {competitions.map((competition) => (
@@ -290,8 +293,10 @@ export default function StudentAwardForm({ awardId }: StudentAwardFormProps) {
         <div className='space-y-2'>
           <Label>Award Image</Label>
           <Input
+            id='award-image-file'
             type='file'
             accept='image/png,image/jpeg'
+            aria-label='Upload award image'
             onChange={(event) => {
               const file = event.target.files?.[0] ?? null;
               setPendingImageFile(file);
@@ -304,19 +309,18 @@ export default function StudentAwardForm({ awardId }: StudentAwardFormProps) {
               if (file) {
                 const objectUrl = URL.createObjectURL(file);
                 previewObjectUrlRef.current = objectUrl;
-                setFormData((current) => ({
-                  ...current,
-                  image: objectUrl,
-                }));
+                setImagePreview(objectUrl);
+              } else {
+                setImagePreview(null);
               }
             }}
           />
           {fieldErrors.image ? (
             <p className='text-destructive text-xs'>{fieldErrors.image}</p>
           ) : null}
-          {formData.image ? (
+          {imagePreview || formData.image ? (
             <img
-              src={formData.image}
+              src={imagePreview ?? formData.image}
               alt='Award preview'
               className='max-h-72 rounded-lg border object-contain'
             />
