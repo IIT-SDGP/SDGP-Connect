@@ -62,7 +62,7 @@ function mapZodErrors(error: unknown): Record<string, string> {
 
   for (const issue of issues) {
     const key = Array.isArray(issue.path) ? issue.path.join('.') : String(issue.path);
-    if (key) result[key] = issue.message;
+    if (key && !result[key]) result[key] = issue.message;
   }
 
   return result;

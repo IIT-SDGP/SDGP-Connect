@@ -174,7 +174,9 @@ export default function StudentAwardForm({ awardId }: StudentAwardFormProps) {
         const errors: Record<string, string> = {};
         for (const issue of validation.error.errors) {
           const key = Array.isArray(issue.path) ? issue.path.join('.') : String(issue.path);
-          errors[key] = issue.message;
+          if (!errors[key]) {
+            errors[key] = issue.message;
+          }
         }
         setFieldErrors(errors);
         setIsSaving(false);
