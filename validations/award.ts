@@ -8,7 +8,7 @@ import { z } from 'zod';
 const awardNameSchema = z
   .string()
   .min(1, 'Award name is required')
-  .max(25, 'Award name must be 25 words or less');
+  .max(25, 'Award name must be 25 characters or less');
 
 const awardBaseSchema = z.object({
   projectId: z.string().min(1, 'Project is required'),
