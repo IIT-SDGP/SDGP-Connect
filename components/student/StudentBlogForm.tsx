@@ -87,10 +87,18 @@ export default function StudentBlogForm({ blogId }: StudentBlogFormProps) {
 
   useEffect(() => {
     const load = async () => {
-      if (status !== 'authenticated') return;
+      if (status === 'loading') return;
 
-      const sessionEmail = session.user.email ?? '';
-      const sessionName = session.user.name ?? '';
+      if (status === 'unauthenticated') {
+        const message = 'You must be signed in to access the blog form.';
+        setErrorMessage(message);
+        setLoadErrorMessage(message);
+        setIsLoading(false);
+        return;
+      }
+
+      const sessionEmail = session?.user?.email ?? '';
+      const sessionName = session?.user?.name ?? '';
 
       setIsLoading(true);
       setErrorMessage(null);

@@ -222,6 +222,19 @@ export default function StudentAwardForm({ awardId }: StudentAwardFormProps) {
         image: imageUrl,
       };
 
+      const finalValidation = awardPayloadSchema.safeParse(payload);
+      if (!finalValidation.success) {
+        const errors: Record<string, string> = {};
+        for (const issue of finalValidation.error.errors) {
+          const key = Array.isArray(issue.path) ? issue.path.join('.') : String(issue.path);
+          if (!errors[key]) {
+            errors[key] = issue.message;
+          }
+        }
+        setFieldErrors(errors);
+        return;
+      }
+
       const response = await fetch(awardId ? `/api/student/awards/${awardId}` : '/api/student/awards', {
         method: awardId ? 'PATCH' : 'POST',
         headers: {
