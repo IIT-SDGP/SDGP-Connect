@@ -5,6 +5,7 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import type { Metadata } from "next";
 import "../globals.css";
+import Script from "next/script";
 import ClientLayout from "@/components/Clientlayout";
 
 const geistSans = Geist({
@@ -72,16 +73,15 @@ export default function RootLayout({
           rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Geist:wght@400;700&display=swap"
         />
-        <script
-          defer
-          src="https://api.psycodelabs.lk/widget.js"
-          data-key="pk_b3a99bccdb1c43c3d49599b7f2ad4fa3857306cd7cce0b2f"
-          data-api="https://api.psycodelabs.lk"
-        ></script>
-
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <ClientLayout>{children}</ClientLayout>
+        <Script
+          src="https://api.psycodelabs.lk/widget.js"
+          data-key="pk_b3a99bccdb1c43c3d49599b7f2ad4fa3857306cd7cce0b2f"
+          data-api="https://api.psycodelabs.lk"
+          strategy="afterInteractive"
+        />
       </body>
     </html>
   );
