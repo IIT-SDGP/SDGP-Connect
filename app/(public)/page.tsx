@@ -13,20 +13,21 @@ import ImpactStats from "@/components/home/impact-stats";
 import { LanguageProvider } from "@/hooks/LanguageProvider";
 import LanguageToggle from "@/components/LanguageToggle";
 import HomeHeroSection from "@/components/home/HomeHeroSection";
+import { ExpandableChatAI } from "@/components/ai/ExpandableChatAI";
 
 export default function Home() {
   return (
     <LanguageProvider>
-      <div className="flex flex-col gap-12 pb-12">
+      <div className="flex flex-col">
         <HomeHeroSection />
+        <AboutSection />
         <HomeAboutSection />
         <GlobeSection />
-        <AboutSection/>
         <Domains />
         <ImpactStats />
-        <Brands/>
+        <Brands />
       </div>
-      <LanguageToggle />
+      <ExpandableChatAI />
     </LanguageProvider>
   )
 }
