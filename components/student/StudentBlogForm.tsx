@@ -180,7 +180,7 @@ export default function StudentBlogForm({ blogId }: StudentBlogFormProps) {
     };
 
     void load();
-  }, [blogId, router, session?.user.email, session?.user.name, status]);
+  }, [blogId, router, session?.user?.email, session?.user?.name, status]);
 
   const updateAuthor = (key: keyof BlogAuthorFields, value: string) => {
     setFormData((prev) => ({ ...prev, author: { ...prev.author, [key]: value } }));
