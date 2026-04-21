@@ -181,20 +181,16 @@ export default function HomeHeroSection() {
           <motion.div variants={item} className="mb-6 -mt-4">
             <a
               href="/about"
-              className="group inline-flex rounded-full p-px transition-all duration-300 hover:scale-[1.03]"
-              style={{ background: 'linear-gradient(135deg, rgba(59,130,246,0.6) 0%, rgba(255,255,255,0.08) 50%, rgba(59,130,246,0.3) 100%)' }}
+              className="group inline-flex items-center gap-2.5 rounded-full px-3.5 py-2 transition-all duration-300 hover:scale-[1.02]"
+              style={{ background: 'rgba(10,15,30,0.7)', border: '1px solid rgba(255,255,255,0.10)', backdropFilter: 'blur(16px)' }}
             >
-              <span
-                className="inline-flex items-center gap-2.5 rounded-full px-4 py-2"
-                style={{ background: 'rgba(5,5,14,0.85)', backdropFilter: 'blur(12px)' }}
-              >
-                <img src="/assets/logo.webp" alt="IIT" className="h-4 w-4 object-contain opacity-70" />
-                <span className="h-3 w-px bg-white/15" />
-                <span className="text-[12px] font-medium tracking-wide text-white/50 group-hover:text-white/75 transition-colors duration-200">
-                  Software Development Group Project
-                </span>
-                <span className="text-[11px] font-semibold tracking-widest text-blue-400/80 uppercase">IIT</span>
+              <img src="/assets/logo.webp" alt="IIT" className="h-5 w-5 object-contain opacity-85 flex-shrink-0" />
+              <span className="h-3.5 w-px bg-white/[0.12] flex-shrink-0" />
+              <span className="text-[12.5px] font-medium text-white/55 group-hover:text-white/80 transition-colors duration-200 tracking-wide">
+                Software Development Group Project
               </span>
+              <span className="h-3.5 w-px bg-white/[0.12] flex-shrink-0" />
+              <span className="text-[11px] font-semibold tracking-[0.12em] text-blue-400/80 uppercase">IIT</span>
             </a>
           </motion.div>
 
@@ -223,7 +219,7 @@ export default function HomeHeroSection() {
           >
             <Link
               href="/project"
-              className="inline-flex items-center justify-center gap-2 rounded-full px-6 sm:px-8 py-2.5 sm:py-3 text-sm sm:text-[15px] font-semibold text-white bg-gradient-to-br from-blue-500 to-blue-700 shadow-lg shadow-blue-900/40 hover:from-blue-400 hover:to-blue-600 hover:shadow-blue-700/50 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40"
+              className="inline-flex items-center justify-center gap-2 rounded-full border border-blue-400/30 bg-gradient-to-b from-[#3b82f6] to-[#2563eb] px-6 sm:px-8 py-2.5 sm:py-3 text-sm sm:text-[15px] font-semibold text-white shadow-[0_2px_14px_rgba(59,130,246,0.45),inset_0_1px_0_rgba(255,255,255,0.15)] transition-all duration-200 hover:from-[#60a5fa] hover:to-[#3b82f6] hover:shadow-[0_4px_20px_rgba(59,130,246,0.55)] hover:-translate-y-0.5 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/50"
             >
               Explore projects
               <ArrowRight className="h-3.5 w-3.5 opacity-60" strokeWidth={2.5} />

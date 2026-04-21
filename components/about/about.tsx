@@ -249,7 +249,7 @@ export function AboutSection() {
             <motion.div variants={item} className="mt-8 flex flex-wrap gap-3">
               <Link
                 href="/project"
-                className="inline-flex items-center gap-2 rounded-full px-6 py-2.5 text-[14px] font-semibold text-white bg-gradient-to-br from-blue-500 to-blue-700 shadow-lg shadow-blue-900/40 hover:from-blue-400 hover:to-blue-600 hover:shadow-blue-700/50 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40"
+                className="inline-flex items-center gap-2 rounded-full border border-blue-400/30 bg-gradient-to-b from-[#3b82f6] to-[#2563eb] px-6 py-2.5 text-[14px] font-semibold text-white shadow-[0_2px_14px_rgba(59,130,246,0.45),inset_0_1px_0_rgba(255,255,255,0.15)] transition-all duration-150 hover:from-[#60a5fa] hover:to-[#3b82f6] hover:shadow-[0_4px_20px_rgba(59,130,246,0.55)] hover:-translate-y-0.5 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/50"
               >
                 Explore projects
                 <ArrowRight className="h-3.5 w-3.5 opacity-60" strokeWidth={2.5} />
