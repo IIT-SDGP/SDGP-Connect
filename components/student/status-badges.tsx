@@ -1,5 +1,3 @@
-'use client';
-
 import { ApprovalStatus } from '@/types/prisma-types';
 
 import { Badge } from '@/components/ui/badge';
