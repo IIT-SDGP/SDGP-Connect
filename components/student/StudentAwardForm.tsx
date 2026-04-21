@@ -298,12 +298,11 @@ export default function StudentAwardForm({ awardId }: StudentAwardFormProps) {
         </div>
 
         <div className='space-y-2'>
-          <Label>Award Image</Label>
+          <Label htmlFor='award-image-file'>Award Image</Label>
           <Input
             id='award-image-file'
             type='file'
             accept='image/png,image/jpeg'
-            aria-label='Upload award image'
             onChange={(event) => {
               const file = event.target.files?.[0] ?? null;
               setPendingImageFile(file);

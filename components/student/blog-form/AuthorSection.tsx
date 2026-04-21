@@ -80,19 +80,26 @@ export function AuthorSection({ author, fieldErrors, onUpdateAuthor, onUploadAva
       </div>
 
       <div className='grid gap-4 md:grid-cols-2'>
-        {SOCIAL_FIELDS.map((field: SocialField) => (
-          <div key={field} className='space-y-2'>
-            <Label className='capitalize'>{field}</Label>
-            <Input
-              value={author[field]}
-              onChange={(e) => onUpdateAuthor(field, e.target.value)}
-              placeholder={field === 'website' ? 'https://your-site.com' : `Your ${field} link`}
-            />
-            {fieldErrors[`author.${field}`] ? (
-              <p className='text-destructive text-xs'>{fieldErrors[`author.${field}`]}</p>
-            ) : null}
-          </div>
-        ))}
+        {SOCIAL_FIELDS.map((field: SocialField) => {
+          const inputId = `author-social-${field}`;
+
+          return (
+            <div key={field} className='space-y-2'>
+              <Label htmlFor={inputId} className='capitalize'>
+                {field}
+              </Label>
+              <Input
+                id={inputId}
+                value={author[field]}
+                onChange={(e) => onUpdateAuthor(field, e.target.value)}
+                placeholder={field === 'website' ? 'https://your-site.com' : `Your ${field} link`}
+              />
+              {fieldErrors[`author.${field}`] ? (
+                <p className='text-destructive text-xs'>{fieldErrors[`author.${field}`]}</p>
+              ) : null}
+            </div>
+          );
+        })}
       </div>
     </section>
   );

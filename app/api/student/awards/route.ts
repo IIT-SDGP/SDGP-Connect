@@ -153,7 +153,7 @@ export async function POST(request: Request) {
     const award = await prisma.award.create({
       data: {
         name: validatedData.awardName,
-        image: validatedData.image ?? null,
+        image: validatedData.image,
         competition_id: validatedData.competitionId,
         project_id: validatedData.projectId,
         approval_status: ApprovalStatus.PENDING,
