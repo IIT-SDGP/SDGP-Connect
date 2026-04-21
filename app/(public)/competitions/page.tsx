@@ -45,7 +45,7 @@ export default function AwardsPage() {
     router.push("/contact")
   }
 
-  // Setup intersection observer and recreate only when list length changes
+  // Setup intersection observer once - uses refs to avoid recreating on every state change
   useEffect(() => {
     if (observerRef.current) observerRef.current.disconnect()
 
@@ -66,7 +66,7 @@ export default function AwardsPage() {
     return () => {
       if (observerRef.current) observerRef.current.disconnect()
     }
-  }, [competitions.length])
+  }, []) // Empty dependency array - only run once on mount
 
   return (
     <div className="min-h-screen bg-#0c0a09">
