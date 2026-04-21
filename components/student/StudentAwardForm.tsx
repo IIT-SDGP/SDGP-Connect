@@ -14,6 +14,7 @@ import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { awardPayloadSchema } from '@/validations/award';
 import useUploadImageToBlob from '@/hooks/azure/useUploadImageToBlob';
+import { useDebounce } from '@/hooks/use-debounce';
 
 type StudentAwardFormProps = {
   awardId?: string;
@@ -40,6 +41,9 @@ export default function StudentAwardForm({ awardId }: StudentAwardFormProps) {
 
   const [projects, setProjects] = useState<Option[]>([]);
   const [competitions, setCompetitions] = useState<Option[]>([]);
+  const [competitionQuery, setCompetitionQuery] = useState('');
+  const debouncedCompetitionQuery = useDebounce(competitionQuery, 300);
+  const [pinnedCompetition, setPinnedCompetition] = useState<Option | null>(null);
   const [formData, setFormData] = useState<AwardPayload>({
     projectId: '',
     competitionId: '',
@@ -52,17 +56,18 @@ export default function StudentAwardForm({ awardId }: StudentAwardFormProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [loadErrorMessage, setLoadErrorMessage] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     const load = async () => {
       setIsLoading(true);
       setErrorMessage(null);
+      setLoadErrorMessage(null);
 
       try {
-        const [projectResponse, competitionResponse, awardResponse] = await Promise.all([
+        const [projectResponse, awardResponse] = await Promise.all([
           fetch('/api/student/projects?page=1&limit=100'),
-          fetch('/api/competition/search?limit=20'),
           awardId ? fetch(`/api/student/awards/${awardId}`) : Promise.resolve(null),
         ]);
 
@@ -71,24 +76,10 @@ export default function StudentAwardForm({ awardId }: StudentAwardFormProps) {
           throw new Error(projectPayload?.error || 'Failed to load your projects');
         }
 
-        const competitionPayload = await competitionResponse.json();
-        if (!competitionResponse.ok) {
-          throw new Error(competitionPayload?.error || 'Failed to load competitions');
-        }
-
         const projectOptions: Option[] = (projectPayload.data ?? []).map((project: any) => ({
           id: project.projectId,
           label: project.title,
           sublabel: `${project.groupNum} | ${project.year}`,
-        }));
-
-        let competitionOptions: Option[] = (competitionPayload ?? []).map((competition: any) => ({
-          id: competition.id,
-          label: competition.name,
-          sublabel: [competition.start_date, competition.end_date]
-            .filter(Boolean)
-            .map((value: string) => new Date(value).toLocaleDateString())
-            .join(' - '),
         }));
 
         setProjects(projectOptions);
@@ -120,20 +111,15 @@ export default function StudentAwardForm({ awardId }: StudentAwardFormProps) {
             rejectedReason: award.rejected_reason ?? null,
           });
 
-          if (!competitionOptions.some((option) => option.id === award.competition.id)) {
-            competitionOptions = [
-              ...competitionOptions,
-              {
-                id: award.competition.id,
-                label: award.competition.name,
-              },
-            ];
-          }
+          setPinnedCompetition({
+            id: award.competition.id,
+            label: award.competition.name,
+          });
         }
-
-        setCompetitions(competitionOptions);
       } catch (error) {
-        setErrorMessage(error instanceof Error ? error.message : 'Failed to load award form');
+        const message = error instanceof Error ? error.message : 'Failed to load award form';
+        setErrorMessage(message);
+        setLoadErrorMessage(message);
       } finally {
         setIsLoading(false);
       }
@@ -141,6 +127,48 @@ export default function StudentAwardForm({ awardId }: StudentAwardFormProps) {
 
     void load();
   }, [awardId, router]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadCompetitions = async () => {
+      try {
+        const params = new URLSearchParams({ limit: '20' });
+        if (debouncedCompetitionQuery.trim()) {
+          params.set('q', debouncedCompetitionQuery.trim());
+        }
+
+        const response = await fetch(`/api/competition/search?${params.toString()}`);
+        if (!response.ok) return;
+
+        const payload = await response.json();
+        if (cancelled) return;
+
+        const options: Option[] = (payload ?? []).map((competition: any) => ({
+          id: competition.id,
+          label: competition.name,
+          sublabel: [competition.start_date, competition.end_date]
+            .filter(Boolean)
+            .map((value: string) => new Date(value).toLocaleDateString())
+            .join(' - '),
+        }));
+
+        if (pinnedCompetition && !options.some((option) => option.id === pinnedCompetition.id)) {
+          options.push(pinnedCompetition);
+        }
+
+        setCompetitions(options);
+      } catch {
+        // Swallow competition search errors; the dropdown simply stays stale.
+      }
+    };
+
+    void loadCompetitions();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [debouncedCompetitionQuery, pinnedCompetition]);
 
   useEffect(() => {
     return () => {
@@ -227,6 +255,20 @@ export default function StudentAwardForm({ awardId }: StudentAwardFormProps) {
     );
   }
 
+  if (awardId && loadErrorMessage) {
+    return (
+      <div className='space-y-4'>
+        <Alert variant='destructive'>
+          <AlertTitle>Unable to load award</AlertTitle>
+          <AlertDescription>{loadErrorMessage}</AlertDescription>
+        </Alert>
+        <Button variant='outline' asChild>
+          <Link href='/student/awards'>Back to awards</Link>
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <div className='space-y-6'>
       {awardId && formData.approvalStatus ? (
@@ -276,6 +318,14 @@ export default function StudentAwardForm({ awardId }: StudentAwardFormProps) {
 
           <div className='space-y-2'>
             <Label htmlFor='award-competition'>Competition</Label>
+            <Input
+              id='award-competition-search'
+              type='search'
+              placeholder='Search competitions...'
+              value={competitionQuery}
+              onChange={(event) => setCompetitionQuery(event.target.value)}
+              aria-label='Search competitions'
+            />
             <select
               id='award-competition'
               value={formData.competitionId}

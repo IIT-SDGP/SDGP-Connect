@@ -77,6 +77,7 @@ export default function StudentBlogForm({ blogId }: StudentBlogFormProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [loadErrorMessage, setLoadErrorMessage] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const previewStatus = useMemo(
@@ -93,6 +94,7 @@ export default function StudentBlogForm({ blogId }: StudentBlogFormProps) {
 
       setIsLoading(true);
       setErrorMessage(null);
+      setLoadErrorMessage(null);
 
       try {
         if (blogId) {
@@ -161,7 +163,9 @@ export default function StudentBlogForm({ blogId }: StudentBlogFormProps) {
           setFormData(next);
         }
       } catch (error: unknown) {
-        setErrorMessage(error instanceof Error ? error.message : 'Failed to load blog form');
+        const message = error instanceof Error ? error.message : 'Failed to load blog form';
+        setErrorMessage(message);
+        setLoadErrorMessage(message);
       } finally {
         setIsLoading(false);
       }
@@ -244,6 +248,20 @@ export default function StudentBlogForm({ blogId }: StudentBlogFormProps) {
         <AlertTitle>Error</AlertTitle>
         <AlertDescription>{errorMessage}</AlertDescription>
       </Alert>
+    );
+  }
+
+  if (blogId && loadErrorMessage) {
+    return (
+      <div className='space-y-4'>
+        <Alert variant='destructive'>
+          <AlertTitle>Unable to load blog post</AlertTitle>
+          <AlertDescription>{loadErrorMessage}</AlertDescription>
+        </Alert>
+        <Button variant='outline' asChild>
+          <Link href='/student/blogs'>Back to blog posts</Link>
+        </Button>
+      </div>
     );
   }
 
