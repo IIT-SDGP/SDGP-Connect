@@ -179,7 +179,6 @@ export default function StudentAwardForm({ awardId }: StudentAwardFormProps) {
           }
         }
         setFieldErrors(errors);
-        setIsSaving(false);
         return;
       }
 

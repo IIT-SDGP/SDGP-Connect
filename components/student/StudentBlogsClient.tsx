@@ -183,7 +183,7 @@ export default function StudentBlogsClient() {
                 <TableRow key={blog.id}>
                   <TableCell><BlogTitleCell blog={blog} status={status} /></TableCell>
                   <TableCell>{new Date(blog.createdAt).toLocaleDateString()}</TableCell>
-                  <TableCell><BlogStatusBadge {...blog} /></TableCell>
+                  <TableCell><BlogStatusBadge approved={blog.approved} rejectedById={blog.rejectedById} /></TableCell>
                   <TableCell className='text-right'>
                     <BlogRowActions
                       blog={blog}
