@@ -56,8 +56,25 @@ export async function GET(request: Request) {
         orderBy: { updatedAt: "desc" },
         skip,
         take: limit,
-        include: {
-          author: true,
+        select: {
+          id: true,
+          title: true,
+          excerpt: true,
+          category: true,
+          imageUrl: true,
+          approved: true,
+          rejectedById: true,
+          rejectedReason: true,
+          createdAt: true,
+          updatedAt: true,
+          author: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              avatarUrl: true,
+            },
+          },
         },
       }),
     ]);

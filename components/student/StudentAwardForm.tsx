@@ -3,7 +3,7 @@
 import { ApprovalStatus } from '@/types/prisma-types';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 import { AwardStatusBadge } from '@/components/student/status-badges';
@@ -47,6 +47,7 @@ export default function StudentAwardForm({ awardId }: StudentAwardFormProps) {
     image: '',
   });
   const [pendingImageFile, setPendingImageFile] = useState<File | null>(null);
+  const previewObjectUrlRef = useRef<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -132,6 +133,15 @@ export default function StudentAwardForm({ awardId }: StudentAwardFormProps) {
 
     void load();
   }, [awardId]);
+
+  useEffect(() => {
+    return () => {
+      if (previewObjectUrlRef.current) {
+        URL.revokeObjectURL(previewObjectUrlRef.current);
+        previewObjectUrlRef.current = null;
+      }
+    };
+  }, []);
 
   const handleSubmit = async () => {
     setIsSaving(true);
@@ -285,10 +295,18 @@ export default function StudentAwardForm({ awardId }: StudentAwardFormProps) {
             onChange={(event) => {
               const file = event.target.files?.[0] ?? null;
               setPendingImageFile(file);
+
+              if (previewObjectUrlRef.current) {
+                URL.revokeObjectURL(previewObjectUrlRef.current);
+                previewObjectUrlRef.current = null;
+              }
+
               if (file) {
+                const objectUrl = URL.createObjectURL(file);
+                previewObjectUrlRef.current = objectUrl;
                 setFormData((current) => ({
                   ...current,
-                  image: URL.createObjectURL(file),
+                  image: objectUrl,
                 }));
               }
             }}

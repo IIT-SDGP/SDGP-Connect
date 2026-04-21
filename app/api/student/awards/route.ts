@@ -66,9 +66,25 @@ export async function GET(request: Request) {
         skip,
         take: limit,
         orderBy: { updatedAt: "desc" },
-        include: {
-          competition: true,
-          project: true,
+        select: {
+          id: true,
+          name: true,
+          image: true,
+          approval_status: true,
+          rejected_reason: true,
+          createdAt: true,
+          project: {
+            select: {
+              project_id: true,
+              title: true,
+            },
+          },
+          competition: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
         },
       }),
     ]);
