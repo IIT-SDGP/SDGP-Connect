@@ -3,7 +3,6 @@
 import { ApprovalStatus } from '@/types/prisma-types';
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
-import { toast } from 'sonner';
 
 import { AwardStatusBadge } from '@/components/student/status-badges';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -71,26 +70,6 @@ export default function StudentAwardsClient() {
   useEffect(() => {
     void loadAwards(filter);
   }, [filter, loadAwards]);
-
-  const handleDelete = async (awardId: string) => {
-    if (!window.confirm('Delete this award submission?')) return;
-
-    try {
-      const response = await fetch(`/api/student/awards/${awardId}`, {
-        method: 'DELETE',
-      });
-      const payload = await response.json();
-
-      if (!response.ok) {
-        throw new Error(payload?.error || 'Failed to delete award');
-      }
-
-      toast.success('Award deleted');
-      await loadAwards(filter);
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Failed to delete award');
-    }
-  };
 
   if (isLoading) {
     return (
@@ -177,15 +156,6 @@ export default function StudentAwardsClient() {
                           Edit
                         </Button>
                       )}
-                      {isEditable ? (
-                        <Button
-                          size='sm'
-                          variant='destructive'
-                          onClick={() => void handleDelete(award.id)}
-                        >
-                          Delete
-                        </Button>
-                      ) : null}
                     </div>
                   </TableCell>
                 </TableRow>

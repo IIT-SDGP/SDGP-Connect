@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
-import { toast } from 'sonner';
 
 import { BlogStatusBadge, getBlogStatus } from '@/components/student/status-badges';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -38,11 +37,9 @@ function BlogTitleCell({ blog, status }: { blog: StudentBlogRow; status: ReturnT
 function BlogRowActions({
   blog,
   status,
-  onDelete,
 }: {
   blog: StudentBlogRow;
   status: ReturnType<typeof getBlogStatus>;
-  onDelete: () => void;
 }) {
   const isEditable = status !== 'approved';
 
@@ -60,9 +57,6 @@ function BlogRowActions({
       ) : (
         <Button size='sm' variant='outline' disabled>Edit</Button>
       )}
-      {isEditable ? (
-        <Button size='sm' variant='destructive' onClick={onDelete}>Delete</Button>
-      ) : null}
     </div>
   );
 }
@@ -107,26 +101,6 @@ export default function StudentBlogsClient() {
   useEffect(() => {
     void loadBlogs(filter);
   }, [filter, loadBlogs]);
-
-  const handleDelete = async (blogId: string) => {
-    if (!window.confirm('Delete this blog post?')) return;
-
-    try {
-      const response = await fetch(`/api/student/blogs/${blogId}`, {
-        method: 'DELETE',
-      });
-      const payload = await response.json();
-
-      if (!response.ok) {
-        throw new Error(payload?.error || 'Failed to delete blog post');
-      }
-
-      toast.success('Blog post deleted');
-      await loadBlogs(filter);
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Failed to delete blog post');
-    }
-  };
 
   if (isLoading) {
     return (
@@ -185,11 +159,7 @@ export default function StudentBlogsClient() {
                   <TableCell>{new Date(blog.createdAt).toLocaleDateString()}</TableCell>
                   <TableCell><BlogStatusBadge approved={blog.approved} rejectedById={blog.rejectedById} /></TableCell>
                   <TableCell className='text-right'>
-                    <BlogRowActions
-                      blog={blog}
-                      status={status}
-                      onDelete={() => void handleDelete(blog.id)}
-                    />
+                    <BlogRowActions blog={blog} status={status} />
                   </TableCell>
                 </TableRow>
               );
