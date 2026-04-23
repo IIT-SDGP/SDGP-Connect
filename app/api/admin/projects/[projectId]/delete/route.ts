@@ -2,8 +2,9 @@ import { prisma } from "@/prisma/prismaClient";
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { ProjectApprovalStatus } from "@prisma/client";
+import { ProjectApprovalStatus, AuditAction } from "@/types/prisma-types";
 import { BlobServiceClient } from "@azure/storage-blob";
+import { createAuditLog } from "@/lib/audit";
 
 /**
  * Extracts the blob name from an Azure Blob Storage URL.
@@ -30,10 +31,10 @@ function extractBlobName(url: string | null | undefined): string | null {
  * Fails silently to avoid blocking project deletion.
  */
 async function deleteBlob(blobName: string): Promise<void> {
-  // Use server-only env vars for sensitive credentials (fallback to NEXT_PUBLIC_ for backwards compatibility)
-  const account = process.env.AZURE_STORAGE_ACCOUNT_NAME || process.env.NEXT_PUBLIC_AZURE_STORAGE_ACCOUNT_NAME;
-  const container = process.env.AZURE_STORAGE_CONTAINER_NAME || process.env.NEXT_PUBLIC_AZURE_STORAGE_CONTAINER_NAME;
-  const sas = process.env.AZURE_SAS_TOKEN || process.env.NEXT_PUBLIC_AZURE_SAS_TOKEN;
+  // Use server-only env vars for sensitive credentials
+  const account = process.env.AZURE_STORAGE_ACCOUNT_NAME;
+  const container = process.env.AZURE_STORAGE_CONTAINER_NAME;
+  const sas = process.env.AZURE_SAS_TOKEN;
 
   if (!account || !container || !sas) {
     console.warn("Azure blob storage not configured, skipping blob deletion");
@@ -58,6 +59,7 @@ export async function DELETE(
   context: { params: Promise<{ projectId: string }> }
 ) {
   const { projectId } = await context.params;
+  const startTime = Date.now();
 
   if (!projectId) {
     return NextResponse.json(
@@ -87,6 +89,9 @@ export async function DELETE(
     const project = await prisma.projectMetadata.findUnique({
       where: { project_id: projectId },
       select: {
+        title: true,
+        sdgp_year: true,
+        group_num: true,
         cover_image: true,
         logo: true,
         projectContent: {
@@ -188,6 +193,22 @@ export async function DELETE(
     // Attempt blob cleanup before returning so deletion is reliable in serverless runtimes
     // Note: deleteBlob handles errors internally and logs them, so Promise.all won't reject
     await Promise.all(blobsToDelete.map(deleteBlob));
+
+    // Create audit log entry for this deletion
+    await createAuditLog({
+      action: AuditAction.PROJECT_DELETED,
+      userId,
+      entityType: "PROJECT",
+      entityId: projectId,
+      metadata: {
+        title: project.title,
+        groupNumber: project.group_num,
+        sdgpYear: project.sdgp_year,
+        blobsDeleted: blobsToDelete.length,
+        deletionDurationMs: Date.now() - startTime,
+      },
+      request: req,
+    });
 
     console.log(`Project ${projectId} deleted successfully by user ${userId}`);
 

@@ -149,6 +149,20 @@ enum ApprovalStatus {
   REJECTED
 }
 
+enum AuditAction {
+  PROJECT_DELETED
+  PROJECT_APPROVED
+  PROJECT_REJECTED
+  PROJECT_FEATURED
+  PROJECT_UNFEATURED
+  AWARD_APPROVED
+  AWARD_REJECTED
+  COMPETITION_APPROVED
+  COMPETITION_REJECTED
+  BLOG_POST_APPROVED
+  BLOG_POST_REJECTED
+}
+
 // ===================== NextAuth Adapter Models =====================
 enum EmailOutboxStatus {
   PENDING
@@ -230,6 +244,7 @@ model User {
   rejectedCompetitions Competition[] @relation("RejectedCompetitions")
   approvedBlogPosts BlogPost[]       @relation("BlogPostsApprovedBy")
   rejectedBlogPosts BlogPost[]       @relation("BlogPostsRejectedBy")
+  auditLogs        AuditLog[]
 
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
@@ -534,4 +549,23 @@ model BlogAuthor {
 
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
+}
+
+model AuditLog {
+  id            String      @id @default(uuid())
+  action        AuditAction
+  userId        String
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  entityType    String      // e.g., "PROJECT", "AWARD", "COMPETITION", "BLOG_POST"
+  entityId      String      // The ID of the affected entity
+  metadata      Json?       // Additional context (e.g., project title, group number, etc.)
+  ipAddress     String?
+  userAgent     String?
+
+  createdAt     DateTime    @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([entityType, entityId])
+  @@index([createdAt])
 }

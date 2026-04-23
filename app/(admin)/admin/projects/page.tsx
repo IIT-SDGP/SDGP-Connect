@@ -43,7 +43,7 @@ export default function ProjectManagement() {
   const [bulkApproveDialog, setBulkApproveDialog] = useState(false);
   const [duplicateDialog, setDuplicateDialog] = useState(false);
   const [deleteDialog, setDeleteDialog] = useState(false);
-  const [currentProject, setCurrentProject] = useState<any>(null);
+  const [currentProject, setCurrentProject] = useState<PendingProject | ApprovedProject | RejectedProject | null>(null);
   const [currentTab, setCurrentTab] = useState<'pending' | 'approved' | 'rejected'>('pending');
   const [lastFetchedTime, setLastFetchedTime] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -437,7 +437,7 @@ export default function ProjectManagement() {
         <ApproveDialog
           open={approveDialog}
           onOpenChange={setApproveDialog}
-          projectID={currentProject.id}
+          projectID={String(currentProject.id)}
           onApproved={refreshPending}
         />
       )}
