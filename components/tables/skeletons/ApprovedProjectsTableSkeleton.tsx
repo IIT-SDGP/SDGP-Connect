@@ -34,8 +34,8 @@ const ApprovedProjectsTableSkeleton: React.FC = () => {
             <TableHead>
               <Skeleton className="h-5 w-16" />
             </TableHead>
-            <TableHead>
-              <Skeleton className="h-5 w-16" />
+            <TableHead className="admin-table-actions-head">
+              <Skeleton className="mx-auto h-5 w-16" />
             </TableHead>
           </TableRow>
         </TableHeader>
@@ -64,8 +64,8 @@ const ApprovedProjectsTableSkeleton: React.FC = () => {
               <TableCell>
                 <Switch disabled />
               </TableCell>
-              <TableCell>
-                <div className="flex gap-2">
+              <TableCell className="admin-table-actions-cell">
+                <div className="admin-table-actions-inner">
                   <Skeleton className="h-8 w-16 rounded-md" />
                 </div>
               </TableCell>

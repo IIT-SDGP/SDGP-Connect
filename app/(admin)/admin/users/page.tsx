@@ -36,6 +36,12 @@ import {
 import { useAddUser, useEditUser, useDeleteUser, useFetchUsers, User } from '@/hooks/user';
 import { useCurrentUser } from '@/hooks/auth/useCurrentUser';
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -49,10 +55,12 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { Copy } from "lucide-react";
+import { ChevronDown, Copy } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useSession } from "next-auth/react";
+import { AdminPageShell } from '@/components/layout/admin-page-shell';
+import { AdminSearchField } from '@/components/layout/admin-search-field';
 
 // Form validation schema for creating/editing users
 // Update userFormSchema to allow empty string in edit mode
@@ -182,14 +190,6 @@ export default function UserManagement() {
     }
   };
 
-  const handleBulkDelete = () => {
-    if (!isAdmin) {
-      toast.error('Only administrators can delete users');
-      return;
-    }
-    setBulkDeleteDialog(true);
-  };
-
   // New function to confirm bulk deletion from dialog
   const confirmBulkDelete = async () => {
     let success = true;
@@ -238,7 +238,9 @@ export default function UserManagement() {
 
     setSelectedUsers([]);
     refetch(); // Refresh the users list
-  };  const filteredUsers = users
+  };
+
+  const filteredUsers = users
     .filter(user =>
       user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.role.toLowerCase().includes(searchTerm.toLowerCase())
@@ -251,6 +253,24 @@ export default function UserManagement() {
         ? String(aValue).localeCompare(String(bValue))
         : String(bValue).localeCompare(String(aValue));
     });
+
+  const allFilteredSelected =
+    filteredUsers.length > 0 &&
+    filteredUsers.every((u) => selectedUsers.includes(u.user_id));
+
+  const toggleUserSelected = useCallback((userId: string) => {
+    setSelectedUsers((prev) =>
+      prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId]
+    );
+  }, []);
+
+  const toggleSelectAllFiltered = () => {
+    if (allFilteredSelected) {
+      setSelectedUsers([]);
+    } else {
+      setSelectedUsers(filteredUsers.map((u) => u.user_id));
+    }
+  };
 
   // Function to copy credentials to clipboard
   const copyCredentials = () => {
@@ -271,65 +291,142 @@ password: ${newUserCredentials.password}`;
   };
 
   return (
-    <div className="space-y-6">      <div className="flex justify-between items-center">
-      <div>
-        <h1 className="text-3xl font-bold">User Management</h1>
-        <p className="text-muted-foreground">Manage user accounts and roles</p>
+    <AdminPageShell
+      title="User Management"
+      description="Manage user accounts and role assignments."
+      actions={
+        <Button
+          onClick={() => {
+            if (!isAdmin) {
+              toast.error('Only administrators can create users');
+              return;
+            }
+            setCreateDialog(true);
+          }}
+          disabled={!isAdmin}
+        >
+          Create User
+        </Button>
+      }
+    >
+      {fetchError ? (
+        <div className="admin-content-card border-destructive/40 bg-destructive/5 text-sm text-destructive">
+          {fetchError}
+        </div>
+      ) : null}
+
+      <div className="admin-toolbar">
+        <AdminSearchField
+          rowClassName="max-w-xl flex-1 justify-start"
+          placeholder="Search by name or role…"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          showClear
+          onClear={() => setSearchTerm('')}
+          aria-label="Search users"
+        />
+        <div className="admin-toolbar-actions">
+          <Select
+            value={roleFilter ?? 'all'}
+            onValueChange={(v) => setRoleFilter(v === 'all' ? null : v)}
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Filter by role" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All roles</SelectItem>
+              {roles.map((role) => (
+                <SelectItem key={role} value={role}>
+                  {role}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
-      <Button
-        onClick={() => {
-          if (!isAdmin) {
-            toast.error('Only administrators can create users');
-            return;
-          }
-          setCreateDialog(true);
-        }}
-        disabled={!isAdmin}
-      >
-        Create User
-      </Button>
-    </div>
 
+      {isAdmin && selectedUsers.length > 0 ? (
+        <div className="admin-toolbar border-primary/20 bg-primary/5">
+          <p className="text-sm text-muted-foreground">
+            <span className="font-medium text-foreground">{selectedUsers.length}</span> selected
+          </p>
+          <div className="admin-toolbar-actions">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-1">
+                  Set role
+                  <ChevronDown className="h-4 w-4 opacity-70" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {roles.map((role) => (
+                  <DropdownMenuItem key={role} onClick={() => void handleBulkRoleUpdate(role)}>
+                    {role}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <Button variant="destructive" size="sm" onClick={() => setBulkDeleteDialog(true)}>
+              Delete selected
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => setSelectedUsers([])}>
+              Clear
+            </Button>
+          </div>
+        </div>
+      ) : null}
 
-
-      <div className="rounded-md border">
+      <div className="admin-table-wrap">
         <Table>
-          <TableHeader><TableRow><TableHead
-                className="cursor-pointer"
-                onClick={() => handleSort('name')}
-              >
+          <TableHeader className="admin-table-thead">
+            <TableRow>
+              {isAdmin ? (
+                <TableHead className="w-12">
+                  <Checkbox
+                    checked={allFilteredSelected}
+                    onCheckedChange={() => toggleSelectAllFiltered()}
+                    aria-label="Select all filtered users"
+                  />
+                </TableHead>
+              ) : null}
+              <TableHead className="cursor-pointer" onClick={() => handleSort('name')}>
                 Name {sortColumn === 'name' && (sortDirection === 'asc' ? '↑' : '↓')}
               </TableHead>
-              <TableHead
-                className="cursor-pointer"
-                onClick={() => handleSort('role')}
-              >
+              <TableHead className="cursor-pointer" onClick={() => handleSort('role')}>
                 Role {sortColumn === 'role' && (sortDirection === 'asc' ? '↑' : '↓')}
               </TableHead>
-              <TableHead
-                className="cursor-pointer"
-                onClick={() => handleSort('createdAt')}
-              >
+              <TableHead className="cursor-pointer" onClick={() => handleSort('createdAt')}>
                 Created At {sortColumn === 'createdAt' && (sortDirection === 'asc' ? '↑' : '↓')}
               </TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow></TableHeader>
+              <TableHead className="admin-table-actions-head">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
           <TableBody>
             {loadingUsers ? (
             <TableRow>
-              <TableCell colSpan={5} className="text-center py-4">
+              <TableCell colSpan={isAdmin ? 5 : 4} className="text-center py-10 text-muted-foreground">
                 <LoadingSpinner/>
               </TableCell>
             </TableRow>
           ) : filteredUsers.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={5} className="text-center py-4">
-                No users found
+              <TableCell colSpan={isAdmin ? 5 : 4} className="p-0">
+                <div className="admin-empty-hint border-0">No users match your filters.</div>
               </TableCell>
             </TableRow>
           ) : (
             filteredUsers.map((user) => (
-              <TableRow key={user.user_id}>                  <TableCell>{user.name}</TableCell>
+              <TableRow key={user.user_id} className="transition-colors hover:bg-muted/25">
+                {isAdmin ? (
+                  <TableCell>
+                    <Checkbox
+                      checked={selectedUsers.includes(user.user_id)}
+                      onCheckedChange={() => toggleUserSelected(user.user_id)}
+                      aria-label={`Select ${user.name}`}
+                    />
+                  </TableCell>
+                ) : null}
+                  <TableCell>{user.name}</TableCell>
                   <TableCell>
                     <Badge variant={
                     user.role === 'ADMIN'
@@ -342,8 +439,8 @@ password: ${newUserCredentials.password}`;
                 <TableCell>
                   {format(new Date(user.createdAt), 'd MMM yyyy')}
                 </TableCell>
-                <TableCell>
-                  <div className="flex gap-2">
+                <TableCell className="text-right">
+                  <div className="flex justify-end gap-2">
                     <Button
                       size="sm"
                       variant="outline"
@@ -636,6 +733,6 @@ password: ${newUserCredentials.password}` : ''}
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </AdminPageShell>
   );
 }

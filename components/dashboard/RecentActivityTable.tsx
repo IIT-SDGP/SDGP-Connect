@@ -23,6 +23,7 @@ import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { LoadingSpinner } from '../ui/loading-spinner';
 import { Activity } from '@/hooks/dashboard/useGetActivity';
+import { History } from 'lucide-react';
 
 interface RecentActivityTableProps {
   activities: Activity[];
@@ -33,11 +34,11 @@ interface RecentActivityTableProps {
 const RecentActivityTable: React.FC<RecentActivityTableProps> = ({ activities, isLoading = false, error = null }) => {
   const getActionBadgeColor = (actionType: string) => {
     switch(actionType) {
-      case 'Approved': return 'bg-green-500/20 text-green-500 border-green-500/20';
-      case 'Rejected': return 'bg-red-500/20 text-red-500 border-red-500/20';
-      case 'Featured': return 'bg-blue-500/20 text-blue-500 border-blue-500/20';
-      case 'Submitted': return 'bg-amber-500/20 text-amber-500 border-amber-500/20';
-      default: return 'bg-gray-500/20 text-gray-500 border-gray-500/20';
+      case 'Approved': return 'border-emerald-500/30 bg-emerald-500/15 text-emerald-500';
+      case 'Rejected': return 'border-red-500/30 bg-red-500/15 text-red-500';
+      case 'Featured': return 'border-indigo-500/30 bg-indigo-500/15 text-indigo-500';
+      case 'Submitted': return 'border-amber-500/30 bg-amber-500/15 text-amber-500';
+      default: return 'border-slate-500/30 bg-slate-500/15 text-slate-500';
     }
   };
 
@@ -64,55 +65,84 @@ const RecentActivityTable: React.FC<RecentActivityTableProps> = ({ activities, i
   };
 
   return (
-    <Card className="neo-card w-full mt-8">
-      <CardHeader>
-        <CardTitle className="text-xl font-medium">Recent Activity</CardTitle>
-        <CardDescription>Latest updates on projects and reviews</CardDescription>
+    <Card className="admin-surface w-full overflow-hidden rounded-2xl">
+      <CardHeader className="border-b border-border/50 bg-muted/20 pb-4">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="flex items-start gap-3">
+            <div className="mt-0.5 grid size-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/20">
+              <History className="size-5" />
+            </div>
+            <div>
+              <CardTitle className="text-lg font-semibold tracking-tight">
+                Recent activity
+              </CardTitle>
+              <CardDescription className="mt-1 text-sm leading-relaxed">
+                Latest moderation events and project updates.
+              </CardDescription>
+            </div>
+          </div>
+          {!isLoading && !error && activities.length > 0 ? (
+            <span className="rounded-full border border-border/70 bg-background/80 px-3 py-1 text-xs font-medium text-muted-foreground tabular-nums">
+              {activities.length} {activities.length === 1 ? 'entry' : 'entries'}
+            </span>
+          ) : null}
+        </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-0">
         {isLoading ? (
-          <div className="flex justify-center items-center py-10">
+          <div className="flex justify-center items-center py-16">
             <LoadingSpinner />
           </div>
         ) : error ? (
-          <div className="text-center py-10 text-red-500">
+          <div className="text-center py-16 text-sm text-destructive">
             {error}
           </div>
         ) : activities.length === 0 ? (
-          <div className="text-center py-10 text-muted-foreground">
-            No recent activity found.
+          <div className="admin-empty-hint m-4">
+            No recent activity yet. Approvals and submissions will appear here.
           </div>
         ) : (
           <div className="overflow-x-auto">
             <Table>
-              <TableHeader className="bg-background/50">
-                <TableRow className="hover:bg-transparent border-b border-white/5">
-                  <TableHead className="font-medium text-muted-foreground">Project Title</TableHead>
-                  <TableHead className="font-medium text-muted-foreground">Group Number</TableHead>
-                  <TableHead className="font-medium text-muted-foreground">Last Updated</TableHead>
-                  <TableHead className="font-medium text-muted-foreground">Action Type</TableHead>
-                  <TableHead className="font-medium text-muted-foreground">Action By</TableHead>
+              <TableHeader className="admin-table-thead">
+                <TableRow className="border-b border-border/70 hover:bg-transparent">
+                  <TableHead className="font-semibold text-muted-foreground">Project</TableHead>
+                  <TableHead className="font-semibold text-muted-foreground">Group</TableHead>
+                  <TableHead className="font-semibold text-muted-foreground">Updated</TableHead>
+                  <TableHead className="font-semibold text-muted-foreground">Action</TableHead>
+                  <TableHead className="font-semibold text-muted-foreground">By</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {activities.map((activity, index) => (
-                  <TableRow 
+                  <TableRow
                     key={activity.id}
                     className={cn(
-                      "transition-all cursor-pointer", 
-                      "hover:bg-white/5",
-                      index % 2 === 0 ? 'bg-transparent' : 'bg-white/[0.02]'
+                      'border-border/40 transition-colors hover:bg-muted/40',
+                      index % 2 === 0 ? 'bg-transparent' : 'bg-muted/10'
                     )}
                   >
-                    <TableCell className="font-medium">{activity.projectTitle}</TableCell>
-                    <TableCell>{activity.groupNumber}</TableCell>
-                    <TableCell>{formatDate(activity.lastUpdated)}</TableCell>
+                    <TableCell className="max-w-[200px] truncate font-medium">
+                      {activity.projectTitle}
+                    </TableCell>
+                    <TableCell className="tabular-nums text-muted-foreground">
+                      {activity.groupNumber}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {formatDate(activity.lastUpdated)}
+                    </TableCell>
                     <TableCell>
-                      <Badge className={cn("font-normal border", getActionBadgeColor(activity.actionType))}>
+                      <Badge
+                        variant="outline"
+                        className={cn(
+                          'rounded-lg font-medium',
+                          getActionBadgeColor(activity.actionType)
+                        )}
+                      >
                         {activity.actionType}
                       </Badge>
                     </TableCell>
-                    <TableCell>{activity.actionBy}</TableCell>
+                    <TableCell className="text-muted-foreground">{activity.actionBy}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

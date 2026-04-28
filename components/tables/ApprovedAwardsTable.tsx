@@ -55,19 +55,19 @@ export default function ApprovedAwardsTable({ awards, currentPage, totalPages, o
   }
 
   return (
-    <div>
+    <div className="admin-table-inner">
       <Table>
-        <TableHeader>
+        <TableHeader className="admin-table-thead">
           <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Project</TableHead>
-            <TableHead>Competition</TableHead>
-            <TableHead>Approved By</TableHead>
-            <TableHead>Actions</TableHead>
+            <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Name</TableHead>
+            <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Project</TableHead>
+            <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Competition</TableHead>
+            <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Approved By</TableHead>
+            <TableHead className="admin-table-actions-head">Actions</TableHead>
           </TableRow>
         </TableHeader>        <TableBody>
           {awards.map((award: AdminAward) => (
-            <TableRow key={award.id}>
+            <TableRow key={award.id} className="hover:bg-muted/25">
               <TableCell className="font-medium">{award.name}</TableCell>
               <TableCell>
                 <div className="font-medium">{award.project.title}</div>
@@ -81,19 +81,20 @@ export default function ApprovedAwardsTable({ awards, currentPage, totalPages, o
                   {formatShortDate(award.competition.start_date)} - {formatShortDate(award.competition.end_date)}
                 </div>
               </TableCell>
-              <TableCell>{award.accepted_by?.name || '-'}</TableCell>                  <TableCell>
-                <div className="flex gap-2">
-                  <Button size="sm" onClick={() => handleViewDetails(award.id)}>View Details</Button>
-                  <Button size="sm" variant="destructive" onClick={() => handleReject(award.id)}>Reject</Button>
+              <TableCell>{award.accepted_by?.name || '-'}</TableCell>
+              <TableCell className="admin-table-actions-cell">
+                <div className="admin-table-actions-inner">
+                  <Button size="sm" variant="outline" className="rounded-lg" onClick={() => handleViewDetails(award.id)}>View Details</Button>
+                  <Button size="sm" variant="destructive" className="rounded-lg" onClick={() => handleReject(award.id)}>Reject</Button>
                 </div>
               </TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
-      <Pagination className="mt-4 flex justify-center items-center">
+      <Pagination className="border-t border-border/70 px-4 py-3 flex justify-center items-center">
         {currentPage > 1 && <PaginationPrevious href="#" onClick={onPreviousPage} />}
-        <span className="mx-2">Page {currentPage} of {totalPages}</span>
+        <span className="mx-2 text-sm text-muted-foreground">Page {currentPage} of {totalPages}</span>
         {currentPage < totalPages && <PaginationNext href="#" onClick={onNextPage} />}      </Pagination>
       <AwardDetailsDialog open={detailsOpen} onOpenChange={setDetailsOpen} awardId={selectedId} />
       <RejectAwardDialog

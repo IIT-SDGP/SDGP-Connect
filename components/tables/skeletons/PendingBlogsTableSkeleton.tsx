@@ -32,8 +32,8 @@ const PendingBlogsTableSkeleton: React.FC = () => {
             <TableHead>
               <Skeleton className="h-5 w-20" />
             </TableHead>
-            <TableHead>
-              <Skeleton className="h-5 w-16" />
+            <TableHead className="admin-table-actions-head">
+              <Skeleton className="mx-auto h-5 w-16" />
             </TableHead>
           </TableRow>
         </TableHeader>
@@ -64,8 +64,8 @@ const PendingBlogsTableSkeleton: React.FC = () => {
               <TableCell>
                 <Skeleton className="h-4 w-20" />
               </TableCell>
-              <TableCell>
-                <div className="flex space-x-2">
+              <TableCell className="admin-table-actions-cell">
+                <div className="admin-table-actions-inner">
                   <Skeleton className="h-8 w-8" />
                   <Skeleton className="h-8 w-8" />
                   <Skeleton className="h-8 w-8" />

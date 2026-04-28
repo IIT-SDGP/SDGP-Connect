@@ -10,44 +10,79 @@ interface StatCardProps {
   title: string;
   value: string | React.ReactNode;
   icon: React.ReactNode;
+  tone?: "violet" | "blue" | "amber" | "emerald";
   className?: string;
   style?: React.CSSProperties;
 }
 
-const StatCard: React.FC<StatCardProps> = ({ title, value, icon, className, style }) => {
+const toneStyles: Record<
+  NonNullable<StatCardProps["tone"]>,
+  { glow: string; badge: string; bar: string }
+> = {
+  violet: {
+    glow: "bg-violet-500/18",
+    badge: "bg-violet-500/12 text-violet-600 ring-1 ring-violet-500/25 dark:text-violet-400",
+    bar: "from-violet-500 to-fuchsia-500",
+  },
+  blue: {
+    glow: "bg-sky-500/18",
+    badge: "bg-sky-500/12 text-sky-600 ring-1 ring-sky-500/25 dark:text-sky-400",
+    bar: "from-sky-500 to-blue-600",
+  },
+  amber: {
+    glow: "bg-amber-500/18",
+    badge: "bg-amber-500/12 text-amber-700 ring-1 ring-amber-500/30 dark:text-amber-400",
+    bar: "from-amber-500 to-orange-500",
+  },
+  emerald: {
+    glow: "bg-emerald-500/18",
+    badge: "bg-emerald-500/12 text-emerald-600 ring-1 ring-emerald-500/25 dark:text-emerald-400",
+    bar: "from-emerald-500 to-teal-500",
+  },
+};
+
+const StatCard: React.FC<StatCardProps> = ({ title, value, icon, tone = "violet", className, style }) => {
+  const selectedTone = toneStyles[tone];
+
   return (
-    <Card 
+    <Card
       className={cn(
-        "neo-card p-6 rounded-xl transition-all duration-300 hover:translate-y-[-5px]",
-        "border border-white/5 relative overflow-hidden group",
-        "backdrop-blur-md bg-gradient-to-br from-black/80 via-card/30 to-black/90",
+        'admin-surface group relative overflow-hidden rounded-2xl p-6 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-primary/5',
         className
       )}
       style={style}
     >
-      {/* Ambient glow effect that moves on hover */}
-      <div className="absolute -bottom-6 -right-6 w-24 h-24 rounded-full bg-primary-accent/10 blur-xl 
-                    transition-all duration-500 group-hover:bg-primary-accent/15 group-hover:w-28 group-hover:h-28"></div>
-      
-      <div className="flex justify-between items-center mb-5 relative z-10">
-        <div className="text-muted-foreground text-sm font-medium tracking-wide">
-        <div className="p-2.5 rounded-lg bg-primary-accent/10 text-primary-accent shadow-lg shadow-primary-accent/10
-                       transition-all duration-300 group-hover:shadow-primary-accent/30 group-hover:bg-primary-accent/15">
-          {icon}
-        </div>{title}</div>
-        <div className="text-4xl font-bold text-align-center justify-center mb-1.5 bg-gradient-to-r from-white via-white/95 to-white/80 
-                         bg-clip-text text-transparent transition-all duration-300
-                         group-hover:from-white group-hover:to-white/90 group-hover:glow-text">
+      <div
+        className={cn(
+          'absolute inset-x-0 top-0 h-1 bg-gradient-to-r opacity-90',
+          selectedTone.bar
+        )}
+        aria-hidden
+      />
+      <div
+        className={cn(
+          'absolute -right-8 -top-8 h-32 w-32 rounded-full blur-2xl transition-all duration-500 group-hover:scale-110 group-hover:opacity-100',
+          selectedTone.glow
+        )}
+      />
+      <div className="relative z-10 flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+            {title}
+          </p>
+          <div className="mt-3 tabular-nums text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
             {value}
           </div>
-        
+        </div>
+        <div
+          className={cn(
+            'grid size-11 shrink-0 place-items-center rounded-2xl shadow-sm',
+            selectedTone.badge
+          )}
+        >
+          {icon}
+        </div>
       </div>
-      
-      {/* Card highlight effect */}
-      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
-      
-      {/* Subtle border effect */}
-      <div className="absolute inset-0 border border-white/5 rounded-xl pointer-events-none"></div>
     </Card>
   );
 };
