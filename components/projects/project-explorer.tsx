@@ -2,18 +2,18 @@
 // Licensed under the GNU Affero General Public License v3.0 or later,
 // with an additional restriction: Non-commercial use only.
 // See <https://www.gnu.org/licenses/agpl-3.0.html> for details.
-// filepath: d:\MyProjects\LEXi\SDGP-Connect\components\projects\project-explorer.tsx
 "use client";
 
 import Link from "next/link";
 import Image from "next/image";
 import { Skeleton } from "../ui/skeleton";
 import { Badge } from "../ui/badge";
-import { Button } from "../ui/button";
 import { ProjectQueryParams } from "@/hooks/project/useGetProjects";
 import { EmptyState } from "../ui/empty-state";
-import { FileX2, ArrowUp } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
+import { FileX2, ArrowUpRight, ArrowUp, AlertCircle } from "lucide-react";
 import { useEffect, useRef, useCallback, useState } from "react";
+import { cn } from "@/lib/utils";
 
 interface ProjectExplorerProps {
   currentParams: ProjectQueryParams;
@@ -24,6 +24,14 @@ interface ProjectExplorerProps {
   loadMore: () => void;
 }
 
+const statusTone: Record<string, string> = {
+  IDEA: "border-sky-500/40 bg-sky-500/10 text-sky-700 dark:text-sky-300",
+  MVP: "border-violet-500/40 bg-violet-500/10 text-violet-700 dark:text-violet-300",
+  RESEARCH: "border-amber-500/40 bg-amber-500/10 text-amber-800 dark:text-amber-300",
+  DEPLOYED: "border-emerald-500/40 bg-emerald-500/10 text-emerald-800 dark:text-emerald-300",
+  STARTUP: "border-pink-500/40 bg-pink-500/10 text-pink-800 dark:text-pink-300",
+};
+
 export default function ProjectExplorer({
   currentParams,
   projects,
@@ -32,17 +40,14 @@ export default function ProjectExplorer({
   hasMore,
   loadMore,
 }: ProjectExplorerProps) {
-  // Create a ref for the loader element (at bottom of list)
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadingRef = useRef<HTMLDivElement | null>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
 
-  // Use refs to store latest values without triggering observer recreation
   const loadMoreRef = useRef(loadMore);
   const hasMoreRef = useRef(hasMore);
   const isLoadingRef = useRef(isLoading);
 
-  // Keep refs up to date
   useEffect(() => {
     loadMoreRef.current = loadMore;
   }, [loadMore]);
@@ -55,188 +60,182 @@ export default function ProjectExplorer({
     isLoadingRef.current = isLoading;
   }, [isLoading]);
 
-  // Setup the intersection observer for infinite scrolling
-  // Only recreate when projects array length changes (new last element)
   const lastProjectElementRef = useCallback(
     (node: HTMLDivElement) => {
-      // Disconnect any existing observer
       if (observerRef.current) observerRef.current.disconnect();
-
       if (!node) return;
 
       observerRef.current = new IntersectionObserver(
         (entries) => {
-          // Only trigger if: in view, has more pages, and not currently loading
           if (
             entries[0].isIntersecting &&
             hasMoreRef.current &&
             !isLoadingRef.current
           ) {
-            // Immediately mark as loading to prevent duplicate calls
             isLoadingRef.current = true;
             loadMoreRef.current();
           }
         },
-        { threshold: 0.5 },
+        { threshold: 0.35, rootMargin: "80px" },
       );
 
       observerRef.current.observe(node);
     },
     [projects.length],
-  ); // Only recreate when list length changes
+  );
 
-  // Add scroll to top button functionality
   useEffect(() => {
     const handleScroll = () => {
-      // Show button when user scrolls down 500px
-      setShowScrollTop(window.scrollY > 500);
+      setShowScrollTop(window.scrollY > 400);
     };
 
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const scrollToTop = () => {
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   if (error) {
     return (
-      <div className="text-center py-10 text-red-500">
-        Error loading projects: {error}
-      </div>
+      <Alert variant="destructive" className="rounded-2xl border shadow-sm">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>Couldn&apos;t load projects</AlertTitle>
+        <AlertDescription>{error}</AlertDescription>
+      </Alert>
     );
   }
 
-  // Initial loading state (when no projects are loaded yet)
   if (isLoading && (!projects || projects.length === 0)) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
         {Array(currentParams.limit || 9)
           .fill(0)
           .map((_, i) => (
-            <Skeleton key={i} className="h-[350px] rounded-xl bg-muted" />
+            <Skeleton key={i} className="h-[320px] rounded-2xl sm:h-[340px]" />
           ))}
       </div>
     );
   }
 
-  // Empty state when no projects match filters
   if (!projects || projects.length === 0) {
     return (
-      <div className="flex items-center justify-center">
+      <div className="flex justify-center py-6">
         <EmptyState
           title="No projects found"
-          description="Try adjusting your filters or search criteria."
+          description="Try a different search or loosen your filters."
           icons={[FileX2]}
         />
       </div>
     );
   }
 
-  // Render projects with infinite scroll
   return (
-    <div className="flex flex-col gap-8">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {/* Map through loaded projects */}
+    <div className="flex flex-col gap-8 sm:gap-10">
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
         {projects.map((project, index) => {
-          // Check if this is the last project
           const isLastProject = index === projects.length - 1;
+          const status = project.status as string | undefined;
+          const tone = status ? statusTone[status] : "";
 
           return (
             <div
               key={project.id}
               ref={isLastProject ? lastProjectElementRef : null}
-              className="project-card-container"
+              className="min-w-0"
             >
               <Link
                 href={`/project/${project.id}`}
-                className="project-card group block rounded-xl overflow-hidden border bg-card shadow-sm hover:shadow-lg transition-all duration-300 ease-in-out"
+                className={cn(
+                  "group relative block overflow-hidden rounded-2xl border bg-card/85 shadow-sm ring-1 ring-border/55",
+                  "transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:ring-primary/25",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                )}
               >
-                <div className="relative aspect-video overflow-hidden">
+                <div className="relative aspect-[16/10] overflow-hidden bg-muted sm:aspect-video">
                   <Image
                     src={
                       project.coverImage ||
                       "https://placehold.co/600x400?text=NO+IMAGE"
                     }
-                    alt={project.title || "No title available"}
+                    alt={project.title || "Project cover"}
                     fill
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    className="object-cover transition-transform duration-300 group-hover:scale-105"
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
                   />
-                  {/* Display status badge if status exists */}
+                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background/90 via-background/10 to-transparent opacity-80 transition duration-300 group-hover:opacity-95" />
                   {project.status && (
-                    <div className="absolute top-2 right-2 z-10">
-                      <Badge>{project.status}</Badge>
+                    <div className="absolute right-2 top-2 z-10 sm:right-3 sm:top-3">
+                      <Badge
+                        variant="outline"
+                        className={cn(
+                          "border text-[10px] font-semibold uppercase tracking-wide backdrop-blur-sm sm:text-xs",
+                          tone || "bg-background/80"
+                        )}
+                      >
+                        {String(project.status).replace(/_/g, " ")}
+                      </Badge>
                     </div>
                   )}
                 </div>
 
-                <div className="p-4 flex flex-col h-[calc(100%-aspect-video)]">
-                  <h3 className="text-lg font-semibold mb-1 line-clamp-1">
-                    {project.title}
-                  </h3>
-                  <p className="text-sm text-muted-foreground mb-3 line-clamp-2 flex-grow">
-                    {project.subtitle || "No subtitle available."}
+                <div className="relative space-y-3 p-4 sm:p-5">
+                  <div className="flex items-start justify-between gap-2">
+                    <h3 className="line-clamp-2 flex-1 text-base font-semibold leading-snug tracking-tight sm:text-lg">
+                      {project.title}
+                    </h3>
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary opacity-0 ring-1 ring-primary/20 transition group-hover:opacity-100">
+                      <ArrowUpRight className="h-4 w-4" aria-hidden />
+                    </span>
+                  </div>
+                  <p className="line-clamp-2 text-sm text-muted-foreground">
+                    {project.subtitle || "Explore this project on its detail page."}
                   </p>
 
-                  {/* Display Project Types */}
                   {project.projectTypes?.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mb-3">
-                      {project.projectTypes
-                        .slice(0, 2)
-                        .map((type: string, i: number) => (
-                          <Badge
-                            key={`${type}-${i}`}
-                            variant="outline"
-                            className="text-xs"
-                          >
-                            {type}
-                          </Badge>
-                        ))}
+                    <div className="flex flex-wrap gap-1.5">
+                      {project.projectTypes.slice(0, 2).map((type: string, i: number) => (
+                        <Badge
+                          key={`${type}-${i}`}
+                          variant="secondary"
+                          className="text-[10px] font-normal sm:text-xs"
+                        >
+                          {String(type).replace(/_/g, " ")}
+                        </Badge>
+                      ))}
                       {project.projectTypes.length > 2 && (
-                        <Badge variant="outline" className="text-xs">
+                        <Badge variant="outline" className="text-[10px] sm:text-xs">
                           +{project.projectTypes.length - 2}
                         </Badge>
                       )}
                     </div>
                   )}
 
-                  {/* Display Domains and View Button */}
-                  <div className="flex justify-between items-center mt-auto pt-2 border-t border-border/50">
+                  <div className="flex items-center justify-between gap-2 border-t border-border/60 pt-3">
                     {project.domains?.length > 0 ? (
-                      <div className="flex gap-1 flex-wrap">
-                        {project.domains
-                          .slice(0, 1)
-                          .map((domain: string, i: number) => (
-                            <Badge
-                              key={`${domain}-${i}`}
-                              variant="secondary"
-                              className="text-xs"
-                            >
-                              {domain}
-                            </Badge>
-                          ))}
-                        {project.domains.length > 1 && (
-                          <Badge variant="secondary" className="text-xs">
-                            +{project.domains.length - 1}
+                      <div className="flex min-w-0 flex-wrap gap-1">
+                        {project.domains.slice(0, 1).map((domain: string, i: number) => (
+                          <Badge
+                            key={`${domain}-${i}`}
+                            variant="outline"
+                            className="max-w-full truncate text-[10px] font-normal capitalize sm:text-xs"
+                          >
+                            {String(domain).replace(/_/g, " ").toLowerCase()}
                           </Badge>
+                        ))}
+                        {project.domains.length > 1 && (
+                          <span className="text-xs text-muted-foreground">
+                            +{project.domains.length - 1}
+                          </span>
                         )}
                       </div>
                     ) : (
-                      <div />
+                      <span className="text-xs text-muted-foreground">View details</span>
                     )}
-
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="text-xs h-7 px-2"
-                    >
-                      View Details
-                    </Button>
+                    <span className="shrink-0 text-xs font-medium text-primary opacity-70 transition group-hover:opacity-100">
+                      Open →
+                    </span>
                   </div>
                 </div>
               </Link>
@@ -245,21 +244,30 @@ export default function ProjectExplorer({
         })}
       </div>
 
-      {/* Loading indicator for infinite scroll */}
       {isLoading && projects.length > 0 && (
-        <div className="flex justify-center py-4" ref={loadingRef}>
-          <div className="w-8 h-8 border-2 border-primary/50 border-t-primary rounded-full animate-spin"></div>
+        <div className="flex justify-center py-2" ref={loadingRef}>
+          <div
+            className="h-8 w-8 animate-spin rounded-full border-2 border-primary/40 border-t-primary"
+            role="status"
+            aria-label="Loading more"
+          />
         </div>
       )}
 
-      {/* Scroll to Top button */}
       {showScrollTop && (
         <button
+          type="button"
           onClick={scrollToTop}
-          className="fixed bottom-4 right-4 p-3 bg-primary text-white rounded-full shadow-md hover:shadow-lg transition-all duration-300 ease-in-out"
-          aria-label="Scroll to top"
+          className={cn(
+            "fixed z-[60] flex h-11 w-11 items-center justify-center rounded-full",
+            "border border-border/80 bg-card/95 text-foreground shadow-lg backdrop-blur-md",
+            "transition hover:bg-muted",
+            "bottom-[max(1rem,env(safe-area-inset-bottom,0px)+4.5rem)] right-4",
+            "md:bottom-6 md:right-6 md:max-lg:bottom-6"
+          )}
+          aria-label="Back to top"
         >
-          <ArrowUp className="w-5 h-5 text-black" />
+          <ArrowUp className="h-5 w-5" />
         </button>
       )}
     </div>

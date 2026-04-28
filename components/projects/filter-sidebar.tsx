@@ -454,20 +454,25 @@ export default function FilterSidebar({
 
   // --- JSX Rendering ---
   return (
-    <div className="bg-card p-3 rounded-lg border shadow-sm h-full flex flex-col">
+    <div className="relative flex max-h-[calc(100dvh-5rem)] flex-col overflow-hidden rounded-2xl border bg-card/90 p-4 shadow-sm ring-1 ring-border/45 md:max-h-[calc(100dvh-4rem)]">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_100%_0%,rgba(99,102,241,0.1),transparent_45%)]" />
+      <div className="relative flex min-h-0 flex-1 flex-col">
       {/* Header with Title and Clear Button */}
-      <div className="flex justify-between items-center mb-3 pb-2 border-b">
-        <h3 className="font-semibold text-base">Filters</h3>
-        {hasActiveFilters && (
-          <Button variant="ghost" size="sm" onClick={clearFilters} className="text-xs h-7 text-muted-foreground hover:text-foreground">
+      <div className="mb-3 flex items-center justify-between border-b border-border/60 pb-3">
+        <div>
+          <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-muted-foreground">Refine</p>
+          <h3 className="text-base font-semibold tracking-tight">Filters</h3>
+        </div>
+        {hasActiveFilters ? (
+          <Button variant="ghost" size="sm" onClick={clearFilters} className="h-8 shrink-0 text-xs text-muted-foreground hover:text-foreground">
             Clear all
           </Button>
-        )}
+        ) : null}
       </div>
 
       {/* Active Filters Badges */}
       {hasActiveFilters && (
-        <div className="flex flex-wrap gap-1 mb-3 flex-shrink-0">
+        <div className="mb-3 flex flex-shrink-0 flex-wrap gap-1">
           {activeFiltersList.map((filter) => (
             <Badge key={`${filter.type}-${filter.value}`} variant="secondary" className="flex items-center gap-1 pr-0.5">
               <span className="text-xs">{filter.label}</span>
@@ -486,7 +491,7 @@ export default function FilterSidebar({
       )}
 
       {/* Scrollable Filter Sections */}
-      <div className="space-y-1 divide-y divide-border/50 overflow-y-auto flex-grow">
+      <div className="min-h-0 flex-1 space-y-1 divide-y divide-border/50 overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch]">
         <FeaturedFilterSection
           selection={featuredOnly}
           setSelection={setFeaturedOnly}
@@ -528,6 +533,7 @@ export default function FilterSidebar({
           selection={selectedTechStack}
           setSelection={setSelectedTechStack}
         />
+      </div>
       </div>
     </div>
   );
