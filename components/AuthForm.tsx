@@ -5,31 +5,53 @@
 "use client"
 
 import * as React from "react"
-import { ChevronLeft } from "lucide-react"
+import { ChevronLeft, ShieldCheck } from "lucide-react"
 import { motion } from "framer-motion"
 import { signIn } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import Image from "next/image"
 import Link from "next/link"
+import { Button } from "@/components/ui/button"
 
 const AuthForm: React.FC = () => {
   return (
-    <div className="grid h-screen place-items-center overflow-hidden bg-black text-zinc-200">
+    <div className="dark relative flex min-h-screen items-center justify-center overflow-hidden bg-zinc-950 px-4 py-10 text-zinc-100">
+      <div className="pointer-events-none absolute inset-0 -z-10">
+        <div className="absolute -left-24 top-16 h-72 w-72 rounded-full bg-primary/20 blur-3xl" />
+        <div className="absolute right-0 top-1/3 h-72 w-72 rounded-full bg-emerald-500/20 blur-3xl" />
+      </div>
+
       <BackButton />
+
       <motion.div
         initial={{ opacity: 0, y: 25 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-        className="relative z-10 w-full max-w-lg px-4 sm:px-0"
+        transition={{ duration: 0.45, ease: "easeOut" }}
+        className="relative z-10 w-full max-w-4xl"
       >
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-8 shadow-[0_8px_40px_-12px_rgba(0,0,0,0.5)] transition-shadow duration-300 hover:shadow-[0_16px_50px_-12px_rgba(0,0,0,0.5)] sm:p-12">
-          <Logo />
-          <Header />
-          <LoginForm />
+        <div className="grid overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-900/90 shadow-2xl shadow-black/40 backdrop-blur-md lg:grid-cols-2">
+          <div className="relative hidden min-h-[560px] border-r border-zinc-800 bg-gradient-to-br from-zinc-900 via-zinc-900 to-zinc-800 p-10 lg:flex lg:items-center lg:justify-center">
+            <div className="mx-auto flex max-w-sm flex-col items-center text-center">
+              <div className="rounded-[2rem] bg-primary/12 p-7 ring-1 ring-primary/30 shadow-[0_0_60px_-20px_rgba(16,185,129,0.6)]">
+                <Image src="/iconw.svg" alt="SDGP logo" width={220} height={220} />
+              </div>
+              <h2 className="mt-8 text-3xl font-semibold tracking-tight text-zinc-100">SDGP Connect</h2>
+              <p className="mt-2 text-sm text-zinc-400">Admin Workspace</p>
+              <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-zinc-700 bg-zinc-800/70 px-3 py-1.5 text-sm text-zinc-300">
+                <ShieldCheck className="h-4 w-4 text-primary" />
+                Secure admin access
+              </div>
+            </div>
+          </div>
+
+          <div className="p-6 sm:p-10 lg:p-12">
+            <Logo />
+            <Header />
+            <LoginForm />
+          </div>
         </div>
       </motion.div>
-      <BackgroundDecoration />
     </div>
   )
 }
@@ -38,73 +60,37 @@ const BackButton: React.FC = () => (
   <motion.div
     initial={{ opacity: 0, x: -20 }}
     animate={{ opacity: 1, x: 0 }}
-    transition={{ delay: 0.2 }}
-    className="absolute left-4 top-4 sm:left-8 sm:top-8"
+    transition={{ delay: 0.1 }}
+    className="absolute left-4 top-4 z-20 sm:left-8 sm:top-8"
   >
-       <Link href="/">
-    <SocialButton icon={<ChevronLeft size={16} />}>Go back</SocialButton>
+    <Link
+      href="/"
+      className="inline-flex items-center gap-2 rounded-xl border border-zinc-800 bg-zinc-900/85 px-3 py-2 text-sm font-medium text-zinc-300 transition-colors hover:bg-zinc-800 hover:text-zinc-100"
+    >
+      <ChevronLeft size={16} />
+      Go back
     </Link>
   </motion.div>
-)
-
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  className?: string
-}
-
-const Button: React.FC<ButtonProps> = ({ children, className, ...props }) => (
-  <button
-    className={`relative rounded-xl bg-zinc-100 px-6 py-3 text-lg font-medium text-black
-    shadow-[0_0_0_0_rgba(0,0,0,0)] transition-all duration-300 
-    hover:shadow-[0_4px_20px_-4px_rgba(0,0,0,0.3)] 
-    active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed ${className}`}
-    {...props}
-  >
-    {children}
-  </button>
 )
 
 const Logo: React.FC = () => (
   <motion.div 
     initial={{ scale: 0.8, opacity: 0 }}
     animate={{ scale: 1, opacity: 1 }}
-    transition={{ duration: 0.5 }}
-    className="mb-10 flex justify-center items-center"
+    transition={{ duration: 0.3 }}
+    className="mb-8 flex items-center justify-center lg:hidden"
   >
-    <div className="relative">
-      <Image
-        src="/iconw.svg"
-        alt="Logo "
-        className="h-48 w-48 -mb-12"
-        width={88}
-        height={88}
-      />
+    <div className="rounded-3xl bg-primary/10 p-6 ring-1 ring-primary/25">
+      <Image src="/iconw.svg" alt="Logo" width={156} height={156} />
     </div>
-   
   </motion.div>
 )
 
 const Header: React.FC = () => (
-  <div className="mb-10 text-center">
-    <h1 className="text-4xl font-bold text-white">Welcome back</h1>
-    <p className="mt-3 text-lg text-zinc-400">Sign in to your account to continue</p>
+  <div className="mb-8 text-center lg:text-left">
+    <h1 className="text-3xl font-bold tracking-tight">Welcome back</h1>
+    <p className="mt-2 text-sm text-muted-foreground">Sign in to continue to the admin dashboard.</p>
   </div>
-)
-
-const SocialButton: React.FC<{
-  icon?: React.ReactNode
-  fullWidth?: boolean
-  children?: React.ReactNode
-  onClick?: () => void
-}> = ({ icon, children, onClick }) => (
-  <button
-    onClick={onClick}
-    className="flex items-center justify-center gap-2 rounded-xl 
-    border border-zinc-800 bg-zinc-900 px-4 py-2.5 font-medium text-zinc-200
-    transition-all duration-300 hover:bg-zinc-800 active:scale-95"
-  >
-    {icon && <span className="text-zinc-400">{icon}</span>}
-    <span>{children}</span>
-  </button>
 )
 
 const LoginForm: React.FC = () => {
@@ -176,10 +162,10 @@ const LoginForm: React.FC = () => {
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="rounded-lg bg-red-500/10 p-4 text-sm text-red-400"
+          className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-500 dark:text-red-400"
         >
           <p className="flex items-center gap-2">
-            <span className="size-1.5 rounded-full bg-red-400" />
+            <span className="size-1.5 rounded-full bg-red-500" />
             {error}
           </p>
         </motion.div>
@@ -188,7 +174,7 @@ const LoginForm: React.FC = () => {
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="rounded-lg bg-zinc-800 p-4 text-sm text-zinc-300"
+          className="rounded-xl border border-border/70 bg-muted/40 p-4 text-sm text-muted-foreground"
         >
           <p>Please contact your administrator to reset your password.</p>
         </motion.div>
@@ -196,7 +182,7 @@ const LoginForm: React.FC = () => {
       <div className="space-y-2">
         <label
           htmlFor="username-input"
-          className="block text-sm font-medium text-zinc-300"
+          className="block text-sm font-medium text-foreground/90"
         >
           Username
         </label>
@@ -206,24 +192,21 @@ const LoginForm: React.FC = () => {
           placeholder="Enter your username"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
-          className="w-full rounded-lg border border-zinc-800 
-          bg-zinc-800 px-4 py-3 text-zinc-200
-          placeholder-zinc-500 transition-all duration-300 
-          hover:border-zinc-700 focus:border-zinc-600 focus:outline-none"
+          className="w-full rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-3 text-zinc-100 placeholder:text-zinc-500 transition-colors duration-200 hover:border-zinc-600 focus:border-ring focus:outline-none"
         />
       </div>
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <label
             htmlFor="password-input"
-            className="block text-sm font-medium text-zinc-300"
+            className="block text-sm font-medium text-foreground/90"
           >
             Password
           </label>
           <button
             type="button"
             onClick={() => setShowForgotMessage(true)}
-            className="text-sm font-medium text-zinc-400 hover:text-zinc-300 transition-colors"
+            className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
           >
             Forgot password?
           </button>
@@ -234,16 +217,13 @@ const LoginForm: React.FC = () => {
           placeholder="••••••••••••"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full rounded-lg border border-zinc-800 
-          bg-zinc-800 px-4 py-3 text-zinc-200
-          placeholder-zinc-500 transition-all duration-300 
-          hover:border-zinc-700 focus:border-zinc-600 focus:outline-none"
+          className="w-full rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-3 text-zinc-100 placeholder:text-zinc-500 transition-colors duration-200 hover:border-zinc-600 focus:border-ring focus:outline-none"
         />
       </div>
-      <Button type="submit" className="w-full" disabled={isLoading}>
+      <Button type="submit" className="h-11 w-full rounded-xl" disabled={isLoading}>
         {isLoading ? (
           <div className="flex items-center justify-center gap-2">
-            <div className="size-4 animate-spin rounded-full border-2 border-black border-t-transparent" />
+            <div className="size-4 animate-spin rounded-full border-2 border-current/40 border-t-current" />
             <span>Signing in...</span>
           </div>
         ) : (
@@ -253,14 +233,5 @@ const LoginForm: React.FC = () => {
     </form>
   );
 };
-
-
-
-
-const BackgroundDecoration: React.FC = () => {
-  return (
-    <div className="fixed inset-0 bg-[radial-gradient(circle_800px_at_50%_50%,#18181b,transparent)]" />
-  )
-}
 
 export default AuthForm

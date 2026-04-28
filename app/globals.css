@@ -10,7 +10,8 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-noto-sans-core), var(--font-noto-sans-tamil),
+    var(--font-noto-sans-sinhala);
   --font-mono: var(--font-geist-mono);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -331,4 +332,17 @@
   margin: 1rem 0;
   max-width: 100%;
   height: auto;
+}
+
+/* Home page only: less horizontal padding and slightly wider content rail */
+.home-main .container.mx-auto.max-w-6xl {
+  max-width: min(100% - 0.5rem, 80rem);
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+}
+@media (min-width: 768px) {
+  .home-main .container.mx-auto.max-w-6xl {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
 }

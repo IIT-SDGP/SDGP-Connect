@@ -2,90 +2,107 @@
 // Licensed under the GNU Affero General Public License v3.0 or later,
 // with an additional restriction: Non-commercial use only.
 // See <https://www.gnu.org/licenses/agpl-3.0.html> for details.
-'use client'
-import { Eye, Target, HeartHandshake } from "lucide-react"
-import Image from "next/image"
+"use client";
+import { Eye, Target, HeartHandshake } from "lucide-react";
+import Image from "next/image";
 import { useLanguage } from "@/hooks/LanguageProvider";
 
-function getNested(obj: any, path: string[], fallback: any = undefined) {
-  return path.reduce((acc, key) => (acc && acc[key] !== undefined ? acc[key] : fallback), obj);
+function getNested(obj: Record<string, unknown>, path: string[], fallback: unknown = undefined) {
+  return path.reduce(
+    (acc, key) =>
+      acc && typeof acc === "object" && (acc as Record<string, unknown>)[key] !== undefined
+        ? (acc as Record<string, unknown>)[key]
+        : fallback,
+    obj as unknown
+  );
 }
 
 export function AboutSection() {
   const { t } = useLanguage();
-  const about = getNested(t, ['home', 'about'], {});
-  const vision = about.vision_card || {};
-  const values = about.values_card || {};
-  const mission = about.mission_card || {};
+  const about = (getNested(t as Record<string, unknown>, ["home", "about"], {}) ||
+    {}) as Record<string, unknown>;
+  const vision = (about.vision_card || {}) as Record<string, string>;
+  const values = (about.values_card || {}) as Record<string, string>;
+  const mission = (about.mission_card || {}) as Record<string, string>;
+
+  const cards = [
+    {
+      icon: Eye,
+      chip: vision.title || "Our Vision",
+      title: vision.sub_title || "Tech for global good",
+      body:
+        vision.description ||
+        "To become a launchpad for socially-driven tech innovation, where young minds transform global challenges into digital opportunities, building a more sustainable and equitable future through software.",
+      accent: "from-sky-500/10 to-transparent dark:from-sky-400/15",
+    },
+    {
+      icon: HeartHandshake,
+      chip: values.title || "Our Core Values",
+      title: values.sub_title || "Driven by purpose",
+      body:
+        values.description ||
+        "We believe in innovation, collaboration, and meaningful impact. Our community thrives on solving real-world problems, learning continuously, and developing technology that serves humanity and the planet.",
+      accent: "from-violet-500/10 to-transparent dark:from-violet-400/15",
+    },
+    {
+      icon: Target,
+      chip: mission.title || "Our Mission",
+      title: mission.sub_title || "Empowering Innovators",
+      body:
+        mission.description ||
+        "To empower the next generation of socially-conscious developers by offering hands-on experience in building impactful full-stack applications that address real-world challenges aligned with the UN SDGs.",
+      accent: "from-emerald-500/10 to-transparent dark:from-emerald-400/15",
+    },
+  ];
+
   return (
-    <section className="w-full py-12 md:py-14 lg:py-22 text-white">
-      <div className="container mx-auto px-4 md:px-6 max-w-7xl">
-        <div className="flex flex-col items-center text-center space-y-4">
-          {/* Logo Section */}
-          <div className="relative w-24 h-24 mb-2">
-            <div className="absolute inset-0 flex items-center justify-center bg-zinc-800 rounded-2xl">
-              <div className="w-12 h-12 text-white flex items-center justify-center">
-                <Image
-                  src="/assets/logo.webp"
-                  alt="Logo"
-                  width={120}
-                  height={80}
-                />
-              </div>
-            </div>
+    <section className="relative w-full py-24 md:py-32">
+      <div className="container mx-auto max-w-6xl px-5 md:px-8">
+        <div className="mx-auto max-w-3xl text-center">
+          <div className="mx-auto mb-8 flex h-20 w-20 items-center justify-center rounded-2xl border border-border/60 bg-gradient-to-br from-muted/80 to-muted/30 p-4 shadow-lg backdrop-blur-sm">
+            <Image src="/assets/logo.webp" alt="" width={56} height={56} className="object-contain" />
           </div>
-
-          {/* Heading */}
-          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter max-w-4xl mx-auto">
-            {about.heading || "Crafting code for a sustainable tomorrow"}
-          </h1>
-
-          {/* Subtitle */}
-          <p className="text-zinc-400 text-base sm:text-lg md:text-xl max-w-[700px] mx-auto mt-4 mb-8">
-            {about.description || "Build impactful tech solutions through teamwork, innovation, and purpose driven by SDGP and the UN SDGs."}
+          <h2 className="text-balance text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
+            {String(about.heading || "Crafting code for a sustainable tomorrow")}
+          </h2>
+          <p className="mt-6 text-pretty text-lg leading-relaxed text-muted-foreground md:text-xl">
+            {String(
+              about.description ||
+                "Build impactful tech solutions through teamwork, innovation, and purpose driven by SDGP and the UN SDGs."
+            )}
           </p>
+        </div>
 
-          {/* Cards Grid */}
-          <div className="w-full max-w-6xl mx-auto mt-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 justify-items-center">
-              {/* Vision Card */}
-              <div className="flex flex-col p-6 border border-zinc-800 rounded-lg w-full max-w-sm h-full">
-                <div className="flex items-center justify-center space-x-2 mb-4 pt-2">
-                  <Eye size={18} className="text-white" />
-                  <span className="text-sm bg-zinc-800 px-3 py-1 rounded-full">{vision.title || "Our Vision"}</span>
+        <div className="mt-16 grid gap-5 md:grid-cols-2 lg:grid-cols-3 lg:gap-6">
+          {cards.map((card, idx) => (
+            <article
+              key={card.chip}
+              className={`group relative flex h-full flex-col overflow-hidden rounded-2xl border border-border/60 bg-card/50 p-7 shadow-sm backdrop-blur-md transition duration-300 hover:-translate-y-1 hover:border-primary/30 hover:shadow-xl dark:bg-card/30 ${
+                idx === 1 ? "lg:-mt-2 lg:mb-2 lg:border-primary/25 lg:shadow-lg lg:shadow-primary/5" : ""
+              }`}
+            >
+              <div
+                className={`pointer-events-none absolute inset-0 bg-gradient-to-br opacity-60 ${card.accent}`}
+                aria-hidden
+              />
+              <div className="relative flex flex-col flex-grow">
+                <div className="mb-5 flex items-center gap-3">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/12 text-primary shadow-inner">
+                    <card.icon className="h-5 w-5" aria-hidden />
+                  </div>
+                  <span className="rounded-full border border-border/60 bg-background/80 px-3 py-1 text-xs font-medium text-muted-foreground backdrop-blur-sm">
+                    {card.chip}
+                  </span>
                 </div>
-                <p className="text-xl font-bold mb-3 text-center">{vision.sub_title || "Tech for global good"}</p>
-                <p className="text-zinc-400 text-center flex-grow leading-relaxed">
-                  {vision.description || "To become a launchpad for socially-driven tech innovation, where young minds transform global challenges into digital opportunities, building a more sustainable and equitable future through software."}
+                <h3 className="text-xl font-semibold tracking-tight text-foreground">{card.title}</h3>
+                <p className="mt-4 flex-grow text-sm leading-relaxed text-muted-foreground md:text-[0.9375rem] md:leading-relaxed">
+                  {card.body}
                 </p>
               </div>
-
-              {/* Core Values Card */}
-              <div className="flex flex-col p-6 border border-zinc-800 rounded-lg w-full max-w-sm h-full">
-                <div className="flex items-center justify-center space-x-2 mb-4 pt-2">
-                  <HeartHandshake size={18} className="text-white" />
-                  <span className="text-sm bg-zinc-800 px-3 py-1 rounded-full">{values.title || "Our Core Values"}</span>
-                </div>
-                <p className="text-xl font-bold mb-3 text-center">{values.sub_title || "Driven by purpose"}</p>
-                <p className="text-zinc-400 text-center flex-grow leading-relaxed">
-                  {values.description || "We believe in innovation, collaboration, and meaningful impact. Our community thrives on solving real-world problems, learning continuously, and developing technology that serves humanity and the planet."}
-                </p>
-              </div>
-              {/* Mission Card */}
-              <div className="flex flex-col p-6 border border-zinc-800 rounded-lg w-full max-w-sm h-full md:col-span-2 lg:col-span-1 md:max-w-none lg:max-w-sm md:mx-auto lg:mx-0">
-                <div className="flex items-center justify-center space-x-2 mb-4 pt-2">
-                  <Target size={18} className="text-white" />
-                  <span className="text-sm bg-zinc-800 px-3 py-1 rounded-full">{mission.title || "Our Mission"}</span>
-                </div>
-                <h3 className="text-xl font-bold mb-3 text-center">{mission.sub_title || "Empowering Innovators"}</h3>
-                <p className="text-zinc-400 text-center flex-grow leading-relaxed">
-                  {mission.description || "To empower the next generation of socially-conscious developers by offering hands-on experience in building impactful full-stack applications that address real-world challenges aligned with the UN SDGs."}
-                </p>
-              </div>
-            </div>
-          </div>
+            </article>
+          ))}
         </div>
       </div>
     </section>
-  )
+  );
 }

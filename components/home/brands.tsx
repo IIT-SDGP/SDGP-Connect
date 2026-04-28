@@ -91,51 +91,59 @@ export function Brands() {
   const { t } = useLanguage();
   const brand = getNested(t, ['home', 'brand'], {});
   return (
-    <section className="py-12 px-4 bg-dark text-white">
-      <div className="container mx-auto">
-        <h2 className="text-5xl font-bold text-center mb-12">
-          <span className="text-blue-400">{brand.word1 || "Making Projects"}</span>
-          <br />
-           <span className="text-primary">{brand.word2 || "Into brands"}</span>
-        </h2>
+    <section className="relative overflow-hidden border-t border-border/40 bg-gradient-to-b from-background via-muted/40 to-background py-24 dark:via-zinc-950/80 md:py-32">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
+      <div className="pointer-events-none absolute -left-[20%] top-1/4 h-[320px] w-[320px] rounded-full bg-primary/10 blur-3xl dark:bg-primary/20" />
+      <div className="pointer-events-none absolute -right-[15%] bottom-0 h-[280px] w-[280px] rounded-full bg-chart-2/15 blur-3xl" />
 
-        <div className="relative mt-7 h-[100px] w-full">
-          <InfiniteSlider
-            className="flex h-full w-full items-center"
-            duration={30}
-            gap={48}
-          >
+      <div className="container relative z-10 mx-auto max-w-6xl px-5 md:px-8">
+        <div className="mx-auto max-w-3xl text-center">
+          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground">
+            Trusted momentum
+          </p>
+          <h2 className="mt-5 text-balance text-4xl font-semibold tracking-tight sm:text-5xl md:text-6xl">
+            <span className="bg-gradient-to-r from-primary via-primary to-chart-2 bg-clip-text text-transparent">
+              {brand.word1 || "Making projects"}
+            </span>
+            <span className="text-foreground"> {brand.word2 || "into brands"}</span>
+          </h2>
+          <p className="mx-auto mt-5 max-w-lg text-pretty text-muted-foreground">
+            Alumni teams and spinouts that started as SDGP submissions — proof that the work travels beyond the classroom.
+          </p>
+        </div>
+
+        <div className="relative mx-auto mt-14 h-[104px] max-w-5xl text-muted-foreground [&_path]:!fill-current">
+          <InfiniteSlider className="flex h-full w-full items-center" duration={36} gap={56}>
             {logos.map(({ id, component: Logo }) => (
               <div
                 key={id}
-                className="flex justify-center items-center w-[96px] h-[64px] shrink-0"
+                className="flex h-[68px] w-[100px] shrink-0 items-center justify-center opacity-70 transition hover:opacity-100"
               >
                 <Logo />
               </div>
             ))}
-
           </InfiniteSlider>
 
           <ProgressiveBlur
-            className='pointer-events-none absolute top-0 left-0 h-full w-[200px]'
-            direction='left'
-            blurIntensity={1}
+            className="pointer-events-none absolute left-0 top-0 h-full w-24 md:w-40"
+            direction="left"
+            blurIntensity={1.2}
           />
           <ProgressiveBlur
-            className='pointer-events-none absolute top-0 right-0 h-full w-[200px]'
-            direction='right'
-            blurIntensity={1}
+            className="pointer-events-none absolute right-0 top-0 h-full w-24 md:w-40"
+            direction="right"
+            blurIntensity={1.2}
           />
         </div>
       </div>
 
-      <div className="relative -mt-32 h-96 w-full overflow-hidden [mask-image:radial-gradient(50%_50%,white,transparent)]">
-        <div className="absolute inset-0 before:absolute before:inset-0 before:bg-[radial-gradient(circle_at_bottom_center,#2a5298,transparent_70%)] before:opacity-40" />
-        <div className="absolute -left-1/2 top-1/2 aspect-[1/0.7] z-10 w-[200%] rounded-[100%] border-t border-zinc-900/20 dark:border-white/20 bg-white dark:bg-zinc-900" />
+      <div className="relative mt-8 h-64 w-full overflow-hidden [mask-image:radial-gradient(60%_60%_at_50%_80%,black,transparent)] md:h-80">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_100%,var(--color-primary)_0%,transparent_65%)] opacity-25 dark:opacity-35" />
+        <div className="absolute -left-1/2 top-1/2 z-10 aspect-[1/0.72] w-[200%] rounded-[100%] border border-border/50 bg-background/90 shadow-2xl dark:bg-zinc-950/90" />
         <Sparkles
-          density={1200}
-          className="absolute inset-x-0 bottom-0 h-full w-full [mask-image:radial-gradient(50%_50%,white,transparent_85%)]"
-          color="#000000"
+          density={900}
+          className="absolute inset-x-0 bottom-0 h-full w-full opacity-40 [mask-image:radial-gradient(50%_60%_at_50%_100%,white,transparent)] dark:opacity-70"
+          color="#94a3b8"
         />
       </div>
     </section>

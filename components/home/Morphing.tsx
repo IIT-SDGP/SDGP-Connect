@@ -30,14 +30,13 @@ const MorphingText: React.FC<MorphingTextProps> = ({ texts, className }) => {
   }, [currentIndex, texts]);
 
   return (
-    <div className={className + " flex flex-col gap-4"}>
-      <h1 className="text-2xl md:text-3xl max-w-2xl tracking-tighter text-center font-regular">
-      <span className="relative flex w-full justify-center overflow-hidden text-center md:pb-4 md:pt-1">
-        &nbsp;
+    <div className={(className ? `${className} ` : "") + "flex flex-col gap-0"}>
+      <p className="m-0 text-2xl md:text-3xl max-w-2xl tracking-tighter text-center font-regular leading-none [&:first-line]:leading-none">
+      <span className="relative flex h-[1.5em] min-h-0 w-full items-center justify-center overflow-hidden text-center">
         {texts.map((text, index) => (
         <motion.span
           key={index}
-          className="absolute font-semibold"
+          className="absolute font-medium"
           initial={{ opacity: 0, y: -100 }}
           animate={
           currentIndex === index
@@ -50,7 +49,7 @@ const MorphingText: React.FC<MorphingTextProps> = ({ texts, className }) => {
         </motion.span>
         ))}
       </span>
-      </h1>
+      </p>
     </div>
   );
 };

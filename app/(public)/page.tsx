@@ -4,7 +4,7 @@
 // See <https://www.gnu.org/licenses/agpl-3.0.html> for details.
 "use client";
 
-import { AboutSection } from '@/components/about/about';
+import { AboutSection } from "@/components/about/about";
 import { About } from "@/components/home/about-section";
 import { Brands } from "@/components/home/brands";
 import Domains from "@/components/home/domains";
@@ -16,15 +16,21 @@ import LanguageToggle from "@/components/LanguageToggle";
 export default function Home() {
   return (
     <LanguageProvider>
-      <div className="flex flex-col gap-12 pb-12">
+      <main className="home-main relative min-h-screen overflow-x-hidden bg-background text-foreground antialiased selection:bg-primary/25 selection:text-foreground">
         <Hero />
-        <About />
-        <AboutSection/>
+        <div className="relative">
+          <div
+            className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-border to-transparent"
+            aria-hidden
+          />
+          <About />
+          <AboutSection />
+        </div>
         <Domains />
         <ImpactStats />
-        <Brands/>
-      </div>
+        <Brands />
+      </main>
       <LanguageToggle />
     </LanguageProvider>
-  )
+  );
 }
