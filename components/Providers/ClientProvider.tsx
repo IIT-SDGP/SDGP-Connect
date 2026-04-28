@@ -17,12 +17,7 @@ interface ClientProvidersProps {
 export function ClientProviders({ children, session }: ClientProvidersProps) {
   return (
     <SessionProvider session={session}>
-      <ThemeProvider
-        attribute="class"
-        defaultTheme="dark"
-        enableSystem
-        disableTransitionOnChange
-      >
+      <ThemeProvider attribute="class" defaultTheme="dark" disableTransitionOnChange>
         {children}
         <Toaster />
       </ThemeProvider>
