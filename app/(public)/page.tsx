@@ -17,16 +17,15 @@ import HomeHeroSection from "@/components/home/HomeHeroSection";
 export default function Home() {
   return (
     <LanguageProvider>
-      <div className="flex flex-col gap-12 pb-12">
+      <div className="flex flex-col">
         <HomeHeroSection />
+        <AboutSection />
         <HomeAboutSection />
         <GlobeSection />
-        <AboutSection/>
         <Domains />
         <ImpactStats />
-        <Brands/>
+        <Brands />
       </div>
-      <LanguageToggle />
     </LanguageProvider>
   )
 }

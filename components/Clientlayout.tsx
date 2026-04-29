@@ -8,7 +8,6 @@ import useIsMobile from "@/hooks/useIsMobile";
 import { ThemeProvider } from "@/components/Providers/ThemeProvider";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
-import { ExpandableChatAI } from "@/components/ai/ExpandableChatAI";
 import CookieBanner from "@/components/CookieBanner";
 import { usePathname } from "next/navigation";
 import { SessionProvider } from "next-auth/react";
@@ -32,7 +31,6 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
         <Analytics />
         <SpeedInsights />
         <Toaster />
-        <ExpandableChatAI />
       </ThemeProvider>
     </SessionProvider>
   );

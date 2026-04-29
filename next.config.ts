@@ -65,7 +65,7 @@ const nextConfig: NextConfig = {
         headers: [
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; img-src 'self' data: https:; script-src 'self' 'unsafe-inline' https://fonts.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self'; frame-src 'self' https://www.youtube.com https://player.vimeo.com https://vimeo.com; frame-ancestors 'none';"
+            value: "default-src 'self'; img-src 'self' data: https:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://fonts.googleapis.com https://api.psycodelabs.lk https://*.psycodelabs.lk http://localhost:3001; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://*.psycodelabs.lk http://localhost:3001; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://api.psycodelabs.lk https://*.psycodelabs.lk wss://api.psycodelabs.lk wss://*.psycodelabs.lk http://localhost:3001 ws://localhost:3001; frame-src 'self' https://www.youtube.com https://player.vimeo.com https://vimeo.com https://api.psycodelabs.lk https://*.psycodelabs.lk http://localhost:3001; worker-src 'self' blob:; frame-ancestors 'none';"
           },
           {
             key: 'Referrer-Policy',

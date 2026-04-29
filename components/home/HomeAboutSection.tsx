@@ -6,7 +6,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Sparkles } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { useLanguage } from "@/hooks/LanguageProvider";
 
 type Dict = Record<string, unknown>;
@@ -19,135 +19,124 @@ function getNested(obj: unknown, path: string[], fallback: Dict): Dict {
     }
     return undefined;
   }, source);
-
-  if (value && typeof value === "object") {
-    return value as Dict;
-  }
-
+  if (value && typeof value === "object") return value as Dict;
   return fallback;
 }
 
-const partnerLogos = [
-  { src: "/home/about-logo/raspberry.webp", alt: "Raspberry" },
-  { src: "/home/about-logo/amor.webp", alt: "Amor" },
-  { src: "/home/about-logo/lexi.webp", alt: "Lexi" },
-  { src: "/home/about-logo/sealanka.webp", alt: "Sea Lanka" },
-  { src: "/home/about-logo/movemate.webp", alt: "MoveMate" },
-];
+const PROOF_CHIPS = ["Industry-backed", "SDG-aligned", "Award-winning teams"];
 
 export default function HomeAboutSection() {
   const { t } = useLanguage();
   const homeCta = getNested(t, ["home", "cta"], {});
 
   const heading =
-    (homeCta.heading as string) ||
-    "More than just an academic module";
+    (homeCta.heading as string) || "Where student projects become real products";
 
   const description =
     (homeCta.description as string) ||
-    "SDGP is a core academic module at IIT that redefines student learning by immersing them in real-world challenges with innovation, collaboration, and practical execution.";
+    "SDGP is IIT's flagship module — a full academic year where student teams build, pitch, and ship real products under industry mentorship and real constraints.";
 
-  const buttonText = (homeCta.button as string) || "Discover more";
+  const buttonText = (homeCta.button as string) || "Explore student projects";
 
   return (
-    <section className="relative overflow-hidden px-2 sm:px-8 md:px-12 lg:px-16">
-      <div className="relative mx-auto max-w-[1280px] rounded-3xl border border-white/10 bg-black/35 p-6 text-white shadow-[0_40px_120px_rgba(0,0,0,0.45)] sm:p-8 lg:p-10">
+    <section className="relative overflow-hidden px-4 py-16 sm:px-8 lg:px-16 lg:py-28">
+      {/* Decorative glow — top left */}
+      <div className="absolute top-0 left-1/4 w-[500px] h-[500px] rounded-full bg-blue-700/15 blur-[120px] pointer-events-none" />
+      <div className="mx-auto max-w-[1280px]">
 
-        <div className="relative grid gap-8 lg:grid-cols-[1.15fr_0.85fr]">
-          <div>
-            <span className="inline-flex items-center gap-2 rounded-full border border-[#2a5298]/50 bg-[#2a5298]/25 px-4 py-1 text-xs font-semibold uppercase tracking-[0.15em] text-blue-100">
-              <Sparkles className="h-3.5 w-3.5" />
-              SDGP Experience
-            </span>
+        {/* 12-col bento grid */}
+        <div className="grid grid-cols-1 gap-16 lg:grid-cols-12 lg:gap-20">
 
-            <h2 className="mt-4 max-w-3xl text-3xl font-black leading-tight tracking-tight sm:text-4xl lg:text-5xl">
+          {/* ── Left: text block (5 cols) ───────────────────────── */}
+          <div className="flex flex-col justify-center lg:col-span-5">
+
+            {/* Eyebrow */}
+            <p className="mb-5 text-[11px] font-semibold uppercase tracking-[0.18em] text-blue-300/60">
+              The SDGP Experience
+            </p>
+
+            {/* Heading — improved hierarchy */}
+            <h2 className="mb-6 text-4xl font-bold leading-[1.12] tracking-[-0.02em] text-white lg:text-5xl">
               {heading}
             </h2>
 
-            <p className="mt-4 max-w-3xl text-sm leading-relaxed text-white/75 sm:text-base lg:text-lg">
+            {/* Paragraph — better breathing room */}
+            <p className="mb-10 max-w-[420px] text-[15px] leading-[1.8] text-white/50">
               {description}
             </p>
 
-            <div className="mt-6 flex flex-wrap gap-3">
+            {/* CTA — refined styling */}
+            <div className="mb-10">
               <Link
                 href="/about"
-                className="inline-flex items-center rounded-md bg-white px-5 py-2.5 text-sm font-semibold text-black transition hover:bg-white/90"
+                className="inline-flex items-center gap-2 rounded-full border border-blue-400/30 bg-gradient-to-b from-[#3b82f6] to-[#2563eb] px-6 py-2.5 text-[14px] font-semibold text-white shadow-[0_2px_14px_rgba(59,130,246,0.45),inset_0_1px_0_rgba(255,255,255,0.15)] transition-all duration-200 hover:from-[#60a5fa] hover:to-[#3b82f6] hover:shadow-[0_4px_20px_rgba(59,130,246,0.55)] hover:-translate-y-0.5 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/50"
               >
                 {buttonText}
+                <ArrowRight className="h-3.5 w-3.5 opacity-60" strokeWidth={2.5} />
               </Link>
             </div>
 
-            <div className="mt-7 flex flex-wrap items-center gap-4">
-              {partnerLogos.map((item) => (
-                <div
-                  key={item.src}
-                  className="relative h-9 w-9 overflow-hidden rounded-full border border-white/20 bg-white/10"
-                >
-                  <Image src={item.src} alt={item.alt} fill className="object-cover" sizes="36px" />
-                </div>
-              ))}
+            {/* Proof chips — improved spacing and styling */}
+            <div>
+              <div className="mb-5 h-px w-10 bg-white/8" />
+              <div className="flex flex-wrap gap-2.5">
+                {PROOF_CHIPS.map((label) => (
+                  <span
+                    key={label}
+                    className="rounded-full border border-white/8 bg-white/[0.03] px-3.5 py-1.5 text-[11px] font-medium uppercase tracking-[0.12em] text-white/40 transition-colors duration-150 hover:border-white/15 hover:bg-white/[0.06] hover:text-white/55"
+                  >
+                    {label}
+                  </span>
+                ))}
+              </div>
             </div>
           </div>
 
-          <div className="relative lg:pl-6">
-            <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-14 bg-gradient-to-b from-black/65 to-transparent" />
+          {/* ── Right: bento image grid (7 cols) ────────────────── */}
+          <div className="flex flex-col gap-4 lg:col-span-7">
 
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div className="space-y-4">
-                <div className="relative overflow-hidden rounded-2xl border border-white/15">
-                  <Image
-                    src="/assets/inno.webp"
-                    alt="SDGP project showcase"
-                    width={900}
-                    height={560}
-                    className="h-[210px] w-full object-cover"
-                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 22vw"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-                </div>
-
-                <div className="relative overflow-hidden rounded-2xl border border-white/15">
-                  <Image
-                    src="/assets/dialog-ino.webp"
-                    alt="SDGP partner showcase"
-                    width={900}
-                    height={560}
-                    className="h-[170px] w-full object-cover"
-                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 22vw"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-                </div>
-              </div>
-
-              <div className="space-y-4 sm:pt-8">
-                <div className="relative overflow-hidden rounded-2xl border border-white/15">
-                  <Image
-                    src="/assets/inno.webp"
-                    alt="Student innovation"
-                    width={500}
-                    height={420}
-                    className="h-[150px] w-full object-cover"
-                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 20vw"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/65 to-transparent" />
-                </div>
-
-                <div className="relative overflow-hidden rounded-2xl border border-white/15">
-                  <Image
-                    src="/assets/dialog-ino.webp"
-                    alt="Industry collaboration"
-                    width={500}
-                    height={500}
-                    className="h-[220px] w-full object-cover"
-                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 20vw"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/65 to-transparent" />
-                </div>
-              </div>
+            {/* Large feature image — refined borders and overlay */}
+            <div className="relative overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.01]">
+              <Image
+                src="/assets/inno.webp"
+                alt="SDGP students presenting their project at Innovex"
+                width={1200}
+                height={680}
+                className="h-[280px] w-full object-cover transition-transform duration-300 hover:scale-[1.02] sm:h-[320px]"
+                sizes="(max-width: 1024px) 100vw, 58vw"
+                priority
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent" />
             </div>
 
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/65 to-transparent" />
+            {/* Small images — 2 col row with improved spacing */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="relative overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.01]">
+                <Image
+                  src="/assets/dialog-ino.webp"
+                  alt="SDGP industry partner collaboration"
+                  width={700}
+                  height={440}
+                  className="h-[180px] w-full object-cover transition-transform duration-300 hover:scale-[1.02] sm:h-[200px]"
+                  sizes="(max-width: 1024px) 50vw, 29vw"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent" />
+              </div>
+
+              <div className="relative overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.01]">
+                <Image
+                  src="/assets/innovex.webp"
+                  alt="SDGP project showcase at Innovex expo"
+                  width={700}
+                  height={440}
+                  className="h-[180px] w-full object-cover transition-transform duration-300 hover:scale-[1.02] sm:h-[200px]"
+                  sizes="(max-width: 1024px) 50vw, 29vw"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent" />
+              </div>
+            </div>
           </div>
+
         </div>
       </div>
     </section>
