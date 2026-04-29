@@ -8,7 +8,7 @@ import { redirect } from 'next/navigation'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/app/api/auth/[...nextauth]/route'
 import { Role } from '@/types/prisma-types'
-import { Rocket, Trophy, Award } from 'lucide-react'
+import { Rocket, Trophy, Award, BookOpen } from 'lucide-react'
 import StudentDashboardClient from '@/components/dashboard/StudentDashboardClient'
 
 export const metadata: Metadata = {
@@ -39,6 +39,22 @@ const actionCards = [
       'Been recognized for your achievements? Add your award to our showcase.',
     buttonLabel: 'Submit Award',
     href: '/submit/award',
+  },
+  {
+    icon: <BookOpen className='h-8 w-8' />,
+    title: 'Manage Blogs',
+    description:
+      'Create new blog posts, edit rejected drafts, and keep an eye on moderation status.',
+    buttonLabel: 'Open Blogs',
+    href: '/student/blogs',
+  },
+  {
+    icon: <Award className='h-8 w-8' />,
+    title: 'Manage Awards',
+    description:
+      'Review your award submissions, fix rejected entries, and resubmit them from one place.',
+    buttonLabel: 'Open Awards',
+    href: '/student/awards',
   },
 ]
 
