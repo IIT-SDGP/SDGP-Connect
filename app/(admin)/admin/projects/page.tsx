@@ -6,6 +6,7 @@
 'use client';
 
 import ApproveDialog from '@/components/dialogs/ApproveDialog';
+import DeleteProjectDialog from '@/components/dialogs/DeleteProjectDialog';
 import DetailsDialog from '@/components/dialogs/DetailsDialog';
 import RejectDialog from '@/components/dialogs/RejectDialog';
 import { ApprovedProjectsTable } from '@/components/tables/ApprovedProjectsTable';
@@ -16,6 +17,7 @@ import ApprovedProjectsTableSkeleton from '@/components/tables/skeletons/Approve
 import RejectedProjectsTableSkeleton from '@/components/tables/skeletons/RejectedProjectsTableSkeleton';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useDeleteProject } from '@/hooks/project/useDeleteProject';
 import { useGetProjectsByApprovalStatus } from '@/hooks/project/useGetProjectsByApprovalStatus';
 import { useToggleProjectFeature } from '@/hooks/project/useToggleProjectFeature';
 import { ApprovedProject, PendingProject, RejectedProject } from '@/types/project/response';
@@ -29,6 +31,7 @@ import { Button } from '@/components/ui/button';
 import BulkApproveDialog from '@/components/dialogs/BulkApproveDialog';
 import DuplicatePendingProjectsDialog from '@/components/dialogs/DuplicatePendingProjectsDialog';
 import { useSession } from 'next-auth/react';
+import { toast } from 'sonner';
 
 const projectStatuses = ['IDEA', 'RESEARCH', 'MVP', 'DEPLOYED', 'STARTUP'];
 
@@ -39,7 +42,8 @@ export default function ProjectManagement() {
   const [detailsDialog, setDetailsDialog] = useState(false);
   const [bulkApproveDialog, setBulkApproveDialog] = useState(false);
   const [duplicateDialog, setDuplicateDialog] = useState(false);
-  const [currentProject, setCurrentProject] = useState<any>(null);
+  const [deleteDialog, setDeleteDialog] = useState(false);
+  const [currentProject, setCurrentProject] = useState<PendingProject | ApprovedProject | RejectedProject | null>(null);
   const [currentTab, setCurrentTab] = useState<'pending' | 'approved' | 'rejected'>('pending');
   const [lastFetchedTime, setLastFetchedTime] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -58,6 +62,18 @@ export default function ProjectManagement() {
   });
   const { data: session } = useSession();
   const isAdmin = session?.user?.role === 'ADMIN';
+
+  const { deleteProject, loading: isDeleting } = useDeleteProject({
+    onSuccess: () => {
+      toast.success('Project deleted successfully');
+      refreshRejected();
+      setDeleteDialog(false);
+      setCurrentProject(null);
+    },
+    onError: () => {
+      toast.error('Failed to delete project');
+    },
+  });
 
   // Debounce search query to avoid too many API calls
   useEffect(() => {
@@ -181,6 +197,23 @@ export default function ProjectManagement() {
   const handleViewDetails = (project: any) => {
     setCurrentProject(project);
     setDetailsDialog(true);
+  };
+
+  const handleDelete = (project: RejectedProject) => {
+    setCurrentProject(project);
+    setDeleteDialog(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!currentProject?.id) {
+      return;
+    }
+
+    try {
+      await deleteProject(currentProject.id);
+    } catch {
+      // Error feedback is handled by the delete hook; keep the rejection contained to this UI flow.
+    }
   };
 
   const { toggleFeature, isLoading: isFeatureToggling } = useToggleProjectFeature({
@@ -310,6 +343,8 @@ export default function ProjectManagement() {
         <RejectedProjectsTable
           projects={rejectedProjects}
           onViewDetails={handleViewDetails}
+          onDelete={handleDelete}
+          showDeleteButton={isAdmin}
           sortBy={rejectedSort.by}
           sortDir={rejectedSort.dir}
           onSortChange={(column) => setRejectedSort((prev) => toggleSort(prev, column))}
@@ -402,7 +437,7 @@ export default function ProjectManagement() {
         <ApproveDialog
           open={approveDialog}
           onOpenChange={setApproveDialog}
-          projectID={currentProject.id}
+          projectID={String(currentProject.id)}
           onApproved={refreshPending}
         />
       )}
@@ -433,6 +468,17 @@ export default function ProjectManagement() {
           open={duplicateDialog}
           onOpenChange={setDuplicateDialog}
           onRejected={refreshPending}
+        />
+      )}
+
+      {deleteDialog && currentProject && (
+        <DeleteProjectDialog
+          open={deleteDialog}
+          onOpenChange={setDeleteDialog}
+          onConfirm={handleConfirmDelete}
+          loading={isDeleting}
+          projectTitle={currentProject.title}
+          groupNumber={currentProject.groupNumber}
         />
       )}
     </div>
