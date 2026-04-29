@@ -2,144 +2,225 @@
 // Licensed under the GNU Affero General Public License v3.0 or later,
 // with an additional restriction: Non-commercial use only.
 // See <https://www.gnu.org/licenses/agpl-3.0.html> for details.
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import ProjectSubmissionForm from "@/components/submit-form/SubmissionForm";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { cn } from "@/lib/utils";
+import {
+  ArrowLeft,
+  CheckCircle2,
+  MessageCircle,
+  ShieldCheck,
+  Sparkles,
+  X,
+} from "lucide-react";
 
-import ProjectSubmissionForm from '@/components/submit-form/SubmissionForm'
-import { MessageCircle, X } from 'lucide-react'
+const INSTRUCTIONS = [
+  "All submissions are **reviewed** before approval.",
+  "Reviews typically complete within **0–2 days**.",
+  "**Failing to submit** may affect academic marks where required.",
+  "Only **one team member** should submit on behalf of the group.",
+  "After submit, **edits are not possible**—resubmit with corrections if needed.",
+  "A **cover image** is required.",
+  "Include at least **three gallery images**.",
+  "**Contact number and email** are mandatory.",
+  "You can **review** your entry after submission.",
+  "Approved projects receive a confirmation **email**.",
+  "If rejected, read feedback and **resubmit** correctly.",
+  "**False information** may be treated as an offense.",
+] as const;
 
 const Page = () => {
-  const [showPopup, setShowPopup] = useState(true)
-  const [showTooltip, setShowTooltip] = useState(false)
-  const [showHelpPopup, setShowHelpPopup] = useState(false)
-  const [termsAccepted, setTermsAccepted] = useState(false)
+  const [showPopup, setShowPopup] = useState(true);
+  const [showTooltip, setShowTooltip] = useState(false);
+  const [showHelpPopup, setShowHelpPopup] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
   const handleAgree = () => {
-    setShowPopup(false)
-    setTermsAccepted(true)
-  }
+    setShowPopup(false);
+    setTermsAccepted(true);
+  };
 
-  // Show help popup after 10 seconds of accepting terms
   useEffect(() => {
-    if (termsAccepted) {
-      const timer = setTimeout(() => {
-        setShowHelpPopup(true)
-      }, 10000)
-
-      return () => clearTimeout(timer)
-    }
-  }, [termsAccepted])
-
-  const closeHelpPopup = () => {
-    setShowHelpPopup(false)
-  }
+    if (!termsAccepted) return;
+    const timer = setTimeout(() => setShowHelpPopup(true), 10000);
+    return () => clearTimeout(timer);
+  }, [termsAccepted]);
 
   return (
-    <div className="min-h-screen bg-background relative">
-      {/* Terms and Conditions Popup Overlay */}
-      {showPopup && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
-          <div className="bg-[#0f0f0f] text-white p-6 md:p-8 rounded-2xl shadow-xl max-w-xl w-full max-h-[90vh] overflow-y-auto border border-neutral-700">
-            <h2 className="text-2xl font-bold mb-5 text-center text-white">Submission Instructions</h2>
-            <ul className="list-disc pl-5 space-y-3 text-neutral-300 text-sm md:text-base">
-              <li>All submissions will be <strong>carefully reviewed</strong> and approved/rejected.</li>
-              <li><strong>It might take 0 – 2 days</strong> to review each project.</li>
-              <li><strong>Failure to submit</strong> your project may impact your academic marks.</li>
-              <li>Any <strong>one member</strong> from the team should submit the form.</li>
-              <li>Once submitted, <strong>you cannot edit</strong> it. Resubmit if you need to make changes.</li>
-              <li>You must include your project's <strong>Cover Image</strong>.</li>
-              <li>A minimum of <strong>3 Gallery Images</strong> is required.</li>
-              <li>Submitting <strong>Contact Number & Email address</strong> is mandatory.</li>
-              <li>After submission, you may <strong>review</strong> your entry.</li>
-              <li>Approved projects will receive a confirmation <strong>email</strong> to the provided email address.</li>
-              <li>If rejected, read the feedback and <strong>resubmit</strong> correctly.</li>
-              <li><strong>Providing false information is an offense.</strong></li>
-            </ul>
-            <div className="text-center mt-6">
-              <button
-                onClick={handleAgree}
-                className="px-6 py-2 bg-neutral-800 hover:bg-neutral-700 transition-colors rounded-lg text-white text-sm font-medium border border-neutral-600"
-              >
-                I Understand & Agree
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showHelpPopup && (
-        <div className="fixed bottom-40 right-4 z-40 max-w-[260px] animate-in slide-in-from-bottom-5 duration-700 ease-out">
-          <div className="relative bg-neutral-800 border border-neutral-700 rounded-lg p-3 shadow-xl">
-            <button
-              onClick={closeHelpPopup}
-              className="absolute top-2 right-2 w-5 h-5 rounded-full bg-neutral-700 hover:bg-neutral-600 flex items-center justify-center transition-colors duration-200"
-            >
-              <X className="w-3 h-3 text-neutral-300" />
-            </button>
-
-            <div className="pr-5">
-              <h3 className="text-white text-sm font-medium mb-1">Need Help?</h3>
-              <p className="text-neutral-300 text-xs mb-2 whitespace-nowrap">
-                Having trouble? Chat with us on WhatsApp!
-              </p>
-              <a
-                href="https://wa.me/94766867362"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-xs bg-neutral-700 hover:bg-neutral-600 text-white px-3 py-1.5 rounded-md transition-colors duration-200"
-              >
-                <MessageCircle className="w-3 h-3" />
-                Chat Now
-              </a>
-            </div>
-
-            <div className="absolute -bottom-2 right-6 w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-neutral-800"></div>
-          </div>
-        </div>
-      )}
-
-      <div className="container mx-auto px-4 py-8 md:py-12">
-        <div className="mx-auto max-w-5xl">
-          <div className="mb-10 text-center">
-            <h1 className="mb-2 text-4xl font-bold tracking-tight text-white sm:text-5xl">
-              Project Submission
-            </h1>
-            <p className="text-lg text-neutral-400">
-              Share your innovative project with the community
-            </p>
-          </div>
-          <ProjectSubmissionForm />
-        </div>
+    <div className="relative min-h-dvh overflow-hidden bg-background text-foreground">
+        <div className="pointer-events-none absolute inset-0 -z-10" aria-hidden>
+        <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.12] via-transparent to-transparent dark:from-primary/[0.16]" />
+        <div
+          className="absolute inset-0 opacity-[0.35] dark:opacity-[0.2]"
+          style={{
+            backgroundImage: `radial-gradient(circle at 1px 1px, hsl(var(--foreground) / 0.06) 1px, transparent 0)`,
+            backgroundSize: "32px 32px",
+          }}
+        />
       </div>
 
-      <div
-        className="fixed bottom-37 md:bottom-24 right-6 z-50 flex flex-col items-end group"
-        onMouseEnter={() => setShowTooltip(true)}
-        onMouseLeave={() => setShowTooltip(false)}
-      >
-        {!showHelpPopup && (
-          <div
-            className={`mb-2 max-w-[200px] px-3 py-1.5 rounded-md bg-neutral-800 text-white text-xs text-center shadow-md transition-all duration-300 ease-out transform ${showTooltip
-              ? 'opacity-100 translate-y-0 scale-100'
-              : 'opacity-0 translate-y-2 scale-95 pointer-events-none'
-              }`}
-          >
-            Need help? Chat on WhatsApp
-          </div>
-        )}
-
-        <a
-          href="https://wa.me/94766867362"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="w-14 h-14 rounded-full bg-neutral-900 border border-neutral-700 text-white flex items-center justify-center shadow-lg hover:shadow-green-500/20 transition-all duration-300"
+      <Dialog open={showPopup}>
+        <DialogContent
+          className="gap-0 overflow-hidden border-border/80 p-0 sm:max-w-lg [&>button]:hidden"
+          onEscapeKeyDown={(e) => e.preventDefault()}
+          onPointerDownOutside={(e) => e.preventDefault()}
         >
-          <MessageCircle className="w-6 h-6" />
-        </a>
+          <div className="border-b border-border/60 bg-muted/30 px-5 py-4 sm:px-6">
+            <DialogHeader className="space-y-1 text-left">
+              <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-border/80 bg-background/80 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                <ShieldCheck className="size-3.5 shrink-0 text-primary" aria-hidden />
+                Before you start
+              </div>
+              <DialogTitle className="text-xl font-semibold tracking-tight sm:text-2xl">
+                Submission instructions
+              </DialogTitle>
+              <DialogDescription className="text-sm leading-relaxed">
+                Please read and confirm. You will not be able to edit the project after submission.
+              </DialogDescription>
+            </DialogHeader>
+          </div>
+          <ScrollArea className="max-h-[min(60vh,22rem)] px-5 sm:px-6">
+            <ul className="space-y-2.5 py-4 pr-3 text-sm leading-snug text-muted-foreground">
+              {INSTRUCTIONS.map((line) => (
+                <li key={line} className="flex gap-2.5">
+                  <CheckCircle2
+                    className="mt-0.5 size-4 shrink-0 text-primary/80"
+                    aria-hidden
+                  />
+                  <span>
+                    {line.split(/(\*\*[^*]+\*\*)/g).map((part, i) =>
+                      part.startsWith("**") && part.endsWith("**") ? (
+                        <strong key={i} className="font-medium text-foreground">
+                          {part.slice(2, -2)}
+                        </strong>
+                      ) : (
+                        <span key={i}>{part}</span>
+                      )
+                    )}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </ScrollArea>
+          <DialogFooter className="border-t border-border/60 bg-muted/20 px-5 py-4 sm:px-6">
+            <Button className="w-full rounded-lg sm:w-auto" size="lg" onClick={handleAgree} type="button">
+              I understand &amp; agree
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {showHelpPopup ? (
+        <div
+          className="fixed z-40 max-md:bottom-28 md:bottom-24 right-4 max-w-[min(calc(100vw-2rem),280px)] animate-in slide-in-from-bottom-4 fade-in duration-500"
+          style={{
+            paddingBottom: "max(0px, env(safe-area-inset-bottom, 0px))",
+          }}
+        >
+          <div className="relative overflow-hidden rounded-xl border border-border/80 bg-card/95 shadow-lg backdrop-blur-md dark:bg-card/90">
+            <div className="absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
+            <button
+              type="button"
+              onClick={() => setShowHelpPopup(false)}
+              className="absolute right-2 top-2 rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              aria-label="Dismiss"
+            >
+              <X className="size-4" />
+            </button>
+            <div className="p-4 pr-10">
+              <h3 className="text-sm font-semibold">Need help?</h3>
+              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                Message us on WhatsApp if you are stuck on a step.
+              </p>
+              <Button asChild size="sm" className="mt-3 w-full rounded-lg gap-2" variant="secondary">
+                <a
+                  href="https://wa.me/94766867362"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <MessageCircle className="size-3.5" />
+                  Chat now
+                </a>
+              </Button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      <div className="relative mx-auto max-w-5xl px-4 pb-28 pt-8 sm:px-6 sm:pb-24 sm:pt-10 md:max-w-6xl md:pt-12">
+        <div className="mb-8 flex flex-col gap-4 sm:mb-10 sm:flex-row sm:items-start sm:justify-between">
+          <Button variant="ghost" size="sm" className="group -ml-2 w-fit gap-2 text-muted-foreground" asChild>
+            <Link href="/submit">
+              <ArrowLeft className="size-4 transition-transform group-hover:-translate-x-0.5" />
+              All submit options
+            </Link>
+          </Button>
+          <div className="space-y-2 sm:text-right">
+            <div className="inline-flex items-center gap-2 rounded-full border border-border/80 bg-muted/40 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground sm:ml-auto">
+              <Sparkles className="size-3 text-primary" aria-hidden />
+              Project
+            </div>
+          </div>
+        </div>
+
+        <header className="mb-8 space-y-2 sm:mb-10 md:mb-12">
+          <h1 className="text-balance text-3xl font-semibold tracking-tight sm:text-4xl md:text-[2.5rem] md:leading-tight">
+            Submit your project
+          </h1>
+          <p className="max-w-2xl text-pretty text-base leading-relaxed text-muted-foreground sm:text-lg">
+            Five guided steps—basics, story &amp; gallery, classification, contact, and team. Take your time;
+            uploads save when you continue.
+          </p>
+        </header>
+
+        <ProjectSubmissionForm />
+
+        <div
+          className={cn(
+            "fixed z-40 flex flex-col items-end gap-2 transition-opacity",
+            "right-4 max-md:bottom-28 md:bottom-8",
+            showHelpPopup && "opacity-0 pointer-events-none"
+          )}
+          style={{
+            paddingBottom: "max(0px, env(safe-area-inset-bottom, 0px))",
+          }}
+          onMouseEnter={() => setShowTooltip(true)}
+          onMouseLeave={() => setShowTooltip(false)}
+        >
+          <div
+            className={cn(
+              "max-w-[200px] rounded-lg border border-border/80 bg-card/95 px-3 py-2 text-center text-xs text-muted-foreground shadow-md backdrop-blur-sm transition-all duration-200",
+              showTooltip ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-1 opacity-0"
+            )}
+          >
+            Help on WhatsApp
+          </div>
+          <a
+            href="https://wa.me/94766867362"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex size-14 items-center justify-center rounded-full border border-border bg-card text-primary shadow-lg ring-2 ring-primary/10 transition-all hover:ring-primary/25 hover:shadow-primary/15"
+            aria-label="Open WhatsApp chat"
+          >
+            <MessageCircle className="size-6" />
+          </a>
+        </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Page
+export default Page;

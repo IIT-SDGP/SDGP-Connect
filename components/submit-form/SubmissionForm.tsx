@@ -15,11 +15,11 @@ import FormStep4 from "./FormStep4";
 import FormStep5 from "./FormStep5";
 import { toast } from "sonner";
 import { useSubmitProject } from "@/hooks/project/useSubmitProject";
-import { Loader2 } from "lucide-react";
 import useUploadImageToBlob from "@/hooks/azure/useUploadImageToBlob";
 import { UploadingSequence } from "@/components/ui/UploadingSequence";
 import { ProjectStatusEnum } from "@/types/prisma-types";
 import type { SubmitProjectResponse } from "@/types/project/response";
+import { ChevronLeft, ChevronRight, Send } from "lucide-react";
 
 const TOTAL_STEPS = 5;
 
@@ -39,7 +39,6 @@ const ProjectSubmissionForm = () => {
   const { uploadImage } = useUploadImageToBlob();
   const router = useRouter();
 
-  // Use our custom submission hook
   const { submitProject, isSubmitting, error } = useSubmitProject();
   const buildCopyPayload = (result: Partial<SubmitProjectResponse>, fallbackError?: unknown) => {
     const payload: Record<string, any> = {
@@ -115,8 +114,8 @@ const ProjectSubmissionForm = () => {
         title: "",
         subtitle: "",
         website: "",
-        cover_image: null, // Changed from placeholder URL to null
-        logo: null, // Changed from placeholder URL to null
+        cover_image: null,
+        logo: null,
       },
       projectDetails: {
         problem_statement: "",
@@ -139,12 +138,10 @@ const ProjectSubmissionForm = () => {
     mode: "onBlur",
   });
 
-  // Effect to restore slide previews when navigating back to step 2
   useEffect(() => {
     if (currentStep === 2) {
       const formSlides = methods.getValues("slides");
       if (formSlides && formSlides.length > 0 && slidePreviews.length === 0) {
-        // If form has slides but previews are empty, restore previews from form data
         const previewUrls = formSlides.map(slide => slide.slides_content);
         setSlidePreviews(previewUrls);
       }
@@ -152,16 +149,15 @@ const ProjectSubmissionForm = () => {
   }, [currentStep, methods, slidePreviews.length]);
 
   const handleNext = async () => {
-    // Updated field mapping with all required fields for each step
     const stepFieldsMap = {
       1: [
         "metadata.group_num",
         "metadata.sdgp_year",
         "metadata.title",
         "metadata.subtitle",
-        "metadata.website", // Added website validation
-        "metadata.cover_image", // Added cover image validation
-        "metadata.logo" // Added logo validation
+        "metadata.website",
+        "metadata.cover_image",
+        "metadata.logo"
       ],
       2: [
         "projectDetails.problem_statement",
@@ -190,7 +186,6 @@ const ProjectSubmissionForm = () => {
 
     const fieldsToValidate = stepFieldsMap[currentStep as keyof typeof stepFieldsMap];
 
-    // Validate all fields for the current step
     const results = await Promise.all(
       fieldsToValidate.map(field => methods.trigger(field as any))
     );
@@ -198,17 +193,13 @@ const ProjectSubmissionForm = () => {
     const isValid = results.every(result => result === true);
 
     if (!isValid) {
-      // Get the current errors to provide more specific feedback
-      const errors = methods.formState.errors;
-
-
+      methods.formState.errors;
       toast.error("Please complete all required fields", {
         description: "Check the highlighted fields and ensure all required information is provided.",
       });
       return;
     }
 
-    // Additional validation for step 1 - ensure files are actually uploaded
     if (currentStep === 1) {
       if (!logoFile) {
         toast.error("Logo is required", {
@@ -223,7 +214,6 @@ const ProjectSubmissionForm = () => {
         return;
       }
 
-      // Upload images
       setUploading(true);
       try {
         const compressedLogo = await compressImageFile(logoFile, "logo");
@@ -241,7 +231,6 @@ const ProjectSubmissionForm = () => {
       setUploading(false);
     }
 
-    // Upload slides if on step 2
     if (currentStep === 2) {
       setUploading(true);
       try {
@@ -258,10 +247,8 @@ const ProjectSubmissionForm = () => {
             { shouldValidate: true }
           );
 
-          // Don't clear the previews anymore - keep them for navigation
-          // Instead, update previews with the uploaded URLs
           setSlidePreviews(urls);
-          setSlideFiles([]); // Clear files but keep previews
+          setSlideFiles([]);
         }
       } catch (err) {
         toast.error("Slide image upload failed. Please try again.");
@@ -271,7 +258,6 @@ const ProjectSubmissionForm = () => {
       setUploading(false);
     }
 
-    // Upload team profile images if on step 5
     if (currentStep === 5) {
       setUploading(true);
       try {
@@ -313,14 +299,12 @@ const ProjectSubmissionForm = () => {
 
   const onSubmit: SubmitHandler<ProjectSubmissionSchema> = async (data) => {
     try {
-      // Handle team profile image uploads before final submission
-      // Check if there are any profile images to upload
       const hasProfileImages = teamProfileFiles.some(file => file !== null);
 
       if (hasProfileImages) {
         setUploading(true);
         try {
-          const currentTeam = [...data.team]; // Create a copy of the team array
+          const currentTeam = [...data.team];
 
           const updatedTeam = await Promise.all(
             currentTeam.map(async (member, i) => {
@@ -333,7 +317,6 @@ const ProjectSubmissionForm = () => {
             })
           );
 
-          // Update the data that will be submitted with the new team data including image URLs
           data = {
             ...data,
             team: updatedTeam
@@ -348,20 +331,16 @@ const ProjectSubmissionForm = () => {
         setUploading(false);
       }
 
-      // Submit the project using our hook
       const result = await submitProject(data);
 
       if (result.success && result.data?.projectId) {
-        // Show success message
         toast.success("Project Submitted!", {
           description: "Your project has been successfully submitted.",
         });
 
-        // Store the project ID for use in the success page
         setSubmittedProjectId(result.data.projectId);
         setIsSubmitted(true);
 
-        // redirect to the project page after a delay
         setTimeout(() => {
           router.push(`/project/${result?.data?.projectId}`);
         }, 3000);
@@ -431,48 +410,65 @@ const ProjectSubmissionForm = () => {
     }
   };
 
+  const busy = isSubmitting || uploading;
+
   return (
     <FormProvider {...methods}>
-      <div className="rounded-xl bg-white p-6 shadow-sm dark:bg-background border md:p-8">
-        <FormStepper currentStep={currentStep} totalSteps={TOTAL_STEPS} />
+      <div className="relative overflow-hidden rounded-2xl border border-border/80 bg-card/40 shadow-xl shadow-black/[0.04] backdrop-blur-sm dark:bg-card/25 dark:shadow-black/25">
+        <div
+          className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/35 to-transparent"
+          aria-hidden
+        />
+        <div className="p-5 sm:p-7 md:p-8">
+          <FormStepper currentStep={currentStep} totalSteps={TOTAL_STEPS} />
 
-        <form onSubmit={methods.handleSubmit(onSubmit)} className="mt-6 space-y-8">
-          {renderStep()}
-          <div className="flex justify-between pt-6">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handlePrevious}
-              disabled={currentStep === 1 || isSubmitting || uploading}
-            >
-              Previous
-            </Button>
-            {currentStep < TOTAL_STEPS ? (
-              <Button
-                type="button"
-                onClick={handleNext}
-                disabled={isSubmitting || uploading}
-              >
-                {(isSubmitting || uploading) ? (
-                  <UploadingSequence />
+          <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-8">
+            {renderStep()}
+
+            <div className="sticky bottom-0 z-10 -mx-5 -mb-5 mt-8 flex flex-col-reverse gap-3 border-t border-border/70 bg-background/90 px-5 py-4 backdrop-blur-md supports-[backdrop-filter]:bg-background/75 sm:-mx-7 sm:px-7 md:static md:mx-0 md:mb-0 md:bg-transparent md:px-0 md:py-0 md:backdrop-blur-none">
+              <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handlePrevious}
+                  disabled={currentStep === 1 || busy}
+                  className="w-full rounded-lg gap-2 sm:w-auto"
+                >
+                  <ChevronLeft className="size-4" />
+                  Back
+                </Button>
+                {currentStep < TOTAL_STEPS ? (
+                  <Button
+                    type="button"
+                    onClick={handleNext}
+                    disabled={busy}
+                    className="w-full rounded-lg gap-2 sm:w-auto"
+                  >
+                    {busy ? (
+                      <UploadingSequence />
+                    ) : (
+                      <>
+                        Continue
+                        <ChevronRight className="size-4" />
+                      </>
+                    )}
+                  </Button>
                 ) : (
-                  "Next"
+                  <Button type="submit" disabled={busy} className="w-full rounded-lg gap-2 sm:w-auto">
+                    {busy ? (
+                      <UploadingSequence />
+                    ) : (
+                      <>
+                        Submit project
+                        <Send className="size-4" />
+                      </>
+                    )}
+                  </Button>
                 )}
-              </Button>
-            ) : (
-              <Button
-                type="submit"
-                disabled={isSubmitting || uploading}
-              >
-                {(isSubmitting || uploading) ? (
-                  <UploadingSequence />
-                ) : (
-                  "Submit Project"
-                )}
-              </Button>
-            )}
-          </div>
-        </form>
+              </div>
+            </div>
+          </form>
+        </div>
       </div>
     </FormProvider>
   );
