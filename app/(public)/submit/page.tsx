@@ -2,282 +2,241 @@
 // Licensed under the GNU Affero General Public License v3.0 or later,
 // with an additional restriction: Non-commercial use only.
 // See <https://www.gnu.org/licenses/agpl-3.0.html> for details.
-'use client'
+"use client";
 
-import { ShimmerButton } from '@/components/magicui/shimmer-button';
-import SpotlightCard from '@/components/ui/spotlightCards';
-import { Award, Rocket, Trophy } from 'lucide-react';
-import Link from 'next/link';
-import { useEffect } from 'react';
+import { ShimmerButton } from "@/components/magicui/shimmer-button";
+import {
+  Card,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { cn } from "@/lib/utils";
+import {
+  Award,
+  HelpCircle,
+  Rocket,
+  Sparkles,
+  Trophy,
+} from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
+type SubmitKind = {
+  href: string;
+  title: string;
+  description: string;
+  cta: string;
+  icon: typeof Rocket;
+  accent: string;
+  shimmerBg: string;
+  shimmerHighlight: string;
+};
 
-const Page = () => {
-  useEffect(() => {
-      document.querySelectorAll('.line-animation-path').forEach((element) => {
-        if (element instanceof SVGPathElement) {
-          const len = element.getTotalLength();
-          element.style.setProperty('--path-length', `${len}`);
-        }
-      });
-    }, []);
+const KINDS: SubmitKind[] = [
+  {
+    href: "/submit/project",
+    title: "Project",
+    description:
+      "Innovation, research, or coursework—with SDG alignment, media, and team info.",
+    cta: "Submit project",
+    icon: Rocket,
+    accent:
+      "from-primary/20 via-primary/5 to-transparent border-primary/25 shadow-primary/10",
+    shimmerBg:
+      "linear-gradient(145deg, #0f172a 0%, #1d4ed8 42%, #2563eb 70%, #1e40af 100%)",
+    shimmerHighlight: "rgba(255, 255, 255, 0.92)",
+  },
+  {
+    href: "/submit/competition",
+    title: "Competition",
+    description:
+      "Hackathons and challenges: outcomes, links, and proof of participation.",
+    cta: "Submit competition",
+    icon: Trophy,
+    accent:
+      "from-emerald-500/15 via-emerald-500/5 to-transparent border-emerald-500/20 shadow-emerald-500/10",
+    shimmerBg: "linear-gradient(145deg, #047857 0%, #059669 55%, #0d9488 100%)",
+    shimmerHighlight: "rgba(167, 243, 208, 0.95)",
+  },
+  {
+    href: "/submit/award",
+    title: "Award",
+    description:
+      "Formal recognition—ceremonies, merit lists, or honors—for your profile.",
+    cta: "Submit award",
+    icon: Award,
+    accent:
+      "from-amber-500/15 via-amber-500/5 to-transparent border-amber-500/25 shadow-amber-500/10",
+    shimmerBg: "linear-gradient(145deg, #b45309 0%, #d97706 45%, #ca8a04 100%)",
+    shimmerHighlight: "rgba(254, 243, 199, 0.95)",
+  },
+];
+
+/** One-line rules so the whole story fits above the fold on desktop */
+const RULES_LINE =
+  "One team member submits for the group · Double-check before send (no edits after) · Approved entries may appear on the platform";
+
+export default function SubmitHubPage() {
+  const router = useRouter();
+
   return (
-   <div className="relative text-white font-sans overflow-x-hidden flex items-center justify-center min-h-screen py-20 px-5">
-      
-      <div className="absolute inset-0 z-10 pointer-events-none">
-        {/* Corner Animations */}
-        <div className="absolute top-1/2 left-0 right-0 transform -translate-y-1/2 h-[80px]">
-          {/* Left corner */}
-          <div className="absolute w-[200px] h-[80px] left-[-120px]">
-            <svg
-              className="absolute inset-0 w-full h-full"
-              viewBox="0 0 177 59"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                className="line-background"
-                d="M176 1L53.5359 1C52.4313 1 51.5359 1.89543 51.5359 3L51.5359 56C51.5359 57.1046 50.6405 58 49.5359 58L0 58"
-              />
-            </svg>
-            <svg
-              className="absolute inset-0 w-full h-full"
-              viewBox="0 0 177 59"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                className="line-animation-path"
-                d="M176 1L53.5359 1C52.4313 1 51.5359 1.89543 51.5359 3L51.5359 56C51.5359 57.1046 50.6405 58 49.5359 58L0 58"
-              />
-            </svg>
-          </div>
-
-          {/* Right corner */}
-          <div className="absolute w-[200px] h-[80px] right-[-120px]">
-            <svg
-              className="absolute inset-0 w-full h-full"
-              viewBox="0 0 176 59"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                className="line-background"
-                d="M0 1L122.464 1C123.569 1 124.464 1.89543 124.464 3L124.464 56C124.464 57.1046 125.36 58 126.464 58L176 58"
-              />
-            </svg>
-            <svg
-              className="absolute inset-0 w-full h-full"
-              viewBox="0 0 176 59"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                className="line-animation-path reverse"
-                d="M0 1L122.464 1C123.569 1 124.464 1.89543 124.464 3L124.464 56C124.464 57.1046 125.36 58 126.464 58L176 58"
-              />
-            </svg>
-          </div>
-        </div>
-
-        {/* Background Stripe Lines */}
-        {/* Line 1 (15%) */}
-        <div className="absolute w-full h-[77px] top-[15%]">
-          <div className="absolute w-full h-full z-20">
-            <svg width="100%" viewBox="0 0 1336 77" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <defs>
-                <linearGradient id="line-gradient-1">
-                  <stop offset="0%" stopColor="white" stopOpacity="0" />
-                  <stop offset="20%" stopColor="white" stopOpacity="1" />
-                  <stop offset="40%" stopColor="white" stopOpacity="0" />
-                </linearGradient>
-                <mask id="gradient-mask-1">
-                  <rect
-                    className="mask-rect"
-                    x="0"
-                    y="0"
-                    width="20%"
-                    height="100%"
-                    fill="url(#line-gradient-1)"
-                  />
-                </mask>
-              </defs>
-              <path
-                d="M0 1H179.567L254.595 76H1081.4L1156.43 1H1336"
-                stroke="rgba(255, 255, 255, 0.1)"
-                mask="url(#gradient-mask-1)"
-              />
-            </svg>
-          </div>
-          <div className="absolute w-full h-full z-10">
-            <svg width="100%" viewBox="0 0 1336 77" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M0 1H179.567L254.595 76H1081.4L1156.43 1H1336" stroke="rgba(255, 255, 255, 0.05)" />
-            </svg>
-          </div>
-        </div>
-
-        {/* Line 2 (35%) */}
-        <div className="absolute w-full h-[98px] top-[35%]">
-          <div className="absolute w-full h-full z-20">
-            <svg width="100%" viewBox="0 0 1336 98" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <defs>
-                <linearGradient id="line-gradient-2">
-                  <stop offset="0%" stopColor="white" stopOpacity="0" />
-                  <stop offset="20%" stopColor="white" stopOpacity="1" />
-                  <stop offset="40%" stopColor="white" stopOpacity="0" />
-                </linearGradient>
-                <mask id="gradient-mask-2">
-                  <rect
-                    className="mask-rect"
-                    x="0"
-                    y="0"
-                    width="20%"
-                    height="100%"
-                    fill="url(#line-gradient-2)"
-                  />
-                </mask>
-              </defs>
-              <path
-                d="M0 1H107.5L182.528 97H1154L1229.03 1H1336"
-                stroke="#007aff"
-                mask="url(#gradient-mask-2)"
-              />
-            </svg>
-          </div>
-          <div className="absolute w-full h-full z-10">
-            <svg width="100%" viewBox="0 0 1336 98" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M0 1H107.5L182.528 97H1154L1229.03 1H1336" stroke="rgba(255, 255, 255, 0.05)" />
-            </svg>
-          </div>
-        </div>
-
-        {/* Line 3 (55%) */}
-        <div className="absolute w-full h-[98px] top-[55%]">
-          <div className="absolute w-full h-full z-20">
-            <svg width="100%" viewBox="0 0 1336 98" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <defs>
-                <linearGradient id="line-gradient-3">
-                  <stop offset="0%" stopColor="white" stopOpacity="0" />
-                  <stop offset="20%" stopColor="white" stopOpacity="1" />
-                  <stop offset="40%" stopColor="white" stopOpacity="0" />
-                </linearGradient>
-                <mask id="gradient-mask-3">
-                  <rect
-                    className="mask-rect"
-                    x="0"
-                    y="0"
-                    width="20%"
-                    height="100%"
-                    fill="url(#line-gradient-3)"
-                  />
-                </mask>
-              </defs>
-              <path
-                d="M0 97H107.5L182.528 1H1154L1229.03 97H1336"
-                stroke="#007aff"
-                mask="url(#gradient-mask-3)"
-              />
-            </svg>
-          </div>
-          <div className="absolute w-full h-full z-10">
-            <svg width="100%" viewBox="0 0 1336 98" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M0 97H107.5L182.528 1H1154L1229.03 97H1336" stroke="rgba(255, 255, 255, 0.05)" />
-            </svg>
-          </div>
-        </div>
-
-        {/* Line 4 (75%) */}
-        <div className="absolute w-full h-[77px] top-[75%]">
-          <div className="absolute w-full h-full z-20">
-            <svg width="100%" viewBox="0 0 1336 77" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <defs>
-                <linearGradient id="line-gradient-4">
-                  <stop offset="0%" stopColor="white" stopOpacity="0" />
-                  <stop offset="20%" stopColor="white" stopOpacity="1" />
-                  <stop offset="40%" stopColor="white" stopOpacity="0" />
-                </linearGradient>
-                <mask id="gradient-mask-4">
-                  <rect
-                    className="mask-rect"
-                    x="0"
-                    y="0"
-                    width="20%"
-                    height="100%"
-                    fill="url(#line-gradient-4)"
-                  />
-                </mask>
-              </defs>
-              <path
-                d="M1336 76H1156.43L1081.4 1H254.595L179.567 76H0"
-                stroke="#007aff"
-                mask="url(#gradient-mask-4)"
-              />
-            </svg>
-          </div>
-          <div className="absolute w-full h-full z-10">
-            <svg width="100%" viewBox="0 0 1336 77" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M1336 76H1156.43L1081.4 1H254.595L179.567 76H0" stroke="rgba(255, 255, 255, 0.05)" />
-            </svg>
-          </div>
-        </div>
+    <div className="relative flex min-h-dvh flex-col overflow-hidden bg-background text-foreground">
+      <div
+        className="pointer-events-none absolute inset-0 -z-10"
+        aria-hidden
+      >
+        <div className="absolute inset-0 bg-[linear-gradient(to_bottom,transparent_0%,hsl(var(--background))_92%)]" />
+        <div className="absolute -left-[20%] top-[-10%] h-[min(380px,32vh)] w-[min(420px,65vw)] rounded-full bg-primary/10 blur-3xl dark:bg-primary/15" />
+        <div className="absolute -right-[15%] bottom-[10%] h-[min(320px,28vh)] w-[min(360px,55vw)] rounded-full bg-chart-2/10 blur-3xl dark:bg-chart-2/12" />
+        <div
+          className="absolute inset-0 opacity-[0.28] dark:opacity-[0.18]"
+          style={{
+            backgroundImage: `radial-gradient(circle at 1px 1px, hsl(var(--foreground) / 0.06) 1px, transparent 0)`,
+            backgroundSize: "24px 24px",
+          }}
+        />
       </div>
 
-       <div className="relative z-20 max-w-screen-xl w-full text-center">
-        <h2 className="text-[clamp(3rem,8vw,6rem)] font-bold leading-tight mb-12">
-          Ready to share<br />
-          <span className="bg-gradient-to-r from-[#061bd4] via-[#266fbe] to-[#a8c8eb] bg-clip-text text-transparent">
-            your journey of impact?
-          </span>
-        </h2>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
-          <SpotlightCard className="custom-spotlight-card" spotlightColor="rgba(0, 102, 255, 0.2)">
-            <div className="p-6 text-left">
-              <div className="flex items-center gap-2 mb-4">
-                <Rocket className="w-10 h-10 text-white " />
+      {/* Top / middle / bottom stitched to viewport; cards centered in the middle band */}
+      <div className="relative z-0 flex min-h-0 flex-1 flex-col justify-between gap-4 px-4 pt-3 pb-3 max-md:pb-24 sm:px-6 sm:pt-4 sm:pb-4 md:gap-5">
+        <div className="mx-auto w-full max-w-6xl shrink-0 lg:max-w-7xl">
+          <header className="grid gap-3 lg:grid-cols-[1fr_minmax(260px,340px)] lg:items-start lg:gap-8">
+            <div className="space-y-2 sm:space-y-3">
+              <div className="inline-flex items-center gap-2 rounded-full border border-border/80 bg-muted/35 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                <Sparkles className="size-3 text-primary" aria-hidden />
+                Submit
               </div>
-              <h3 className="text-2xl font-bold mb-3">Submit a Project</h3>
-              <p className="text-gray-300 text-md mb-4 leading-relaxed">
-                Share your innovation, research, or development work. Projects of all scopes are welcome.
+              <h1 className="text-balance text-2xl font-semibold tracking-tight sm:text-3xl lg:text-[2rem] lg:leading-tight">
+                Choose what you are sharing—we open the right form.
+              </h1>
+              <p className="max-w-2xl text-pretty text-sm leading-relaxed text-muted-foreground sm:text-[0.9375rem]">
+                Three paths below:{" "}
+                <strong className="font-medium text-foreground">project</strong>,{" "}
+                <strong className="font-medium text-foreground">competition</strong>, or{" "}
+                <strong className="font-medium text-foreground">award</strong>. Pick one; each
+                step is tailored so reviewers get exactly what they need.
               </p>
-              <Link href="/submit/project">
-                <ShimmerButton>Submit Project</ShimmerButton>
-              </Link>
-            </div>
-          </SpotlightCard>
-
-          <SpotlightCard className="custom-spotlight-card" spotlightColor="rgba(0, 153, 255, 0.2)">
-            <div className="p-6 text-left">
-              <div className="flex items-center gap-2 mb-4">
-                <Trophy className="w-10 h-10 text-white " />
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                <Link
+                  href="/faq"
+                  className="inline-flex items-center gap-1 font-medium text-primary underline-offset-4 hover:underline"
+                >
+                  <HelpCircle className="size-3.5 shrink-0" aria-hidden />
+                  Submission FAQ
+                </Link>
+                <span className="hidden text-border sm:inline" aria-hidden>
+                  ·
+                </span>
+                <Link
+                  href="/project"
+                  className="font-medium text-primary underline-offset-4 hover:underline"
+                >
+                  Browse projects
+                </Link>
               </div>
-              <h3 className="text-2xl font-bold mb-3">Submit a Competition</h3>
-              <p className="text-gray-300 text-md mb-4 leading-relaxed">
-                Participated in a hackathon or tech challenge? Let your competitive spirit shine.
-              </p>
-              <Link href="/submit/competition">
-                <ShimmerButton>Submit Competition</ShimmerButton>
-              </Link>
             </div>
-          </SpotlightCard>
 
-          <SpotlightCard className="custom-spotlight-card" spotlightColor="rgba(0, 204, 255, 0.2)">
-            <div className="p-6 text-left">
-              <div className="flex items-center gap-2 mb-4">
-                <Award className="w-10 h-10 text-white " />
-              </div>
-              <h3 className="text-2xl font-bold mb-3">Submit an Award</h3>
-              <p className="text-gray-300 text-md mb-4 leading-relaxed">
-                Been recognized for your achievements? Add your award to our showcase.
+            <aside className="rounded-xl border border-border/80 bg-card/80 px-3.5 py-2.5 shadow-sm backdrop-blur-sm dark:bg-card/55 sm:py-3">
+              <p className="text-xs font-medium text-foreground">After you send it</p>
+              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                Your entry goes to review; you get email when there is a decision (often
+                within a few days).
               </p>
-              <Link href="/submit/award">
-                <ShimmerButton>Submit Award</ShimmerButton>
-              </Link>
-            </div>
-          </SpotlightCard>
+              <p className="mt-2 border-t border-border/60 pt-2 text-[11px] leading-snug text-muted-foreground lg:text-xs">
+                {RULES_LINE}
+              </p>
+            </aside>
+          </header>
         </div>
+
+        <section
+          aria-labelledby="submit-options-heading"
+          className={cn(
+            "mx-auto flex min-h-0 w-full max-w-6xl flex-1 flex-col justify-center lg:max-w-7xl"
+          )}
+        >
+          <h2 id="submit-options-heading" className="sr-only">
+            Submission types
+          </h2>
+          <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
+            {KINDS.map((kind, index) => {
+              const Icon = kind.icon;
+              return (
+                <Card
+                  key={kind.href}
+                  className={cn(
+                    "group relative flex h-full min-h-[200px] flex-col overflow-hidden border bg-gradient-to-br py-0 shadow-sm transition-shadow hover:shadow-md sm:min-h-[220px]",
+                    kind.accent
+                  )}
+                >
+                  <div className="pointer-events-none absolute -right-10 -top-10 size-32 rounded-full bg-background/35 blur-2xl dark:bg-background/15" />
+                  <CardHeader className="relative flex-1 space-y-2.5 pb-2 pt-3 sm:space-y-3 sm:pt-4">
+                    <div className="flex items-start justify-between gap-2">
+                      <div
+                        className={cn(
+                          "flex size-10 items-center justify-center rounded-lg border bg-background/80 shadow-sm backdrop-blur-sm sm:size-11",
+                          index === 0 && "border-primary/25 text-primary",
+                          index === 1 &&
+                            "border-emerald-500/25 text-emerald-600 dark:text-emerald-400",
+                          index === 2 &&
+                            "border-amber-500/25 text-amber-600 dark:text-amber-400"
+                        )}
+                      >
+                        <Icon className="size-5 sm:size-[1.375rem]" aria-hidden />
+                      </div>
+                      {index === 0 ? (
+                        <span className="rounded border border-primary/20 bg-primary/10 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-primary">
+                          Common
+                        </span>
+                      ) : null}
+                    </div>
+                    <div className="space-y-1">
+                      <CardTitle className="text-base font-semibold sm:text-lg">
+                        {kind.title}
+                      </CardTitle>
+                      <CardDescription className="text-xs leading-relaxed sm:text-sm line-clamp-3 sm:line-clamp-none">
+                        {kind.description}
+                      </CardDescription>
+                    </div>
+                  </CardHeader>
+                  <CardFooter className="relative mt-auto border-0 pb-3 pt-0 sm:pb-4">
+                    <ShimmerButton
+                      type="button"
+                      background={kind.shimmerBg}
+                      shimmerColor={kind.shimmerHighlight}
+                      borderRadius="0.5rem"
+                      className="h-11 w-full px-4 text-sm font-semibold shadow-md"
+                      shimmerDuration="2.5s"
+                      onClick={() => router.push(kind.href)}
+                    >
+                      {kind.cta}
+                    </ShimmerButton>
+                  </CardFooter>
+                </Card>
+              );
+            })}
+          </div>
+        </section>
+
+        <p className="mx-auto w-full max-w-6xl shrink-0 text-center text-[11px] leading-relaxed text-muted-foreground sm:text-xs lg:max-w-7xl">
+          Wrong type or need help?{" "}
+          <Link
+            href="/contact"
+            className="font-medium text-foreground underline-offset-4 hover:underline"
+          >
+            Contact
+          </Link>
+          {" · "}
+          <Link
+            href="/faq"
+            className="font-medium text-foreground underline-offset-4 hover:underline"
+          >
+            FAQ
+          </Link>
+        </p>
       </div>
     </div>
-  )
+  );
 }
-
-export default Page
