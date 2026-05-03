@@ -12,7 +12,6 @@ import {
 import { Role } from "@/types/prisma-types";
 import { revalidatePath } from "next/cache";
 import { getModuleFromYear } from "@/lib/utils/module";
-import { buildLiveSnapshotFromDb } from "@/lib/project-edits/projectEditUtils";
 
 export async function POST(request: Request) {
   const session = await getServerSession(authOptions);
