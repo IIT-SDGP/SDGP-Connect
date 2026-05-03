@@ -5,7 +5,6 @@
 "use client";
 
 import React from "react";
-import { motion } from "framer-motion";
 import dynamic from "next/dynamic";
 import { Eye } from "lucide-react";
 import { useLanguage } from "@/hooks/LanguageProvider";
