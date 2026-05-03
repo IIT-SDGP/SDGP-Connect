@@ -7,9 +7,8 @@ import Footer from "@/components/Footer";
 import useIsMobile from "@/hooks/useIsMobile";
 import { ThemeProvider } from "@/components/Providers/ThemeProvider";
 import { Analytics } from "@vercel/analytics/next";
-import { SpeedInsights } from "@vercel/speed-insights/next";
-import { ExpandableChatAI } from "@/components/ai/ExpandableChatAI";
-import CookieBanner from "@/components/CookieBanner";
+import { SpeedInsights } from "@vercel/speed-insights/next"
+import CookieBanner from "@/components/CookieBanner"
 import { usePathname } from "next/navigation";
 import { SessionProvider } from "next-auth/react";
 
@@ -22,18 +21,15 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
   const shouldHaveMargins = !fullWidthPages.includes(pathname);
 
   return (
-    <SessionProvider>
-      <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
-        {!isHomePage && <NavBar />}
-        <div className={shouldHaveMargins ? "md:mx-24" : ""}>{children}</div>
-        {!isMobile && <CustomCursor />}
-        <Footer />
-        <CookieBanner />
-        <Analytics />
-        <SpeedInsights />
-        <Toaster />
-        <ExpandableChatAI />
-      </ThemeProvider>
-    </SessionProvider>
+    <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
+      <NavBar />
+      <div className={shouldHaveMargins ? "md:mx-24" : ""}>{children}</div>
+      {!isMobile && <CustomCursor />}
+      <Footer />
+      <CookieBanner />
+      <Analytics />
+      <SpeedInsights />
+      <Toaster />
+    </ThemeProvider>
   );
 }

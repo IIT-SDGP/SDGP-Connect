@@ -87,7 +87,7 @@ const Page = () => {
       )}
 
       {showHelpPopup && (
-        <div className="fixed bottom-20 right-4 z-40 max-w-[260px] animate-in slide-in-from-bottom-5 duration-700 ease-out">
+        <div className="fixed bottom-40 right-4 z-40 max-w-[260px] animate-in slide-in-from-bottom-5 duration-700 ease-out">
           <div className="relative bg-neutral-800 border border-neutral-700 rounded-lg p-3 shadow-xl">
             <button
               onClick={closeHelpPopup}
@@ -132,7 +132,7 @@ const Page = () => {
       </div>
 
       <div
-        className="fixed bottom-4 right-4 z-50 hidden md:flex flex-col items-end group"
+        className="fixed bottom-37 md:bottom-24 right-6 z-50 flex flex-col items-end group"
         onMouseEnter={() => setShowTooltip(true)}
         onMouseLeave={() => setShowTooltip(false)}
       >

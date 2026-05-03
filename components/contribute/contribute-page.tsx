@@ -97,7 +97,7 @@ export default function ContributePage() {
   }
 
   return (
-    <div className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden bg-[#030303] text-white w-screen">
+    <div className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden bg-[#030303] text-white w-full">
       {/* Background geometric shapes with adjusted gradients for black theme */}
       <div className="absolute inset-0 bg-gradient-to-br from-gray-900/[0.05] via-transparent to-gray-800/[0.05] blur-3xl" />
       <div className="absolute inset-0 overflow-hidden ">

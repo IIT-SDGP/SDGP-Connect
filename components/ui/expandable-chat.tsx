@@ -35,24 +35,38 @@ const chatConfig = {
   },
 };
 
+export interface ChatRef {
+  toggle: () => void;
+  open: () => void;
+  close: () => void;
+}
+
 interface ExpandableChatProps extends React.HTMLAttributes<HTMLDivElement> {
   position?: ChatPosition;
   size?: ChatSize;
   icon?: React.ReactNode;
+  hideToggle?: boolean;
 }
 
-const ExpandableChat: React.FC<ExpandableChatProps> = ({
+const ExpandableChat = React.forwardRef<ChatRef, ExpandableChatProps>(({
   className,
   position = "bottom-right",
   size = "md",
   icon,
+  hideToggle = false,
   children,
   ...props
-}) => {
+}, ref) => {
   const [isOpen, setIsOpen] = useState(false);
   const chatRef = useRef<HTMLDivElement>(null);
 
   const toggleChat = () => setIsOpen(!isOpen);
+
+  React.useImperativeHandle(ref, () => ({
+    toggle: toggleChat,
+    open: () => setIsOpen(true),
+    close: () => setIsOpen(false),
+  }));
 
   return (
     <div
@@ -85,17 +99,19 @@ const ExpandableChat: React.FC<ExpandableChatProps> = ({
           <X className="h-4 w-4" aria-hidden="true" />
         </Button>
       </div>
-      <ExpandableChatToggle
-        icon={icon}
-        isOpen={isOpen}
-        toggleChat={toggleChat}
-        aria-label={isOpen ? "Close chat" : "Open chat"}
-        aria-expanded={isOpen}
-        aria-controls="expandable-chat-window"
-      />
+      {!hideToggle && (
+        <ExpandableChatToggle
+          icon={icon}
+          isOpen={isOpen}
+          toggleChat={toggleChat}
+          aria-label={isOpen ? "Close chat" : "Open chat"}
+          aria-expanded={isOpen}
+          aria-controls="expandable-chat-window"
+        />
+      )}
     </div>
   );
-};
+});
 
 ExpandableChat.displayName = "ExpandableChat";
 
