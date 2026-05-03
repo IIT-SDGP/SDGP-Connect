@@ -17,7 +17,6 @@ const useUploadImageToBlob = () => {
     const response = await axios.post('/api/upload', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
-        "x-upload-key": process.env.NEXT_PUBLIC_UPLOAD_API_KEY,
       },
       onUploadProgress: (event) => {
         if (onProgress && event.total) {

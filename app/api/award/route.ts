@@ -5,11 +5,16 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/prisma/prismaClient';
+import { requireRole, STUDENT_ROLES } from '@/lib/auth/permissions';
 
 export const runtime = 'nodejs';
 
 export async function POST(req: NextRequest) {
   try {
+    const auth = await requireRole(STUDENT_ROLES);
+    if (auth.error) return auth.error;
+    const userId = auth.session?.user.id;
+
     const body = await req.json();
     const { name, image, competition_id, project_id } = body;
 
@@ -23,6 +28,21 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         { error: 'All fields (name, image, competition_id, project_id) are required and must be non-empty strings.' },
         { status: 400 }
+      );
+    }
+
+    const ownedProject = await prisma.projectMetadata.findFirst({
+      where: {
+        project_id,
+        owner_userId: userId,
+      },
+      select: { project_id: true },
+    });
+
+    if (!ownedProject) {
+      return NextResponse.json(
+        { error: 'Project not found' },
+        { status: 404 }
       );
     }
 

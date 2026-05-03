@@ -3,9 +3,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/prisma/prismaClient";
 import { ProjectApprovalStatus } from "@prisma/client";
+import { ADMIN_READ_ROLES, requireRole } from "@/lib/auth/permissions";
 
 export async function GET() {
   try {
+    const auth = await requireRole(ADMIN_READ_ROLES);
+    if (auth.error) return auth.error;
+
     // Combine data from multiple sources for activities
     // 1. Get approved/rejected projects
     const statusActivities = await prisma.projectStatus.findMany({

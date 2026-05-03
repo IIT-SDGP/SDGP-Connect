@@ -1,11 +1,20 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/prisma/prismaClient';
 import { authorCheckSchema } from '@/validations/blog';
+import { requireRole, STUDENT_ROLES } from '@/lib/auth/permissions';
 
 export async function POST(request: Request) {
   try {
+    const auth = await requireRole(STUDENT_ROLES);
+    if (auth.error) return auth.error;
+
     const body = await request.json();
     const { email } = authorCheckSchema.parse(body);
+    const sessionEmail = auth.session?.user.email;
+
+    if (!sessionEmail || email !== sessionEmail) {
+      return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
+    }
 
     const author = await prisma.blogAuthor.findUnique({
       where: { email },
