@@ -239,7 +239,7 @@ const Page = () => {
               <p className="text-gray-300 text-md mb-4 leading-relaxed">
                 Share your innovation, research, or development work. Projects of all scopes are welcome.
               </p>
-              <Link href="/submit/project">
+              <Link href="/dashboard/submit/project">
                 <ShimmerButton>Submit Project</ShimmerButton>
               </Link>
             </div>
@@ -254,7 +254,7 @@ const Page = () => {
               <p className="text-gray-300 text-md mb-4 leading-relaxed">
                 Participated in a hackathon or tech challenge? Let your competitive spirit shine.
               </p>
-              <Link href="/submit/competition">
+              <Link href="/dashboard/submit/competition">
                 <ShimmerButton>Submit Competition</ShimmerButton>
               </Link>
             </div>
@@ -269,7 +269,7 @@ const Page = () => {
               <p className="text-gray-300 text-md mb-4 leading-relaxed">
                 Been recognized for your achievements? Add your award to our showcase.
               </p>
-              <Link href="/submit/award">
+              <Link href="/dashboard/submit/award">
                 <ShimmerButton>Submit Award</ShimmerButton>
               </Link>
             </div>

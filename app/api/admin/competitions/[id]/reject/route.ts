@@ -15,7 +15,7 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
     return NextResponse.json({ error: "Rejection reason required" }, { status: 400 });
   }  try {
     // Validate that the user exists in the database before updating
-    const user = await prisma.user.findUnique({ where: { user_id: session.user.id } });
+    const user = await prisma.user.findUnique({ where: { id: session.user.id } });
     if (!user) {
       return NextResponse.json({ error: "Session user not found in database" }, { status: 400 });
     }

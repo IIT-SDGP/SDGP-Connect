@@ -6,7 +6,6 @@
 
 import { useLanguage } from "@/hooks/LanguageProvider";
 import { InfiniteSlider } from '@/components/ui/infinite-slider'
-import { ProgressiveBlur } from '@/components/ui/progressive-blur'
 import { Sparkles } from "@/components/ui/sparkles"
 
 
@@ -87,6 +86,32 @@ function getNested(obj: any, path: string[], fallback: any = undefined) {
   return path.reduce((acc, key) => (acc && acc[key] !== undefined ? acc[key] : fallback), obj);
 }
 
+export function BrandsCarousel({ className = "" }: { className?: string }) {
+  const repeatedLogos = [...logos, ...logos];
+
+  return (
+    <div className={`relative h-[100px] w-full ${className}`}>
+      <InfiniteSlider
+        className="flex h-full w-full items-center"
+        duration={36}
+        gap={48}
+      >
+        {repeatedLogos.map(({ id, component: Logo }, index) => (
+          <div
+            key={`${id}-${index}`}
+            className="flex justify-center items-center w-[96px] h-[64px] shrink-0"
+          >
+            <Logo />
+          </div>
+        ))}
+      </InfiniteSlider>
+
+      <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-24 sm:w-36 bg-gradient-to-r from-black via-black/80 to-transparent" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-24 sm:w-36 bg-gradient-to-l from-black via-black/80 to-transparent" />
+    </div>
+  );
+}
+
 export function Brands() {
   const { t } = useLanguage();
   const brand = getNested(t, ['home', 'brand'], {});
@@ -99,34 +124,7 @@ export function Brands() {
            <span className="text-primary">{brand.word2 || "Into brands"}</span>
         </h2>
 
-        <div className="relative mt-7 h-[100px] w-full">
-          <InfiniteSlider
-            className="flex h-full w-full items-center"
-            duration={30}
-            gap={48}
-          >
-            {logos.map(({ id, component: Logo }) => (
-              <div
-                key={id}
-                className="flex justify-center items-center w-[96px] h-[64px] shrink-0"
-              >
-                <Logo />
-              </div>
-            ))}
-
-          </InfiniteSlider>
-
-          <ProgressiveBlur
-            className='pointer-events-none absolute top-0 left-0 h-full w-[200px]'
-            direction='left'
-            blurIntensity={1}
-          />
-          <ProgressiveBlur
-            className='pointer-events-none absolute top-0 right-0 h-full w-[200px]'
-            direction='right'
-            blurIntensity={1}
-          />
-        </div>
+        <BrandsCarousel className="mt-7" />
       </div>
 
       <div className="relative -mt-32 h-96 w-full overflow-hidden [mask-image:radial-gradient(50%_50%,white,transparent)]">

@@ -41,7 +41,7 @@ export async function GET(
           include: {
             approved_by: {
               select: {
-                user_id: true,
+                id: true,
                 name: true,
               },
             },

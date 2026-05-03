@@ -1,7 +1,11 @@
 import { prisma } from "@/prisma/prismaClient";
 import { NextRequest, NextResponse } from "next/server";
+import { ADMIN_READ_ROLES, requireRole } from "@/lib/auth/permissions";
 
 export async function GET(req: NextRequest, context: { params: Promise<{ id: string }> }) {
+  const auth = await requireRole(ADMIN_READ_ROLES);
+  if (auth.error) return auth.error;
+
   const { id } = await context.params;
   if (!id) {
     return NextResponse.json({ error: "Award id is required" }, { status: 400 });

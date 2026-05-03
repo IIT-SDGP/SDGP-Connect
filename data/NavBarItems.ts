@@ -10,5 +10,5 @@ export const sidebarItems = [
     { icon: Trophy, href: '/competitions', label: 'Competition Winners' },
     { icon: Info, href: '/about', label: 'About Us' },
     { icon: Contact, href: '/contact', label: 'Contact Us' },
-    { icon: Upload, href: '/submit', label: 'Submit Details' },
+    { icon: Upload, href: '/dashboard/submit', label: 'Submit Details' },
   ];

@@ -1,11 +1,20 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/prisma/prismaClient';
 import { blogSubmissionSchema } from '@/validations/blog';
+import { requireRole, STUDENT_ROLES } from '@/lib/auth/permissions';
 
 export async function POST(request: Request) {
   try {
+    const auth = await requireRole(STUDENT_ROLES);
+    if (auth.error) return auth.error;
+
     const body = await request.json();
     const validatedData = blogSubmissionSchema.parse(body);
+    const sessionEmail = auth.session?.user.email;
+
+    if (!sessionEmail || validatedData.author.email !== sessionEmail) {
+      return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
+    }
 
     // Start a transaction to ensure both author and blog post are created/updated together
     const result = await prisma.$transaction(async (tx) => {

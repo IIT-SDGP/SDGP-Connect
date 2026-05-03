@@ -3,6 +3,7 @@
 // with an additional restriction: Non-commercial use only.
 // See <https://www.gnu.org/licenses/agpl-3.0.html> for details.
 import { systemPrompt } from '@/components/ai/SystemPrompt';
+import { ADMIN_READ_ROLES, requireRole, STUDENT_ROLES } from '@/lib/auth/permissions';
 import { NextRequest, NextResponse } from 'next/server';
 
 const apiKey = process.env.GROQ_API_KEY ;
@@ -11,17 +12,13 @@ const model = process.env.GROQ_MODEL || 'deepseek-r1-distill-llama-70b';
 
 
 export async function POST(req: NextRequest) {
+  const auth = await requireRole([...STUDENT_ROLES, ...ADMIN_READ_ROLES]);
+  if (auth.error) return auth.error;
+
   const { messages } = await req.json();
   if (!apiKey) {
     return NextResponse.json({ error: 'GROQ_API_KEY not set' }, { status: 500 });
   }
-
-  const clientKey = req.headers.get("x-api-key");
-  const expectedKey = process.env.NEXT_PUBLIC_AI_API_KEY;
-
-if (!clientKey || clientKey !== expectedKey) {
-  return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-}
 
  // Filter out any user-injected "system" role messages
   const filteredMessages = Array.isArray(messages)

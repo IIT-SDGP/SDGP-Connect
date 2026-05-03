@@ -25,6 +25,7 @@ interface FormStep1Props {
   setCoverFile: Dispatch<SetStateAction<File | null>>;
   coverPreviewUrl: string | null;
   setCoverPreviewUrl: Dispatch<SetStateAction<string | null>>;
+  lockYearAndGroup?: boolean;
 }
 
 const FormStep1 = ({
@@ -36,6 +37,7 @@ const FormStep1 = ({
   setCoverFile,
   coverPreviewUrl,
   setCoverPreviewUrl,
+  lockYearAndGroup = false,
 }: FormStep1Props) => {
   const { control, setValue } = useFormContext<ProjectSubmissionSchema>();
   const [coverError, setCoverError] = useState<string | null>(null);
@@ -108,7 +110,7 @@ const FormStep1 = ({
             <FormItem>
               <FormLabel>Group Number</FormLabel>
               <FormControl>
-                <Input placeholder="Eg: CS-27" {...field} />
+                <Input placeholder="Eg: CS-27" {...field} disabled={lockYearAndGroup} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -123,7 +125,7 @@ const FormStep1 = ({
               <FormLabel>SDGP Year<span className="text-red-500">*</span></FormLabel>
               <FormControl>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <SelectTrigger>
+                  <SelectTrigger disabled={lockYearAndGroup}>
                     <SelectValue placeholder="Select Year" />
                   </SelectTrigger>
                   <SelectContent>
@@ -211,7 +213,7 @@ const FormStep1 = ({
               </FormLabel>
               <div className="space-y-4">
                 <AnimatePresence>
-                  {logoFile ? (
+                  {logoPreviewUrl ? (
                     <motion.div
                       initial={{ opacity: 0, scale: 0.9 }}
                       animate={{ opacity: 1, scale: 1 }}
@@ -268,7 +270,7 @@ const FormStep1 = ({
               </FormLabel>
               <div className="space-y-4">
                 <AnimatePresence>
-                  {coverFile ? (
+                  {coverPreviewUrl ? (
                     <motion.div
                       initial={{ opacity: 0, scale: 0.9 }}
                       animate={{ opacity: 1, scale: 1 }}

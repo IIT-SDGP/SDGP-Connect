@@ -47,7 +47,7 @@ const CookieBanner = () => {
   const setCookieConsent = (choice: "accepted" | "rejected"): void => {
     try {
       const now = new Date().getTime();
-      const expiry = now + 30 * 24 * 60 * 60 * 1000; 
+      const expiry = now + 30 * 24 * 60 * 60 * 1000;
       const consentData: CookieConsentData = {
         choice: choice,
         timestamp: now,
@@ -78,11 +78,10 @@ const CookieBanner = () => {
 
   return (
     <div
-      className={`fixed bottom-4 left-4 right-4 md:bottom-6 md:left-1/2 md:right-auto md:transform md:-translate-x-1/2 md:max-w-4xl lg:max-w-5xl xl:max-w-6xl z-50 transition-all duration-300 ease-out ${
-        isVisible
-          ? "translate-y-0 opacity-100 scale-100"
-          : "translate-y-4 opacity-0 scale-95"
-      }`}
+      className={`fixed bottom-4 left-4 right-4 md:bottom-6 md:left-1/2 md:right-auto md:transform md:-translate-x-1/2 md:max-w-4xl lg:max-w-5xl xl:max-w-6xl z-50 transition-all duration-300 ease-out ${isVisible
+        ? "translate-y-0 opacity-100 scale-100"
+        : "translate-y-4 opacity-0 scale-95"
+        }`}
     >
       <div className="bg-black/90 backdrop-blur-md rounded-xl shadow-2xl border border-gray-800/50 px-4 py-3 md:py-4 min-h-[60px] md:min-h-[70px]">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 h-full">
@@ -131,7 +130,7 @@ const CookieBanner = () => {
 
             <button
               onClick={handleAccept}
-              className="bg-blue-600 bg-secondary text-secondary-foreground hover:bg-secondary/80 text-white text-xs sm:text-sm md:text-base font-medium px-4 sm:px-5 py-2 rounded-md transition-all duration-200 transform hover:scale-105 active:scale-95"
+              className="bg-blue-600 hover:bg-blue-500 text-white text-xs sm:text-sm md:text-base font-medium px-4 sm:px-5 py-2 rounded-md transition-all duration-200 transform hover:scale-105 active:scale-95"
             >
               Accept
             </button>

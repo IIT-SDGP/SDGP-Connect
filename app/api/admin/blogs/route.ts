@@ -69,13 +69,13 @@ export const GET = async (req: NextRequest) => {
         include: {
           author: true,          approvedBy: {
             select: {
-              user_id: true,
+              id: true,
               name: true,
             },
           },
           rejectedBy: {
             select: {
-              user_id: true,
+              id: true,
               name: true,
             },
           },

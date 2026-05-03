@@ -4,7 +4,7 @@
 // See <https://www.gnu.org/licenses/agpl-3.0.html> for details.
 
 import { PrismaClient } from '@prisma/client'
-import bcrypt from 'bcrypt'
+import bcrypt from 'bcryptjs'
 
 const prisma = new PrismaClient()
 
@@ -39,6 +39,7 @@ async function seedUsers() {
             role: 'ADMIN', 
             password: hashedPassword,
             name: 'Admin',
+            email: 'admin@sdgp.lk',
         },
     });
 

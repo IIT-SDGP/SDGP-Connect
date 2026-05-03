@@ -3,8 +3,9 @@
 // with an additional restriction: Non-commercial use only.
 // See <https://www.gnu.org/licenses/agpl-3.0.html> for details.
 
-// types/next-auth.d.ts
-import NextAuth from "next-auth";
+import { Role } from "@/types/prisma-types";
+import "next-auth";
+import "next-auth/jwt";
 
 declare module "next-auth" {
   interface Session {
@@ -12,11 +13,20 @@ declare module "next-auth" {
       id: string;
       name?: string | null;
       email?: string | null;
-      role: string;
+      image?: string | null;
+      role: Role;
     };
   }
+
+  interface User {
+    id: string;
+    role: Role;
+  }
+}
+
+declare module "next-auth/jwt" {
   interface JWT {
-    id?: string;
-    role?: string;
+    id: string;
+    role: Role;
   }
 }

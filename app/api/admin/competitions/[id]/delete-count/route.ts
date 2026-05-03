@@ -17,7 +17,7 @@ export async function GET(req: NextRequest, context: { params: Promise<{ id: str
 
   // Check user role in DB
   const user = await prisma.user.findUnique({
-    where: { user_id: session.user.id },
+    where: { id: session.user.id },
     select: { role: true },
   });
   if (!user || user.role !== Role.ADMIN) {

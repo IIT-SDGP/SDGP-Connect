@@ -5,9 +5,13 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/prisma/prismaClient";
+import { requireRole, STUDENT_ROLES } from "@/lib/auth/permissions";
 
 export async function POST(request: NextRequest) {
   try {
+    const auth = await requireRole(STUDENT_ROLES);
+    if (auth.error) return auth.error;
+
     const body = await request.json();
     const { name, type, description, start_date, end_date, logo, cover_image } = body;
 

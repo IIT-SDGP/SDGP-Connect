@@ -14,11 +14,9 @@ function useProjects(currentParams: ProjectQueryParams) {
   const [meta, setMeta] = useState<
     PaginatedResponse<ProjectCardType>["meta"] | null
   >(null);
-  const [hasMore, setHasMore] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
 
   const fetchProjects = useCallback(
-    async (page: number, shouldAppend: boolean = false) => {
+    async (page: number) => {
       setIsLoading(true);
       setError(null);
 
@@ -123,25 +121,9 @@ function useProjects(currentParams: ProjectQueryParams) {
           metaData = paginatedResult.meta;
         }
 
-        // For infinite scroll: append new projects instead of replacing them
-        // But for featured projects, we typically don't use infinite scroll
-        if (shouldAppend && !currentParams.featured) {
-          setProjects((prev) => [...prev, ...projectsData]);
-        } else {
-          setProjects(projectsData);
-        }
+        setProjects(projectsData);
 
         setMeta(metaData);
-
-        // Update hasMore based on pagination metadata
-        // Featured projects don't have pagination, so hasMore should be false
-        if (currentParams.featured) {
-          setHasMore(false);
-        } else {
-          setHasMore(page < metaData.totalPages);
-        }
-
-        setCurrentPage(page);
       } catch (err) {
         setError(
           err instanceof Error
@@ -149,9 +131,7 @@ function useProjects(currentParams: ProjectQueryParams) {
             : "An error occurred while fetching projects",
         );
         console.error("Error fetching projects:", err);
-        if (!shouldAppend) {
-          setProjects([]);
-        }
+        setProjects([]);
       } finally {
         setIsLoading(false);
       }
@@ -159,15 +139,12 @@ function useProjects(currentParams: ProjectQueryParams) {
     [currentParams],
   );
 
-  // Initial load of projects - reset everything
+  // Fetch whenever params change
   useEffect(() => {
-    const initialPage = currentParams.page || 1;
-    setProjects([]);
-    setCurrentPage(initialPage);
-    setHasMore(true);
-    fetchProjects(initialPage, false);
+    const page = currentParams.page || 1;
+    fetchProjects(page);
   }, [
-    currentParams.featured, // Add featured to dependency array
+    currentParams.featured,
     currentParams.page,
     currentParams.title,
     currentParams.limit,
@@ -177,24 +154,14 @@ function useProjects(currentParams: ProjectQueryParams) {
     currentParams.sdgGoals?.join(","),
     currentParams.techStack?.join(","),
     currentParams.years?.join(","),
-    fetchProjects,
+    // NOTE: fetchProjects intentionally excluded to prevent re-render loops
   ]);
-
-  // Function to load more projects (called when user scrolls to bottom)
-  const loadMore = useCallback(() => {
-    // Don't allow load more for featured projects
-    if (!isLoading && hasMore && !currentParams.featured) {
-      fetchProjects(currentPage + 1, true);
-    }
-  }, [isLoading, hasMore, currentPage, currentParams.featured, fetchProjects]);
 
   return {
     projects,
     isLoading,
     error,
     meta,
-    hasMore,
-    loadMore,
   };
 }
 

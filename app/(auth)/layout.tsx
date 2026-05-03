@@ -13,8 +13,8 @@ import { Toaster } from 'sonner';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Admin Dashboard',
-  description: 'Modern admin dashboard built with Next.js',
+  title: "SDGP Login",
+  description: "Welcome to SDGP.lk - Your Gateway to Student/Admin Data Management",
 };
 
 export default function RootLayout({
@@ -31,7 +31,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-         {children}
+          {children}
           <Toaster />
         </ThemeProvider>
       </body>

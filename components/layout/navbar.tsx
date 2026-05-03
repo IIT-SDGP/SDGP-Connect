@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Role } from '@/types/prisma-types';
 
 interface NavbarProps {
   onMenuClick: () => void;
@@ -25,6 +26,8 @@ export function Navbar({ onMenuClick }: NavbarProps) {
   const { data: session } = useSession();
 
   const userName = session?.user?.name ?? 'User';
+  const userRole = (session?.user as any)?.role as Role | undefined;
+  const dashboardTitle = userRole === Role.STUDENT ? 'Student Dashboard' : 'Admin Dashboard';
   const initials = userName
     .split(' ')
     .map((n) => n[0])
@@ -40,7 +43,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
         </Button>
 
         <div className="ml-4 flex items-center space-x-4">
-          <h1 className="text-xl font-bold text-primary">Admin Dashboard</h1>
+          <h1 className="text-xl font-bold text-primary">{dashboardTitle}</h1>
         </div>
 
         <div className="ml-auto flex items-center space-x-4">
