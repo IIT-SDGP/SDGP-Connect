@@ -26,9 +26,9 @@ export const footerItem = {
     {
       title: "Submit",
       links: [
-        { label: "Submit Project", href: "/submit/project" },
-        { label: "Submit Competition", href: "/submit/competition" },
-        { label: "Submit Award", href: "/submit/award" },
+        { label: "Submit Project", href: "/dashboard/submit/project" },
+        { label: "Submit Competition", href: "/dashboard/submit/competition" },
+        { label: "Submit Award", href: "/dashboard/submit/award" },
         { label: "Submit Blog", href: "/blog/create" },
       ],
     },

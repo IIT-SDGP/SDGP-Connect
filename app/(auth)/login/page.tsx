@@ -3,9 +3,13 @@
 // with an additional restriction: Non-commercial use only.
 // See <https://www.gnu.org/licenses/agpl-3.0.html> for details.
 
-
 import AuthForm from "@/components/AuthForm";
+import { Suspense } from "react";
 
 export default function LoginPage() {
-  return <AuthForm />;
+  return (
+    <Suspense fallback={null}>
+      <AuthForm />
+    </Suspense>
+  );
 }

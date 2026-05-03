@@ -22,7 +22,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   const session = await getServerSession(authOptions);
-  if (!session) redirect("/login");
+  if (!session) redirect("/login?callbackUrl=/dashboard");
 
   const userRole = (session.user as any)?.role as Role | undefined;
   if (userRole !== Role.STUDENT) redirect("/admin");
@@ -37,4 +37,3 @@ export default async function RootLayout({
     </html>
   );
 }
-

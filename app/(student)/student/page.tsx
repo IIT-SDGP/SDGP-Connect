@@ -22,7 +22,7 @@ const actionCards = [
     description:
       'Share your innovation, research, or development work. Projects of all scopes are welcome.',
     buttonLabel: 'Submit Project',
-    href: '/submit/project',
+    href: '/dashboard/submit/project',
   },
   {
     icon: <Trophy className='h-8 w-8' />,
@@ -30,7 +30,7 @@ const actionCards = [
     description:
       'Participated in a hackathon or tech challenge? Let your competitive spirit shine.',
     buttonLabel: 'Submit Competition',
-    href: '/submit/competition',
+    href: '/dashboard/submit/competition',
   },
   {
     icon: <Award className='h-8 w-8' />,
@@ -38,7 +38,7 @@ const actionCards = [
     description:
       'Been recognized for your achievements? Add your award to our showcase.',
     buttonLabel: 'Submit Award',
-    href: '/submit/award',
+    href: '/dashboard/submit/award',
   },
   {
     icon: <BookOpen className='h-8 w-8' />,
@@ -46,7 +46,7 @@ const actionCards = [
     description:
       'Create new blog posts, edit rejected drafts, and keep an eye on moderation status.',
     buttonLabel: 'Open Blogs',
-    href: '/student/blogs',
+    href: '/dashboard/blogs',
   },
   {
     icon: <Award className='h-8 w-8' />,
@@ -54,7 +54,7 @@ const actionCards = [
     description:
       'Review your award submissions, fix rejected entries, and resubmit them from one place.',
     buttonLabel: 'Open Awards',
-    href: '/student/awards',
+    href: '/dashboard/awards',
   },
 ]
 

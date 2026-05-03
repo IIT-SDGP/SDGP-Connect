@@ -29,7 +29,7 @@ export default async function RootLayout({
   if (!session) redirect("/login");
 
   const userRole = (session.user as any)?.role as Role | undefined;
-  if (userRole === Role.STUDENT) redirect("/student");
+  if (userRole === Role.STUDENT) redirect("/dashboard");
 
   return (
     <html lang="en" suppressHydrationWarning>

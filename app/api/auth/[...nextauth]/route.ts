@@ -14,6 +14,54 @@ interface AppUser extends NextAuthUser {
   role: Role;
 }
 
+const normalizeRole = (value: unknown): Role | null => {
+  if (typeof value !== "string") return null;
+
+  const role = value.trim().toUpperCase();
+  if (role.includes("ADMIN")) return Role.ADMIN;
+  if (role.includes("MODERATOR")) return Role.MODERATOR;
+  if (role.includes("DEVELOPER")) return Role.DEVELOPER;
+  if (role.includes("STUDENT")) return Role.STUDENT;
+
+  return null;
+};
+
+const valuesFromClaim = (value: unknown): unknown[] => {
+  if (Array.isArray(value)) return value;
+  if (typeof value === "string") return value.split(/[,\s]+/).filter(Boolean);
+  return [];
+};
+
+const getRoleFromAsgardeoProfile = (profile: Record<string, unknown>): Role | null => {
+  const roleClaims = [
+    profile.role,
+    profile.roles,
+    profile.groups,
+    profile["http://wso2.org/claims/role"],
+    profile["http://wso2.org/claims/roles"],
+    profile["http://wso2.org/claims/groups"],
+  ];
+
+  for (const claim of roleClaims.flatMap(valuesFromClaim)) {
+    const role = normalizeRole(claim);
+    if (role) return role;
+  }
+
+  return null;
+};
+
+const getRequiredEnv = (key: string) => {
+  const value = process.env[key]?.trim().replace(/^['"]|['"]$/g, "");
+
+  if (!value) {
+    throw new Error(`Missing required environment variable: ${key}`);
+  }
+
+  return value;
+};
+
+const asgardeoIssuer = getRequiredEnv("ASGARDEO_ISSUER_URL").replace(/\/+$/, "");
+
 export const authOptions: AuthOptions = {
   adapter: PrismaAdapter(prisma),
   pages: {
@@ -26,10 +74,10 @@ export const authOptions: AuthOptions = {
       id: "asgardeo",
       name: "Asgardeo",
       type: "oauth",
-      clientId: process.env.ASGARDEO_CLIENT_ID!,
-      clientSecret: process.env.ASGARDEO_CLIENT_SECRET!,
-      issuer: process.env.ASGARDEO_ISSUER_URL!,
-      wellKnown: `${process.env.ASGARDEO_ISSUER_URL}/.well-known/openid-configuration`,
+      clientId: getRequiredEnv("ASGARDEO_CLIENT_ID"),
+      clientSecret: getRequiredEnv("ASGARDEO_CLIENT_SECRET"),
+      issuer: asgardeoIssuer,
+      wellKnown: `${asgardeoIssuer}/.well-known/openid-configuration`,
       authorization: {
         params: {
           scope: "openid email profile",
@@ -43,13 +91,14 @@ export const authOptions: AuthOptions = {
         const givenName = profile.given_name ?? "";
         const familyName = profile.family_name ?? "";
         const name = `${givenName} ${familyName}`.trim();
+        const role = getRoleFromAsgardeoProfile(profile as Record<string, unknown>);
 
         return {
           id: profile.sub,
           name,
           email: profile.email,
           image: profile.picture ?? null,
-          role: Role.STUDENT,
+          role: role ?? Role.STUDENT,
         };
       },
     },
@@ -96,15 +145,30 @@ export const authOptions: AuthOptions = {
   ],
 
   callbacks: {
-    async jwt({ token, user, account }) {
+    async jwt({ token, user, account, profile }) {
       if (account && user) {
-        const dbUser = await prisma.user.findUnique({
-          where: { email: token.email! },
-          select: { role: true },
-        });
+        const email = token.email ?? user.email;
+        if (!email) return token;
 
-        token.id = user.id;
-        token.role = (dbUser?.role as Role) ?? Role.STUDENT;
+        const asgardeoRole =
+          account.provider === "asgardeo" && profile
+            ? getRoleFromAsgardeoProfile(profile as Record<string, unknown>)
+            : null;
+        const dbUser = await prisma.user.findUnique({
+          where: { email },
+          select: { id: true, role: true },
+        });
+        const role = asgardeoRole ?? (dbUser?.role as Role | undefined) ?? (user as AppUser).role ?? Role.STUDENT;
+
+        if (asgardeoRole && dbUser && dbUser.role !== asgardeoRole) {
+          await prisma.user.update({
+            where: { id: dbUser.id },
+            data: { role: asgardeoRole },
+          });
+        }
+
+        token.id = dbUser?.id ?? user.id;
+        token.role = role;
       }
       return token;
     },

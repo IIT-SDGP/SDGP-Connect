@@ -33,7 +33,7 @@ export default async function StudentAwardsPage() {
           </p>
         </div>
         <Button asChild>
-          <Link href='/student/awards/new'>New Award</Link>
+          <Link href='/dashboard/awards/new'>New Award</Link>
         </Button>
       </div>
 

@@ -32,7 +32,7 @@ export default async function StudentProjectsPage() {
       <div>
         <h1 className='text-3xl font-bold'>My Projects</h1>
         <p className='text-muted-foreground'>
-          Submit edits for projects that are approved by an admin.
+          Fix rejected projects or submit moderated edits for approved projects.
         </p>
       </div>
 

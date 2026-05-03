@@ -52,7 +52,7 @@ function BlogRowActions({
       ) : null}
       {isEditable ? (
         <Button size='sm' variant='outline' asChild>
-          <Link href={`/student/blogs/${blog.id}/edit`}>Edit</Link>
+          <Link href={`/dashboard/blogs/${blog.id}/edit`}>Edit</Link>
         </Button>
       ) : (
         <Button size='sm' variant='outline' disabled>Edit</Button>

@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 
 interface AddUserData {
   name: string;
+  email: string;
   password: string;
   role: 'ADMIN' | 'MODERATOR' | 'DEVELOPER';
 }

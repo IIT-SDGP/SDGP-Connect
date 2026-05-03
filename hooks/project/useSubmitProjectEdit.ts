@@ -6,6 +6,9 @@ import { getModuleFromYear } from "@/lib/utils/module";
 import type { SubmitProjectResponse } from "@/types/project/response";
 
 type SubmitProjectEditResponse = SubmitProjectResponse & {
+  editId?: string;
+  mode?: "RESUBMITTED_REJECTED_PROJECT";
+  projectId?: string;
   data?: {
     editId?: string;
   };

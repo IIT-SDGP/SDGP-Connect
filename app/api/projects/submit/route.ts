@@ -222,6 +222,14 @@ export async function POST(request: Request) {
         }
       });
 
+      await tx.projectActivity.create({
+        data: {
+          project_id: projectMetadata.project_id,
+          actor_userId: userId,
+          type: "PROJECT_SUBMITTED",
+        },
+      });
+
       // Domain associations
       const createDomainAssociations = validatedData.domains.map(domain => {
         return tx.projectAssociation.create({

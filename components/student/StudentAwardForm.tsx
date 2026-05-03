@@ -98,7 +98,7 @@ export default function StudentAwardForm({ awardId }: StudentAwardFormProps) {
 
           if (award.approval_status === ApprovalStatus.APPROVED) {
             toast.info('Approved awards cannot be edited.');
-            router.replace('/student/awards');
+            router.replace('/dashboard/awards');
             return;
           }
 
@@ -249,7 +249,7 @@ export default function StudentAwardForm({ awardId }: StudentAwardFormProps) {
       }
 
       toast.success(awardId ? 'Award updated' : 'Award created');
-      router.push('/student/awards');
+      router.push('/dashboard/awards');
       router.refresh();
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'Failed to save award');
@@ -276,7 +276,7 @@ export default function StudentAwardForm({ awardId }: StudentAwardFormProps) {
           <AlertDescription>{loadErrorMessage}</AlertDescription>
         </Alert>
         <Button variant='outline' asChild>
-          <Link href='/student/awards'>Back to awards</Link>
+          <Link href='/dashboard/awards'>Back to awards</Link>
         </Button>
       </div>
     );
@@ -414,7 +414,7 @@ export default function StudentAwardForm({ awardId }: StudentAwardFormProps) {
             {isSaving ? 'Saving...' : awardId ? 'Save Changes' : 'Create Award'}
           </Button>
           <Button variant='outline' asChild>
-            <Link href='/student/awards'>Cancel</Link>
+            <Link href='/dashboard/awards'>Cancel</Link>
           </Button>
         </div>
       </div>

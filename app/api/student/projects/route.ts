@@ -67,6 +67,7 @@ export async function GET(request: Request) {
       groupNum: p.group_num,
       year: p.sdgp_year,
       approvalStatus: p.projectContent?.status?.approved_status ?? null,
+      rejectedReason: p.projectContent?.status?.rejected_reason ?? null,
       pendingEdit: pendingSet.has(p.project_id),
     }));
 

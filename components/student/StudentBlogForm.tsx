@@ -115,7 +115,7 @@ export default function StudentBlogForm({ blogId }: StudentBlogFormProps) {
 
           if (blog.approved) {
             toast.info('Approved posts cannot be edited.');
-            router.replace('/student/blogs');
+            router.replace('/dashboard/blogs');
             return;
           }
 
@@ -231,7 +231,7 @@ export default function StudentBlogForm({ blogId }: StudentBlogFormProps) {
       if (!response.ok) throw new Error(result?.error ?? 'Failed to save blog post');
 
       toast.success(blogId ? 'Blog post updated' : 'Blog post created');
-      router.push('/student/blogs');
+      router.push('/dashboard/blogs');
       router.refresh();
     } catch (error: unknown) {
       setErrorMessage(error instanceof Error ? error.message : 'Failed to save blog post');
@@ -267,7 +267,7 @@ export default function StudentBlogForm({ blogId }: StudentBlogFormProps) {
           <AlertDescription>{loadErrorMessage}</AlertDescription>
         </Alert>
         <Button variant='outline' asChild>
-          <Link href='/student/blogs'>Back to blog posts</Link>
+          <Link href='/dashboard/blogs'>Back to blog posts</Link>
         </Button>
       </div>
     );
@@ -310,7 +310,7 @@ export default function StudentBlogForm({ blogId }: StudentBlogFormProps) {
               {isSaving ? 'Saving...' : blogId ? 'Save Changes' : 'Create Blog Post'}
             </Button>
             <Button variant='outline' asChild>
-              <Link href='/student/blogs'>Cancel</Link>
+              <Link href='/dashboard/blogs'>Cancel</Link>
             </Button>
           </div>
         </div>

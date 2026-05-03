@@ -33,7 +33,7 @@ export default async function StudentBlogsPage() {
           </p>
         </div>
         <Button asChild>
-          <Link href='/student/blogs/new'>New Blog</Link>
+          <Link href='/dashboard/blogs/new'>New Blog</Link>
         </Button>
       </div>
 

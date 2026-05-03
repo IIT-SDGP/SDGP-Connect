@@ -149,7 +149,7 @@ export default function StudentAwardsClient() {
                       </Button>
                       {isEditable ? (
                         <Button size='sm' variant='outline' asChild>
-                          <Link href={`/student/awards/${award.id}/edit`}>Edit</Link>
+                          <Link href={`/dashboard/awards/${award.id}/edit`}>Edit</Link>
                         </Button>
                       ) : (
                         <Button size='sm' variant='outline' disabled>

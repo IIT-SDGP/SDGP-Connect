@@ -24,7 +24,7 @@ interface StudentDashboardClientProps {
 
 export default function StudentDashboardClient({ actionCards }: StudentDashboardClientProps) {
     const { data: session } = useSession()
-    const { activities, isLoading, error } = useGetActivity()
+    const { activities, isLoading, error } = useGetActivity('/api/student/dashboard/activity')
 
     const [greeting, setGreeting] = useState(() => getTimeGreeting(new Date()))
 

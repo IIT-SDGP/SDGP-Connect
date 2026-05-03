@@ -6,7 +6,6 @@ import { StudentSidebar } from './student-sidebar';
 import { cn } from '@/lib/utils';
 import useIsMobile from '@/hooks/useIsMobile';
 import { Laptop } from 'lucide-react';
-import Footer from '../Footer';
 
 export function StudentDashboardLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -38,7 +37,6 @@ export function StudentDashboardLayout({ children }: { children: React.ReactNode
             </p>
           </div>
         </div>
-        <Footer />
       </div>
     );
   }
@@ -57,8 +55,6 @@ export function StudentDashboardLayout({ children }: { children: React.ReactNode
           {children}
         </main>
       </div>
-      <Footer />
     </div>
   );
 }
-

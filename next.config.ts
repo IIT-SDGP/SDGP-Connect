@@ -58,6 +58,30 @@ const nextConfig: NextConfig = {
     AZURE_STORAGE_ACCOUNT_KEY: process.env.AZURE_STORAGE_ACCOUNT_KEY,
     AZURE_STORAGE_CONTAINER_NAME: process.env.AZURE_STORAGE_CONTAINER_NAME,
   },
+  async redirects() {
+    return [
+      {
+        source: '/student',
+        destination: '/dashboard',
+        permanent: false,
+      },
+      {
+        source: '/student/:path*',
+        destination: '/dashboard/:path*',
+        permanent: false,
+      },
+      {
+        source: '/submit',
+        destination: '/dashboard/submit',
+        permanent: false,
+      },
+      {
+        source: '/submit/:path*',
+        destination: '/dashboard/submit/:path*',
+        permanent: false,
+      },
+    ];
+  },
   async headers() {
     return [
       {

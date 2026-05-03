@@ -37,6 +37,11 @@ const RecentActivityTable: React.FC<RecentActivityTableProps> = ({ activities, i
       case 'Rejected': return 'bg-red-500/20 text-red-500 border-red-500/20';
       case 'Featured': return 'bg-blue-500/20 text-blue-500 border-blue-500/20';
       case 'Submitted': return 'bg-amber-500/20 text-amber-500 border-amber-500/20';
+      case 'Resubmitted': return 'bg-purple-500/20 text-purple-500 border-purple-500/20';
+      case 'Edit Submitted': return 'bg-cyan-500/20 text-cyan-500 border-cyan-500/20';
+      case 'Edit Updated': return 'bg-cyan-500/20 text-cyan-500 border-cyan-500/20';
+      case 'Edit Approved': return 'bg-emerald-500/20 text-emerald-500 border-emerald-500/20';
+      case 'Edit Rejected': return 'bg-rose-500/20 text-rose-500 border-rose-500/20';
       default: return 'bg-gray-500/20 text-gray-500 border-gray-500/20';
     }
   };
@@ -104,7 +109,14 @@ const RecentActivityTable: React.FC<RecentActivityTableProps> = ({ activities, i
                       index % 2 === 0 ? 'bg-transparent' : 'bg-white/[0.02]'
                     )}
                   >
-                    <TableCell className="font-medium">{activity.projectTitle}</TableCell>
+                    <TableCell className="font-medium">
+                      <div>{activity.projectTitle}</div>
+                      {activity.note ? (
+                        <div className="mt-1 text-xs font-normal text-muted-foreground">
+                          {activity.note}
+                        </div>
+                      ) : null}
+                    </TableCell>
                     <TableCell>{activity.groupNumber}</TableCell>
                     <TableCell>{formatDate(activity.lastUpdated)}</TableCell>
                     <TableCell>

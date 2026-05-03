@@ -20,7 +20,7 @@ const Page = () => {
   // Redirect unauthenticated users to login, returning here after
   useEffect(() => {
     if (status === 'unauthenticated') {
-      signIn(undefined, { callbackUrl: '/submit/project' })
+      signIn(undefined, { callbackUrl: '/dashboard/submit/project' })
     }
   }, [status])
 

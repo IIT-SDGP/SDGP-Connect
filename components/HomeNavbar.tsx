@@ -9,7 +9,7 @@ import { sidebarItems } from '@/data/NavBarItems'
 export default function Navbar() {
   const router = useRouter()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const navItems = sidebarItems.filter((item) => item.href !== '/submit')
+  const navItems = sidebarItems.filter((item) => item.href !== '/dashboard/submit')
 
   const closeMobileMenu = () => setMobileMenuOpen(false)
 
@@ -80,7 +80,7 @@ export default function Navbar() {
                   <div className="absolute -inset-0.5 bg-gradient-to-r from-[#1f467f] via-[#2a5298] to-[#3b6eb3] rounded-full blur opacity-25 group-hover/button:opacity-45 transition-all duration-300" />
 
                   <Button
-                    onClick={() => router.push('/submit')}
+                    onClick={() => router.push('/dashboard/submit')}
                     className="relative bg-[#2a5298]/20 hover:bg-[#2a5298]/30 text-white text-sm font-semibold px-6 py-2 rounded-full transition-all duration-300 hover:scale-105 active:scale-95 border border-[#2a5298]/30"
                   >
                     <span className="relative z-10 flex items-center gap-2">
@@ -125,7 +125,7 @@ export default function Navbar() {
                     <Button
                       onClick={() => {
                         closeMobileMenu()
-                        router.push('/submit')
+                        router.push('/dashboard/submit')
                       }}
                       className="relative w-full bg-[#2a5298]/20 hover:bg-[#2a5298]/30 text-white text-sm font-semibold px-6 py-2 rounded-full transition-all duration-300 hover:scale-105 active:scale-95 border border-[#2a5298]/30"
                     >

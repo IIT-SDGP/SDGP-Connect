@@ -54,20 +54,40 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const previousStatus = projectContent.status?.approved_status;
+
     // Atomic state transition: allow re-opening REJECTED -> APPROVED as well.
     const now = new Date();
-    const updated = await prisma.projectStatus.updateMany({
-      where: {
-        content_id: projectContent.content_id,
-        approved_status: {
-          in: [ProjectApprovalStatus.PENDING, ProjectApprovalStatus.REJECTED],
+    const updated = await prisma.$transaction(async (tx) => {
+      const statusUpdate = await tx.projectStatus.updateMany({
+        where: {
+          content_id: projectContent.content_id,
+          approved_status: {
+            in: [ProjectApprovalStatus.PENDING, ProjectApprovalStatus.REJECTED],
+          },
         },
-      },
-      data: {
-        approved_status: ProjectApprovalStatus.APPROVED,
-        approved_at: now,
-        approved_by_userId: userId,
-      },
+        data: {
+          approved_status: ProjectApprovalStatus.APPROVED,
+          approved_at: now,
+          approved_by_userId: userId,
+        },
+      });
+
+      if (statusUpdate.count > 0) {
+        await tx.projectActivity.create({
+          data: {
+            project_id: String(projectId),
+            actor_userId: userId,
+            type: "PROJECT_APPROVED",
+            metadata: {
+              previousStatus,
+              featured: Boolean(featured),
+            },
+          },
+        });
+      }
+
+      return statusUpdate;
     });
 
     if (updated.count === 0) {
@@ -94,13 +114,22 @@ export async function POST(request: NextRequest) {
 
     // optionally mark featured
     if (featured) {
-      await prisma.projectMetadata.update({
-        where: { project_id: String(projectId) },
-        data: {
-          featured: true,
-          featured_by_userId: userId,
-        },
-      });
+      await prisma.$transaction([
+        prisma.projectMetadata.update({
+          where: { project_id: String(projectId) },
+          data: {
+            featured: true,
+            featured_by_userId: userId,
+          },
+        }),
+        prisma.projectActivity.create({
+          data: {
+            project_id: String(projectId),
+            actor_userId: userId,
+            type: "PROJECT_FEATURED",
+          },
+        }),
+      ]);
     }
 
     // Send approval email (best-effort, do not block approval)

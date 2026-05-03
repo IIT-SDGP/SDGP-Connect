@@ -252,6 +252,17 @@ export async function POST(request: Request) {
         rejected_reason: null,
       },
     });
+
+    await tx.projectActivity.create({
+      data: {
+        project_id: edit.project_id,
+        actor_userId: reviewerId,
+        type: "EDIT_APPROVED",
+        metadata: {
+          editId: edit.id,
+        },
+      },
+    });
   });
 
   // Cache revalidation (best-effort)

@@ -128,16 +128,19 @@ export default function StudentEditProjectClient({ projectId }: Props) {
         )
     }
 
-    if (data.approvalStatus !== ProjectApprovalStatus.APPROVED) {
+    if (
+        data.approvalStatus !== ProjectApprovalStatus.APPROVED &&
+        data.approvalStatus !== ProjectApprovalStatus.REJECTED
+    ) {
         return (
             <Alert>
                 <AlertTitle>Edit locked</AlertTitle>
                 <AlertDescription>
-                    Your project is currently <strong>{data.approvalStatus}</strong>. You can submit edits
-                    only after an admin approves the project.
+                    Your project is currently <strong>{data.approvalStatus}</strong>. You can edit rejected
+                    projects after review, or approved projects through an edit request.
                 </AlertDescription>
                 <div className='mt-4'>
-                    <Button variant='outline' onClick={() => router.push('/student/projects')}>
+                    <Button variant='outline' onClick={() => router.push('/dashboard/projects')}>
                         Back to projects
                     </Button>
                 </div>

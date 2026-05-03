@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation'
 import React, { useMemo, useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { FormProvider, useForm, type SubmitHandler } from 'react-hook-form'
+import { FormProvider, useForm, type FieldErrors, type SubmitHandler } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { projectSubmissionSchema, type ProjectSubmissionSchema } from '@/validations/submit_project'
 import { toast } from 'sonner'
@@ -24,6 +24,51 @@ const TOTAL_STEPS = 5
 type ProjectEditFormProps = {
   projectId: string
   initialSnapshot: ProjectSubmissionSchema
+}
+
+function splitTeamPhone(teamPhone: string | undefined) {
+  const trimmed = teamPhone?.trim() ?? ''
+  if (!trimmed) return { country_code: '+94', phone_number: '' }
+  if (!trimmed.startsWith('+')) return { country_code: '+94', phone_number: trimmed.replace(/\D/g, '').slice(0, 10) }
+
+  const digits = trimmed.slice(1).replace(/\D/g, '')
+  for (let len = 1; len <= 4; len += 1) {
+    const phoneNumber = digits.slice(len)
+    if (phoneNumber.length >= 1 && phoneNumber.length <= 10) {
+      return { country_code: `+${digits.slice(0, len)}`, phone_number: phoneNumber }
+    }
+  }
+
+  return { country_code: '+94', phone_number: digits.slice(2, 12) }
+}
+
+function normalizeInitialSnapshot(snapshot: ProjectSubmissionSchema): ProjectSubmissionSchema {
+  const phone = splitTeamPhone(snapshot.projectDetails?.team_phone)
+
+  return {
+    ...snapshot,
+    projectDetails: {
+      ...snapshot.projectDetails,
+      country_code: snapshot.projectDetails.country_code || phone.country_code,
+      phone_number: snapshot.projectDetails.phone_number || phone.phone_number,
+      team_phone:
+        snapshot.projectDetails.team_phone ||
+        (phone.phone_number ? `${phone.country_code}${phone.phone_number}` : ''),
+    },
+    sdgGoals: snapshot.sdgGoals ?? [],
+    socialLinks: snapshot.socialLinks ?? [],
+    team: snapshot.team ?? [],
+    slides: snapshot.slides ?? [],
+  }
+}
+
+function flattenErrorPaths(errors: FieldErrors, prefix = ''): string[] {
+  return Object.entries(errors).flatMap(([key, value]) => {
+    const path = prefix ? `${prefix}.${key}` : key
+    if (!value || typeof value !== 'object') return [path]
+    if ('message' in value && value.message) return [path]
+    return flattenErrorPaths(value as FieldErrors, path)
+  })
 }
 
 export default function ProjectEditForm({ projectId, initialSnapshot }: ProjectEditFormProps) {
@@ -57,7 +102,10 @@ export default function ProjectEditForm({ projectId, initialSnapshot }: ProjectE
     initialTeam.map((m) => m.profile_image ?? null)
   )
 
-  const defaultValues = useMemo<ProjectSubmissionSchema>(() => initialSnapshot, [initialSnapshot])
+  const defaultValues = useMemo<ProjectSubmissionSchema>(
+    () => normalizeInitialSnapshot(initialSnapshot),
+    [initialSnapshot]
+  )
 
   const methods = useForm<ProjectSubmissionSchema>({
     resolver: zodResolver(projectSubmissionSchema),
@@ -167,8 +215,42 @@ export default function ProjectEditForm({ projectId, initialSnapshot }: ProjectE
     }
   }
 
+  const getStepForField = (fieldPath: string) => {
+    if (fieldPath.startsWith('metadata.')) return 1
+    if (fieldPath.startsWith('projectDetails.problem_statement')) return 2
+    if (fieldPath.startsWith('projectDetails.solution')) return 2
+    if (fieldPath.startsWith('projectDetails.features')) return 2
+    if (fieldPath.startsWith('slides')) return 2
+    if (
+      fieldPath.startsWith('techStack') ||
+      fieldPath.startsWith('projectTypes') ||
+      fieldPath.startsWith('status.') ||
+      fieldPath.startsWith('sdgGoals') ||
+      fieldPath.startsWith('domains')
+    ) return 3
+    if (fieldPath.startsWith('projectDetails.') || fieldPath.startsWith('socialLinks')) return 4
+    if (fieldPath.startsWith('team')) return 5
+    return currentStep
+  }
+
+  const onInvalid = (errors: FieldErrors<ProjectSubmissionSchema>) => {
+    const [firstPath] = flattenErrorPaths(errors)
+    if (firstPath) {
+      setCurrentStep(getStepForField(firstPath))
+    }
+
+    console.error('Project edit validation blocked submit:', errors)
+    toast.error('Could not submit yet', {
+      description: firstPath
+        ? `Please fix the highlighted field: ${firstPath}`
+        : 'Please check the form for missing or invalid fields.',
+    })
+  }
+
   const onSubmit: SubmitHandler<ProjectSubmissionSchema> = async (data) => {
     try {
+      let submissionData = data
+
       // Upload team profile images only if the student changed them.
       const hasProfileImages = teamProfileFiles.some((f) => f !== null)
       if (hasProfileImages) {
@@ -189,17 +271,21 @@ export default function ProjectEditForm({ projectId, initialSnapshot }: ProjectE
           methods.setValue('team', updatedTeam, { shouldValidate: true })
           setTeamProfileFiles(updatedTeam.map(() => null))
           setTeamProfilePreviews(updatedTeam.map((m) => m.profile_image ?? null))
+          submissionData = { ...data, team: updatedTeam }
         } finally {
           setIsUploading(false)
         }
       }
 
-      const result = await submitEdit(data)
+      const result = await submitEdit(submissionData)
       if (result.success) {
-        toast.success('Edit submitted for review', {
-          description: 'Admins will review your changes and either approve or reject them.',
+        toast.success('Edit submitted', {
+          description:
+            result.mode === 'RESUBMITTED_REJECTED_PROJECT'
+              ? 'Your corrected project has been sent back for review.'
+              : 'Admins will review your changes and either approve or reject them.',
         })
-        router.push('/student/projects')
+        router.push('/dashboard/projects')
         return
       }
 
@@ -225,7 +311,7 @@ export default function ProjectEditForm({ projectId, initialSnapshot }: ProjectE
 
         <FormStepper currentStep={currentStep} totalSteps={TOTAL_STEPS} />
 
-        <form onSubmit={methods.handleSubmit(onSubmit)} className='mt-6 space-y-8'>
+        <form onSubmit={methods.handleSubmit(onSubmit, onInvalid)} className='mt-6 space-y-8'>
           {currentStep === 1 ? (
             <FormStep1
               logoFile={logoFile}

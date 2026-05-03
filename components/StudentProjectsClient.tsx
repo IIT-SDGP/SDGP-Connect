@@ -7,7 +7,7 @@
 
 import axios from 'axios'
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ProjectApprovalStatus } from '@prisma/client'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
@@ -22,6 +22,7 @@ type StudentProjectRow = {
     groupNum: string
     year: string
     approvalStatus: string | null
+    rejectedReason: string | null
     pendingEdit: boolean
 }
 
@@ -95,44 +96,56 @@ export default function StudentProjectsClient() {
             </TableHeader>
             <TableBody>
                 {projects.map((p) => (
-                    <TableRow key={p.projectId}>
-                        <TableCell className='font-medium'>{p.title}</TableCell>
-                        <TableCell>{p.groupNum}</TableCell>
-                        <TableCell>{p.year}</TableCell>
-                        <TableCell>
-                            <Badge
-                                variant={
-                                    p.approvalStatus === ProjectApprovalStatus.APPROVED
-                                        ? 'default'
-                                        : 'secondary'
-                                }
-                            >
-                                {p.approvalStatus ?? 'UNKNOWN'}
-                            </Badge>
-                        </TableCell>
-                        <TableCell>
-                            {p.pendingEdit ? (
-                                <Badge variant='outline'>PENDING</Badge>
-                            ) : (
-                                <span className='text-muted-foreground'>—</span>
-                            )}
-                        </TableCell>
-                        <TableCell className='text-right'>
-                            <div className='flex justify-end gap-2'>
-                                <Button size='sm' variant='outline' asChild>
-                                    <Link href={`/project/${p.projectId}`}>View</Link>
-                                </Button>
-                                <Button
-                                    size='sm'
-                                    onClick={() =>
-                                        router.push(`/student/projects/${p.projectId}/edits`)
+                    <Fragment key={p.projectId}>
+                        <TableRow>
+                            <TableCell className='font-medium'>{p.title}</TableCell>
+                            <TableCell>{p.groupNum}</TableCell>
+                            <TableCell>{p.year}</TableCell>
+                            <TableCell>
+                                <Badge
+                                    variant={
+                                        p.approvalStatus === ProjectApprovalStatus.APPROVED
+                                            ? 'default'
+                                            : p.approvalStatus === ProjectApprovalStatus.REJECTED
+                                                ? 'destructive'
+                                                : 'secondary'
                                     }
                                 >
-                                    Edit
-                                </Button>
-                            </div>
-                        </TableCell>
-                    </TableRow>
+                                    {p.approvalStatus ?? 'UNKNOWN'}
+                                </Badge>
+                            </TableCell>
+                            <TableCell>
+                                {p.pendingEdit ? (
+                                    <Badge variant='outline'>PENDING</Badge>
+                                ) : (
+                                    <span className='text-muted-foreground'>—</span>
+                                )}
+                            </TableCell>
+                            <TableCell className='text-right'>
+                                <div className='flex justify-end gap-2'>
+                                    <Button size='sm' variant='outline' asChild>
+                                        <Link href={`/project/${p.projectId}`}>View</Link>
+                                    </Button>
+                                    <Button
+                                        size='sm'
+                                        onClick={() =>
+                                            router.push(`/dashboard/projects/${p.projectId}/edits`)
+                                        }
+                                    >
+                                        Edit
+                                    </Button>
+                                </div>
+                            </TableCell>
+                        </TableRow>
+                        {p.approvalStatus === ProjectApprovalStatus.REJECTED && p.rejectedReason ? (
+                            <TableRow key={`${p.projectId}-reason`}>
+                                <TableCell colSpan={6} className='bg-destructive/5 text-sm'>
+                                    <span className='font-medium text-destructive'>Rejected reason:</span>{' '}
+                                    <span className='text-muted-foreground'>{p.rejectedReason}</span>
+                                </TableCell>
+                            </TableRow>
+                        ) : null}
+                    </Fragment>
                 ))}
             </TableBody>
         </Table>

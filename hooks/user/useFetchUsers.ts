@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 export interface User {
   id: string;
   name: string;
+  email: string;
   role: 'ADMIN' | 'MODERATOR' | 'DEVELOPER';
   createdAt: string;
 }

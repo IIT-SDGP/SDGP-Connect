@@ -217,13 +217,13 @@ export default function AwardsPage() {
         </p>
           <div className="mt-8 flex flex-wrap justify-center gap-4">
           
-          <Link href="/submit/competition">
+          <Link href="/dashboard/submit/competition">
           <Button size="lg" variant="default">
           
            Enter a missing Competition
           </Button>
         </Link>
-        <Link href="/submit/award">
+        <Link href="/dashboard/submit/award">
           <Button size="lg" variant="outline" >
            Submit your Award Win
           </Button>

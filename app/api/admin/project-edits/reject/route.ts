@@ -63,15 +63,28 @@ export async function POST(request: Request) {
   const groupNum = edit.project.group_num;
   const title = edit.project.title;
 
-  await prisma.projectEdit.update({
-    where: { id: edit.id },
-    data: {
-      status: ProjectEditStatus.REJECTED,
-      reviewed_by_userId: reviewerId,
-      reviewed_at: new Date(),
-      rejected_reason: reason,
-    },
-  });
+  await prisma.$transaction([
+    prisma.projectEdit.update({
+      where: { id: edit.id },
+      data: {
+        status: ProjectEditStatus.REJECTED,
+        reviewed_by_userId: reviewerId,
+        reviewed_at: new Date(),
+        rejected_reason: reason,
+      },
+    }),
+    prisma.projectActivity.create({
+      data: {
+        project_id: edit.project_id,
+        actor_userId: reviewerId,
+        type: "EDIT_REJECTED",
+        message: reason,
+        metadata: {
+          editId: edit.id,
+        },
+      },
+    }),
+  ]);
 
   // Best-effort notification.
   try {

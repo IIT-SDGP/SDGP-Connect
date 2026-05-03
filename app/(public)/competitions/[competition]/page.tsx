@@ -77,7 +77,7 @@ export default function CompetitionPage({
         startDate={competition?.startDate}
         endDate={competition?.endDate}
         primaryButtonText="Add your Award Win"
-        primaryButtonLink={`/submit/award`}
+        primaryButtonLink={`/dashboard/submit/award`}
         secondaryButtonText="View all Competitions"
         secondaryButtonLink="/competitions"
         imageUrl={competition?.coverImage}
@@ -108,7 +108,6 @@ export default function CompetitionPage({
     </div>
   );
 }
-
 
 
 

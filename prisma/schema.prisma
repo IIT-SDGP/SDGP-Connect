@@ -224,6 +224,7 @@ model User {
   ownedProjects    ProjectMetadata[] @relation("ProjectOwner")
   projectEditsCreated   ProjectEdit[] @relation("ProjectEditCreatedBy")
   projectEditsReviewed  ProjectEdit[] @relation("ProjectEditReviewedBy")
+  projectActivities ProjectActivity[] @relation("ProjectActivityActor")
   acceptedAwards   Award[]           @relation("AcceptedAwards")
   rejectedAwards   Award[]           @relation("RejectedAwards")
   acceptedCompetitions Competition[] @relation("AcceptedCompetitions")
@@ -279,6 +280,7 @@ model ProjectMetadata {
   owner        User?           @relation("ProjectOwner", fields: [owner_userId], references: [id], onDelete: SetNull)
 
   projectEdits ProjectEdit[] @relation("ProjectEditProject")
+  activities   ProjectActivity[] @relation("ProjectActivityProject")
 
   projectContent     ProjectContent?
 
@@ -322,6 +324,25 @@ model ProjectEdit {
   @@index([project_id])
   @@index([created_by_userId])
   @@index([status])
+}
+
+model ProjectActivity {
+  id           String          @id @default(uuid())
+  project_id   String
+  project      ProjectMetadata @relation("ProjectActivityProject", fields: [project_id], references: [project_id], onDelete: Cascade)
+
+  actor_userId String?
+  actor        User?           @relation("ProjectActivityActor", fields: [actor_userId], references: [id], onDelete: SetNull)
+
+  type         String
+  message      String?         @db.Text
+  metadata     Json?
+
+  createdAt    DateTime        @default(now())
+
+  @@index([project_id, createdAt], name: "project_activity_project_created_idx")
+  @@index([actor_userId, createdAt], name: "project_activity_actor_created_idx")
+  @@index([type])
 }
 
 model ProjectContent {

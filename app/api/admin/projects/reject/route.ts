@@ -83,6 +83,14 @@ export async function POST(request: NextRequest) {
         where: { project_id: projectContent.metadata_id },
         data: { featured: false },
       }),
+      prisma.projectActivity.create({
+        data: {
+          project_id: projectContent.metadata_id,
+          actor_userId: userId,
+          type: "PROJECT_REJECTED",
+          message: reason,
+        },
+      }),
     ]);
 
     // 7) Send rejection email in background (do not await)

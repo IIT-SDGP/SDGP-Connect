@@ -82,27 +82,35 @@ const Header: React.FC = () => (
   </div>
 )
 
+const getAuthErrorMessage = (error: string | null) => {
+  if (!error || error === "undefined") {
+    return "Sign-in failed. Please check the Asgardeo configuration and try again."
+  }
+
+  return `Sign-in failed (${error}). Please try again.`
+}
+
 const LoginForm: React.FC = () => {
   const searchParams = useSearchParams()
   const [error, setError] = React.useState("")
   const callbackUrlFromQuery = searchParams.get("callbackUrl")
-  const studentCallbackUrl = callbackUrlFromQuery ?? "/student"
+  const dashboardCallbackUrl = callbackUrlFromQuery ?? "/dashboard"
   const authError = searchParams.get("error")
 
   React.useEffect(() => {
     if (authError) {
-      setError(`Sign-in failed (${authError}). Please try again.`)
+      setError(getAuthErrorMessage(authError))
       toast.error("Sign-in failed.")
       return
     }
 
     const signInWithAsgardeo = async () => {
       await signOut({ redirect: false })
-      await signIn("asgardeo", { callbackUrl: studentCallbackUrl })
+      await signIn("asgardeo", { callbackUrl: dashboardCallbackUrl })
     }
 
     signInWithAsgardeo()
-  }, [])
+  }, [authError, dashboardCallbackUrl])
 
   return (
     <div className="space-y-6">

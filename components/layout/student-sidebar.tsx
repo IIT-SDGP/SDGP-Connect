@@ -8,27 +8,27 @@ import { Award, BookOpen, LayoutDashboard, Upload } from 'lucide-react';
 const sidebarItems = [
   {
     title: 'Dashboard',
-    href: '/student',
+    href: '/dashboard',
     icon: LayoutDashboard,
   },
   {
     title: 'Submit Details',
-    href: '/submit/project',
+    href: '/dashboard/submit/project',
     icon: Upload,
   },
   {
     title: 'Projects',
-    href: '/student/projects',
+    href: '/dashboard/projects',
     icon: LayoutDashboard,
   },
   {
     title: 'Blogs',
-    href: '/student/blogs',
+    href: '/dashboard/blogs',
     icon: BookOpen,
   },
   {
     title: 'Awards',
-    href: '/student/awards',
+    href: '/dashboard/awards',
     icon: Award,
   },
 ];
