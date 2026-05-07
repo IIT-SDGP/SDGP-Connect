@@ -38,9 +38,13 @@ export default function HomeHeroSection() {
   const [scrollProgress, setScrollProgress] = useState(0);
 
   const heroImages = [
-    "/home/hero/1.jpg",
-    "/home/hero/5.jpg",
-    "/home/hero/6.jpg",
+    "/home/hero/dialog-ino.png",
+    "/home/hero/movemate1.webp",
+    "/home/hero/3.jpg",
+    "/home/hero/1.webp",
+    "/home/hero/Codesprint.png",
+    "/home/hero/inno.png",
+    "/home/hero/2.webp",
   ];
 
   useEffect(() => {
@@ -84,9 +88,8 @@ export default function HomeHeroSection() {
         {heroImages.map((image, index) => (
           <div
             key={index}
-            className={`absolute inset-0 transition-opacity duration-[1500ms] ease-out ${
-              index === currentHeroImage ? "opacity-100" : "opacity-0"
-            }`}
+            className={`absolute inset-0 transition-opacity duration-[1500ms] ease-out ${index === currentHeroImage ? "opacity-100" : "opacity-0"
+              }`}
           >
             <img
               src={image}
@@ -95,8 +98,9 @@ export default function HomeHeroSection() {
             />
           </div>
         ))}
-        <div className="absolute inset-0 bg-gradient-to-r from-black/95 via-black/70 to-black/40" />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-black/60" />
+
+        <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/45 to-black/15" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/25" />
 
         <div
           className="absolute bottom-0 left-0 right-0 h-20 sm:h-24 z-20 transition-opacity duration-300 overflow-hidden"
@@ -129,7 +133,6 @@ export default function HomeHeroSection() {
             ]}
             className="w-full max-w-5xl mx-auto text-center mt-[-48px] mb-4 text-xl sm:text-2xl md:text-3xl text-white font-semibold"
           />
-
         </div>
 
         <div
@@ -151,7 +154,7 @@ export default function HomeHeroSection() {
         </div>
 
         <div
-          className="flex gap-2 mt-6 sm:mt-8 justify-center transition-opacity duration-300"
+          className="flex gap-2 mt-6 sm:mt-8 mb-24 sm:mb-28 justify-center transition-opacity duration-300 relative z-30"
           style={{
             opacity: 1 - scrollProgress,
           }}
@@ -165,9 +168,8 @@ export default function HomeHeroSection() {
               className="h-1 bg-white/15 w-7 sm:w-10 rounded-full overflow-hidden hover:bg-white/25 transition-colors duration-300 cursor-pointer"
             >
               <div
-                className={`h-full bg-white transition-all duration-[5000ms] linear ${
-                  index === currentHeroImage ? "w-full" : "w-0"
-                }`}
+                className={`h-full bg-white transition-all duration-[5000ms] linear ${index === currentHeroImage ? "w-full" : "w-0"
+                  }`}
               />
             </button>
           ))}
@@ -175,4 +177,4 @@ export default function HomeHeroSection() {
       </div>
     </section>
   );
-}// Barrel file for home components
+}
