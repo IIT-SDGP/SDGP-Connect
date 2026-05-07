@@ -96,7 +96,7 @@ export default function HomeAboutSection() {
               <div className="space-y-4">
                 <div className="relative overflow-hidden rounded-2xl border border-white/15">
                   <Image
-                    src="/assets/inno.webp"
+                    src="/assets/Dialog.webp"
                     alt="SDGP project showcase"
                     width={900}
                     height={560}
@@ -108,7 +108,7 @@ export default function HomeAboutSection() {
 
                 <div className="relative overflow-hidden rounded-2xl border border-white/15">
                   <Image
-                    src="/assets/dialog-ino.webp"
+                    src="/assets/5.jpg"
                     alt="SDGP partner showcase"
                     width={900}
                     height={560}
@@ -122,7 +122,7 @@ export default function HomeAboutSection() {
               <div className="space-y-4 sm:pt-8">
                 <div className="relative overflow-hidden rounded-2xl border border-white/15">
                   <Image
-                    src="/assets/inno.webp"
+                    src="/assets/1.jpg"
                     alt="Student innovation"
                     width={500}
                     height={420}
@@ -134,7 +134,7 @@ export default function HomeAboutSection() {
 
                 <div className="relative overflow-hidden rounded-2xl border border-white/15">
                   <Image
-                    src="/assets/dialog-ino.webp"
+                    src="/assets/innovex.webp"
                     alt="Industry collaboration"
                     width={500}
                     height={500}
