@@ -205,6 +205,15 @@ const teamMembers = [
 		image: "/assets/prat.webp",
 	},
 	{
+		name: "Bimali Wickramasinghe",
+		role: "Assistant Lecturer",
+		email: "bimali.w@iit.ac.lk",
+		linkedin: "https://www.linkedin.com/in/bimali-wickramasinghe-3a5984181/",
+		description: "Human Computer Interaction and Digital Game Development Enthusiast",
+		category: "Primary",
+		image: "/assets/bimali.webp",
+	},
+	{
 		name: "Sharmilan Somasundaram",
 		role: "Visiting Lecturer",
 		email: "sharmilan.s@iit.ac.lk",
@@ -250,20 +259,18 @@ const ModuleTeam: React.FC = () => {
 					</motion.h2>
 				)}
 				<div
-					className={`grid gap-6 md:gap-8 ${
-						members.length === 1
-							? "grid-cols-1 justify-items-center"
-							: "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-					} ${isModuleLeader ? "module-leader-grid" : ""}`}
+					className={`grid gap-6 md:gap-8 ${members.length === 1
+						? "grid-cols-1 justify-items-center"
+						: "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+						} ${isModuleLeader ? "module-leader-grid" : ""}`}
 				>
 					{members.map((member, index) => {
 						const isLeader = member.category === "Module Leader";
 						return (
 							<motion.div
 								key={index}
-								className={`relative bg-gradient-to-b from-zinc-900 to-black p-6 rounded-2xl flex flex-col items-center group overflow-visible transform transition-all duration-500 hover:-translate-y-1 h-full ${
-									isLeader ? "module-leader-card" : ""
-								}`}
+								className={`relative bg-gradient-to-b from-zinc-900 to-black p-6 rounded-2xl flex flex-col items-center group overflow-visible transform transition-all duration-500 hover:-translate-y-1 h-full ${isLeader ? "module-leader-card" : ""
+									}`}
 								initial={{ opacity: 0, y: 30 }}
 								whileInView={{ opacity: 1, y: 0 }}
 								viewport={{ once: true }}
@@ -356,9 +363,8 @@ const ModuleTeam: React.FC = () => {
 								</div>
 
 								<div
-									className={`absolute inset-0 bg-gradient-to-br from-black/95 via-zinc-900/98 to-gray-800/95 backdrop-blur-sm p-6 flex flex-col opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-0 ${
-										isLeader ? "overflow-visible" : "overflow-auto"
-									}`}
+									className={`absolute inset-0 bg-gradient-to-br from-black/95 via-zinc-900/98 to-gray-800/95 backdrop-blur-sm p-6 flex flex-col opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-0 ${isLeader ? "overflow-visible" : "overflow-auto"
+										}`}
 									style={
 										isLeader
 											? { minHeight: "100%", position: "absolute", inset: 0 }
