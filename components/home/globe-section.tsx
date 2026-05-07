@@ -24,6 +24,7 @@ function getNested(obj: any, path: string[], fallback: any = undefined) {
   );
 }
 
+
 export default function GlobeSection() {
   const { t } = useLanguage();
   const content = getNested(t, ["home", "global_reach"], {
@@ -421,24 +422,76 @@ export default function GlobeSection() {
 
   return (
     <section className="w-full text-white">
-      {/* Header Section */}
+      {/* Keyframe animations injected once */}
+      <style>{`
+        @keyframes sdgp-rotate    { to { transform: rotate(360deg); } }
+        @keyframes sdgp-rotateCCW { to { transform: rotate(-360deg); } }
+        @keyframes sdgp-float     { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+        @keyframes sdgp-pulse     { 0%,100% { opacity:.4; transform:scale(1); } 50% { opacity:1; transform:scale(1.15); } }
+        @keyframes sdgp-badgePing { 0%,100% { box-shadow:0 0 0 0 rgba(59,130,246,.35); } 50% { box-shadow:0 0 0 8px rgba(59,130,246,0); } }
+        @keyframes sdgp-shimmer   { 0%,100% { opacity:.5; } 50% { opacity:1; } }
+        @keyframes sdgp-fadeUp    { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
+
+        .sdgp-ring-cw  { animation: sdgp-rotate    var(--dur,20s) linear infinite; }
+        .sdgp-ring-ccw { animation: sdgp-rotateCCW var(--dur,30s) linear infinite; }
+        .sdgp-globe-float { animation: sdgp-float 6s ease-in-out infinite; }
+
+        .sdgp-stat-pill {
+          position: absolute;
+          background: rgba(6,32,86,.85);
+          border: 1px solid rgba(59,130,246,.35);
+          border-radius: 12px;
+          padding: 10px 16px;
+          backdrop-filter: blur(10px);
+          display: flex;
+          flex-direction: column;
+          gap: 3px;
+          min-width: 130px;
+          animation: sdgp-fadeUp .7s ease both;
+        }
+        .sdgp-stat-num   { font-size: 22px; font-weight: 700; color: #fff; line-height: 1; }
+        .sdgp-stat-label { font-size: 11px; color: #71717a; letter-spacing: .05em; }
+        .sdgp-bar        { height: 2px; border-radius: 2px; background: rgba(59,130,246,.15); margin-top: 6px; overflow: hidden; }
+        .sdgp-bar-fill   { height: 100%; border-radius: 2px; background: linear-gradient(90deg,#3b82f6,#6366f1); animation: sdgp-shimmer 2.5s ease-in-out infinite; }
+
+
+        .sdgp-badge-pill {
+          display: inline-flex; align-items: center; gap: 8px;
+          border: 1px solid rgba(42,82,152,.5);
+          background: rgba(42,82,152,.25);
+          padding: 6px 16px; border-radius: 9999px;
+          font-size: 11px; font-weight: 700;
+          letter-spacing: .15em; text-transform: uppercase;
+          color: #bfdbfe;
+          animation: sdgp-badgePing 3s ease-in-out infinite;
+        }
+        .sdgp-badge-dot {
+          width: 7px; height: 7px; border-radius: 50%;
+          background: #60a5fa;
+          animation: sdgp-pulse 2s ease-in-out infinite;
+        }
+        .sdgp-ring-dot {
+          position: absolute;
+          width: 8px; height: 8px; border-radius: 50%;
+          top: -4px; left: calc(50% - 4px);
+        }
+      `}</style>
+
+      {/* ── Header ── */}
       <div className="w-full py-12 md:py-16">
         <div className="container mx-auto px-4 md:px-6 max-w-7xl">
           <div className="flex flex-col items-center text-center space-y-4">
-            {/* Badge */}
-            <div className="flex items-center justify-center">
-              <span className="inline-flex items-center gap-2 rounded-full border border-[#2a5298]/50 bg-[#2a5298]/25 px-4 py-1 text-xs font-semibold uppercase tracking-[0.15em] text-blue-100">
-                <Eye className="h-3.5 w-3.5" />
-                Our Vision
-              </span>
-            </div>
 
-            {/* Heading */}
+            <span className="sdgp-badge-pill">
+              <span className="sdgp-badge-dot" />
+              <Eye className="h-3.5 w-3.5" />
+              Our Vision
+            </span>
+
             <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter max-w-4xl mx-auto">
               Tech for global good
             </h2>
 
-            {/* Subtitle */}
             <p className="text-zinc-400 text-base sm:text-lg md:text-xl max-w-[700px] mx-auto mt-4">
               To become a launchpad for socially-driven tech innovation, where young minds transform global challenges into digital opportunities, building a more sustainable and equitable future through software.
             </p>
@@ -446,12 +499,88 @@ export default function GlobeSection() {
         </div>
       </div>
 
-      {/* Globe Visualization */}
-      <div className="flex flex-row items-center justify-center py-8 min-h-0 w-full">
-        <div className="max-w-7xl mx-auto w-full relative overflow-hidden min-h-0 h-[350px] sm:h-[500px] md:h-[600px] px-4">
-          <div className="absolute w-full h-full z-10">
-            <World data={sampleArcs} globeConfig={globeConfig} />
+      {/* ── Globe stage ── */}
+      <div className="relative flex items-center justify-center py-8 w-full">
+        <div className="max-w-7xl mx-auto w-full relative flex items-center justify-center px-4"
+          style={{ minHeight: 600 }}>
+
+          {/* Stat pills — top-left */}
+          <div className="sdgp-stat-pill" style={{ left: "2%", top: "15%", animationDelay: ".3s" }}>
+            <span className="sdgp-stat-num">120+</span>
+            <span className="sdgp-stat-label">Projects</span>
+            <div className="sdgp-bar"><div className="sdgp-bar-fill" style={{ width: "80%" }} /></div>
           </div>
+
+          {/* Stat pills — bottom-left */}
+          <div className="sdgp-stat-pill" style={{ left: "2%", bottom: "15%", animationDelay: ".5s" }}>
+            <span className="sdgp-stat-num">500+</span>
+            <span className="sdgp-stat-label">Students</span>
+            <div className="sdgp-bar"><div className="sdgp-bar-fill" style={{ width: "90%", animationDelay: ".4s" }} /></div>
+          </div>
+
+          {/* Stat pills — bottom-right */}
+          <div className="sdgp-stat-pill" style={{ right: "2%", bottom: "15%", animationDelay: ".7s" }}>
+            <span className="sdgp-stat-num">12</span>
+            <span className="sdgp-stat-label">SDGs targeted</span>
+            <div className="sdgp-bar"><div className="sdgp-bar-fill" style={{ width: "50%", animationDelay: ".6s" }} /></div>
+          </div>
+
+          {/* Orbital rings + globe */}
+          <div className="relative flex items-center justify-center"
+            style={{ width: 500, height: 500 }}>
+
+            {/* Ring 1 — slow CW */}
+            <div className="sdgp-ring-cw absolute rounded-full pointer-events-none"
+              style={{
+                width: 380, height: 380,
+                border: "1px solid rgba(99,102,241,.28)",
+                top: "50%", left: "50%",
+                transform: "translate(-50%,-50%)",
+                "--dur": "18s",
+              } as React.CSSProperties}>
+              <span className="sdgp-ring-dot"
+                style={{ background: "#3b82f6", boxShadow: "0 0 10px 3px rgba(59,130,246,.6)" }} />
+              <span className="sdgp-ring-dot"
+                style={{ top: "auto", bottom: -4, background: "#3b82f6", boxShadow: "0 0 10px 3px rgba(59,130,246,.6)" }} />
+            </div>
+
+            {/* Ring 2 — medium CCW, dashed */}
+            <div className="sdgp-ring-ccw absolute rounded-full pointer-events-none"
+              style={{
+                width: 440, height: 440,
+                border: "1px dashed rgba(59,130,246,.18)",
+                top: "50%", left: "50%",
+                transform: "translate(-50%,-50%)",
+                "--dur": "28s",
+              } as React.CSSProperties}>
+              <span className="sdgp-ring-dot"
+                style={{ background: "#818cf8", boxShadow: "0 0 10px 3px rgba(129,140,248,.6)", left: -4, top: "calc(50% - 4px)" }} />
+              <span className="sdgp-ring-dot"
+                style={{ background: "#818cf8", boxShadow: "0 0 10px 3px rgba(129,140,248,.6)", top: "auto", bottom: -4 }} />
+            </div>
+
+            {/* Ring 3 — slow CW */}
+            <div className="sdgp-ring-cw absolute rounded-full pointer-events-none"
+              style={{
+                width: 500, height: 500,
+                border: "1px solid rgba(139,92,246,.12)",
+                top: "50%", left: "50%",
+                transform: "translate(-50%,-50%)",
+                "--dur": "42s",
+              } as React.CSSProperties}>
+              <span className="sdgp-ring-dot"
+                style={{ background: "#2dd4bf", boxShadow: "0 0 10px 3px rgba(45,212,191,.6)" }} />
+            </div>
+
+            {/* Globe — floats */}
+            <div className="sdgp-globe-float relative overflow-hidden"
+              style={{ width: 400, height: 400 }}>
+              <div className="absolute inset-0 z-10">
+                <World data={sampleArcs} globeConfig={globeConfig} />
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
     </section>
