@@ -427,8 +427,8 @@ export default function GlobeSection() {
           <div className="flex flex-col items-center text-center space-y-4">
             {/* Badge */}
             <div className="flex items-center justify-center">
-              <span className="inline-flex items-center gap-2 rounded-full bg-zinc-800 px-3 py-1 text-sm text-white">
-                <Eye size={16} className="text-white" />
+              <span className="inline-flex items-center gap-2 rounded-full border border-[#2a5298]/50 bg-[#2a5298]/25 px-4 py-1 text-xs font-semibold uppercase tracking-[0.15em] text-blue-100">
+                <Eye className="h-3.5 w-3.5" />
                 Our Vision
               </span>
             </div>
