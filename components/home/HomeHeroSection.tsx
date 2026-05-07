@@ -1,10 +1,13 @@
+// © 2026 SDGP.lk
+// Licensed under the GNU Affero General Public License v3.0 or later,
+// with an additional restriction: Non-commercial use only.
+// See <https://www.gnu.org/licenses/agpl-3.0.html> for details.
 "use client";
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import HomeNavbar from "@/components/HomeNavbar";
 import MorphingText from "@/components/home/Morphing";
 import { HeroDomains } from "@/components/home/HeroDomains";
 import { useLanguage } from "@/hooks/LanguageProvider";
@@ -75,7 +78,6 @@ export default function HomeHeroSection() {
         overflowY: scrollProgress > 0 ? "visible" : "hidden",
       }}
     >
-      <HomeNavbar />
 
       <div
         className="absolute inset-0 transition-all duration-300 ease-out will-change-transform overflow-hidden"
