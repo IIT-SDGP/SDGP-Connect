@@ -478,7 +478,7 @@ export default function GlobeSection() {
       `}</style>
 
       {/* ── Header ── */}
-      <div className="w-full py-12 md:py-16">
+      <div className="w-full py-6 md:py-8">
         <div className="container mx-auto px-4 md:px-6 max-w-7xl">
           <div className="flex flex-col items-center text-center space-y-4">
 
@@ -500,26 +500,26 @@ export default function GlobeSection() {
       </div>
 
       {/* ── Globe stage ── */}
-      <div className="relative flex items-center justify-center py-8 w-full">
+      <div className="relative flex items-center justify-center w-full">
         <div className="max-w-7xl mx-auto w-full relative flex items-center justify-center px-4"
-          style={{ minHeight: 600 }}>
+          style={{ minHeight: 500 }}>
 
-          {/* Stat pills — top-left */}
-          <div className="sdgp-stat-pill" style={{ left: "2%", top: "15%", animationDelay: ".3s" }}>
+          {/* Stat pills — left top (Projects) */}
+          <div className="sdgp-stat-pill" style={{ left: "14%", top: "28%", animationDelay: ".3s" }}>
             <span className="sdgp-stat-num">120+</span>
             <span className="sdgp-stat-label">Projects</span>
             <div className="sdgp-bar"><div className="sdgp-bar-fill" style={{ width: "80%" }} /></div>
           </div>
 
-          {/* Stat pills — bottom-left */}
-          <div className="sdgp-stat-pill" style={{ left: "2%", bottom: "15%", animationDelay: ".5s" }}>
+          {/* Stat pills — left bottom (Students) */}
+          <div className="sdgp-stat-pill" style={{ left: "14%", bottom: "28%", animationDelay: ".5s" }}>
             <span className="sdgp-stat-num">500+</span>
             <span className="sdgp-stat-label">Students</span>
             <div className="sdgp-bar"><div className="sdgp-bar-fill" style={{ width: "90%", animationDelay: ".4s" }} /></div>
           </div>
 
-          {/* Stat pills — bottom-right */}
-          <div className="sdgp-stat-pill" style={{ right: "2%", bottom: "15%", animationDelay: ".7s" }}>
+          {/* Stat pills — right middle (SDGs) */}
+          <div className="sdgp-stat-pill" style={{ right: "14%", top: "50%", transform: "translateY(-50%)", animationDelay: ".7s" }}>
             <span className="sdgp-stat-num">12</span>
             <span className="sdgp-stat-label">SDGs targeted</span>
             <div className="sdgp-bar"><div className="sdgp-bar-fill" style={{ width: "50%", animationDelay: ".6s" }} /></div>
