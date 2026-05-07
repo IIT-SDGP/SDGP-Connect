@@ -49,14 +49,7 @@ export function AboutSection() {
 
           {/* Heading */}
           <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter max-w-4xl mx-auto leading-tight">
-            {about.heading ? (
-              about.heading
-            ) : (
-              <>
-                Crafting code for a{" "}
-                <span className="text-zinc-500">sustainable tomorrow</span>
-              </>
-            )}
+            {about.heading || "Crafting code for a sustainable tomorrow"}
           </h1>
 
           {/* Subtitle */}
