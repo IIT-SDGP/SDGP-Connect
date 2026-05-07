@@ -13,6 +13,13 @@ import { ProjectQueryParams, useProjects } from "@/hooks/project/useGetProjects"
 import { X } from "lucide-react";
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import dynamic from "next/dynamic";
+
+// Lazy-load Three.js scene to avoid SSR issues and improve initial load
+const ThreeScene = dynamic(() => import("@/components/home/three-scene"), {
+    ssr: false,
+    loading: () => <div className="absolute inset-0 bg-gradient-to-b from-transparent to-background/50" />
+});
 
 interface FilterState {
     featured: boolean;
@@ -105,7 +112,7 @@ function ProjectsPageContent() {
         Object.entries(newFilters).forEach(([key, values]) => {
             // Skip featured as it's already handled above
             if (key === 'featured') return;
-            
+
             if (Array.isArray(values) && values.length > 0) {
                 values.forEach((value: string) => {
                     params.append(key, value);
@@ -115,7 +122,7 @@ function ProjectsPageContent() {
 
         const newUrl = `${window.location.pathname}?${params.toString()}`;
         router.push(newUrl, { scroll: false });
-        
+
         // Close mobile filters after applying changes
         //setShowMobileFilters(false);
     }, [router, currentParams.limit, currentParams.title]);
@@ -166,96 +173,99 @@ function ProjectsPageContent() {
     }
 
     return (
-        <div className="relative">
-            <div className="container mx-auto py-8 px-4">
-                <SearchHeader
-                    toggleFilters={toggleFilters}
-                    defaultTitle={currentParams.title ?? ""}
-                    onSearch={handleSearch}
-                />
-                
-                
+        <div className="relative min-h-screen overflow-hidden">
+            {/* Three.js starfield background — sits behind all content */}
+            <ThreeScene />
 
-                <div className="flex flex-col md:flex-row gap-6 mt-8">
-                    {/* Desktop Filter Sidebar */}
-                    <div className="hidden md:block w-64 lg:w-72 flex-shrink-0">
-                        <div className="sticky top-0">
-                            <FilterSidebar onFilterChange={handleFilterChange} initialFilters={initialFilters} />
+            <div className="relative z-10">
+                <div className="container mx-auto py-8 px-4">
+                    <SearchHeader
+                        toggleFilters={toggleFilters}
+                        defaultTitle={currentParams.title ?? ""}
+                        onSearch={handleSearch}
+                    />
+
+                    <div className="flex flex-col md:flex-row gap-6 mt-8">
+                        {/* Desktop Filter Sidebar */}
+                        <div className="hidden md:block w-64 lg:w-72 flex-shrink-0">
+                            <div className="sticky top-0">
+                                <FilterSidebar onFilterChange={handleFilterChange} initialFilters={initialFilters} />
+                            </div>
                         </div>
-                    </div>
 
-                    <div className="flex-1">
-                        <ProjectExplorer
-                            currentParams={currentParams}
-                            projects={projects || []}
-                            isLoading={isLoading}
-                            error={error}
-                            meta={meta}
-                            onPageChange={(page) => {
-                                const params = new URLSearchParams(searchParams.toString());
-                                params.set('page', String(page));
-                                router.push(`${window.location.pathname}?${params.toString()}`, {
-                                    scroll: true,
-                                });
-                            }}
-                        />
-                    </div>
-                </div>
-            </div>
-
-            {/* Mobile Filter Overlay */}
-            {showMobileFilters && (
-                <div 
-                    className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9999] md:hidden"
-                    style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
-                >
-                    <div className="fixed inset-0 bg-background flex flex-col">
-                        {/* Header */}
-                        <div className="flex justify-between items-center p-4 border-b bg-background shrink-0">
-                            <h2 className="font-bold text-lg">Filters</h2>
-                            <Button 
-                                variant="ghost" 
-                                size="icon" 
-                                onClick={() => {
-                                    console.log('Close button clicked');
-                                    setShowMobileFilters(false);
+                        <div className="flex-1">
+                            <ProjectExplorer
+                                currentParams={currentParams}
+                                projects={projects || []}
+                                isLoading={isLoading}
+                                error={error}
+                                meta={meta}
+                                onPageChange={(page) => {
+                                    const params = new URLSearchParams(searchParams.toString());
+                                    params.set('page', String(page));
+                                    router.push(`${window.location.pathname}?${params.toString()}`, {
+                                        scroll: true,
+                                    });
                                 }}
-                                className="h-8 w-8 z-[10000]"
-                                type="button"
-                            >
-                                <X className="h-5 w-5" />
-                            </Button>
-                        </div>
-                        
-                        {/* Filter Content - Scrollable */}
-                        <div className="flex-1 overflow-y-auto p-4">
-                            <FilterSidebar 
-                                onFilterChange={handleFilterChange} 
-                                initialFilters={initialFilters} 
                             />
                         </div>
-                        
-                        {/* Action buttons */}
-                        <div className="p-4 border-t bg-background shrink-0 flex gap-2">
-                            <Button 
-                                variant="outline" 
-                                className="flex-1"
-                                onClick={() => setShowMobileFilters(false)}
-                                type="button"
-                            >
-                                Cancel
-                            </Button>
-                            <Button 
-                                className="flex-1"
-                                onClick={() => setShowMobileFilters(false)}
-                                type="button"
-                            >
-                                Apply Filters
-                            </Button>
-                        </div>
                     </div>
                 </div>
-            )}
+
+                {/* Mobile Filter Overlay */}
+                {showMobileFilters && (
+                    <div
+                        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9999] md:hidden"
+                        style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
+                    >
+                        <div className="fixed inset-0 bg-background flex flex-col">
+                            {/* Header */}
+                            <div className="flex justify-between items-center p-4 border-b bg-background shrink-0">
+                                <h2 className="font-bold text-lg">Filters</h2>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => {
+                                        console.log('Close button clicked');
+                                        setShowMobileFilters(false);
+                                    }}
+                                    className="h-8 w-8 z-[10000]"
+                                    type="button"
+                                >
+                                    <X className="h-5 w-5" />
+                                </Button>
+                            </div>
+
+                            {/* Filter Content - Scrollable */}
+                            <div className="flex-1 overflow-y-auto p-4">
+                                <FilterSidebar
+                                    onFilterChange={handleFilterChange}
+                                    initialFilters={initialFilters}
+                                />
+                            </div>
+
+                            {/* Action buttons */}
+                            <div className="p-4 border-t bg-background shrink-0 flex gap-2">
+                                <Button
+                                    variant="outline"
+                                    className="flex-1"
+                                    onClick={() => setShowMobileFilters(false)}
+                                    type="button"
+                                >
+                                    Cancel
+                                </Button>
+                                <Button
+                                    className="flex-1"
+                                    onClick={() => setShowMobileFilters(false)}
+                                    type="button"
+                                >
+                                    Apply Filters
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </div>
         </div>
     )
 }
