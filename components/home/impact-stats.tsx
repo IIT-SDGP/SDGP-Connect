@@ -50,7 +50,7 @@ export default function ImpactStats() {
   ];
 
   return (
-    <section className="w-full py-12 md:py-14 lg:py-22 text-white">
+    <section className="w-full py-12 md:py-14 lg:py-[5.5rem] text-white">
       <div className="container mx-auto px-4 md:px-6 max-w-7xl">
         <div className="flex flex-col items-center text-center space-y-4">
 
