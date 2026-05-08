@@ -28,7 +28,8 @@ export default function LanguageToggle() {
             onClick={() => changeLanguage(l.code)}
             title={l.code.toUpperCase()}
             className={cn(
-              "w-8 h-8 text-xs font-bold rounded-lg border outline-none transition-all duration-200 cursor-pointer flex items-center justify-center",
+              "w-8 h-8 text-xs font-bold rounded-lg border transition-all duration-200 cursor-pointer flex items-center justify-center",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black/60",
               lang === l.code
                 ? "bg-blue-600 text-white border-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.6)]"
                 : "bg-white/10 text-white/80 border-white/15 hover:bg-blue-500/20 hover:text-white hover:border-blue-400/40"

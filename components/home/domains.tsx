@@ -17,20 +17,10 @@ import { projectDomainsOptions } from "@/lib/types/mapping";
 import Link from "next/link";
 import React from "react";
 import { useLanguage } from "@/hooks/LanguageProvider";
+import { CornerBrackets } from "@/components/home/corner-brackets";
 
 function getNested(obj: any, path: string[], fallback: any = undefined) {
   return path.reduce((acc, key) => (acc && acc[key] !== undefined ? acc[key] : fallback), obj);
-}
-
-function CornerBrackets() {
-  return (
-    <>
-      <span className="absolute top-[-1px] left-[-1px] w-[14px] h-[14px] border-t-2 border-l-2 border-zinc-600 rounded-tl-[3px] transition-colors duration-300 group-hover:border-zinc-400" />
-      <span className="absolute top-[-1px] right-[-1px] w-[14px] h-[14px] border-t-2 border-r-2 border-zinc-600 rounded-tr-[3px] transition-colors duration-300 group-hover:border-zinc-400" />
-      <span className="absolute bottom-[-1px] left-[-1px] w-[14px] h-[14px] border-b-2 border-l-2 border-zinc-600 rounded-bl-[3px] transition-colors duration-300 group-hover:border-zinc-400" />
-      <span className="absolute bottom-[-1px] right-[-1px] w-[14px] h-[14px] border-b-2 border-r-2 border-zinc-600 rounded-br-[3px] transition-colors duration-300 group-hover:border-zinc-400" />
-    </>
-  );
 }
 
 export default function Domains() {
@@ -38,7 +28,7 @@ export default function Domains() {
   const domains = getNested(t, ['home', 'domains'], {});
 
   return (
-    <section className="w-full py-12 md:py-14 lg:py-22 text-white">
+    <section className="w-full py-12 md:py-14 lg:py-[5.5rem] text-white">
       <div className="container mx-auto px-4 md:px-6 max-w-7xl">
         <div className="flex flex-col items-center text-center space-y-4">
 

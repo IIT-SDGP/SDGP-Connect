@@ -226,7 +226,6 @@ function ProjectsPageContent() {
                                     variant="ghost"
                                     size="icon"
                                     onClick={() => {
-                                        console.log('Close button clicked');
                                         setShowMobileFilters(false);
                                     }}
                                     className="h-8 w-8 z-[10000]"
