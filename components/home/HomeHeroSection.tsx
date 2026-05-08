@@ -1,10 +1,13 @@
+// © 2026 SDGP.lk
+// Licensed under the GNU Affero General Public License v3.0 or later,
+// with an additional restriction: Non-commercial use only.
+// See <https://www.gnu.org/licenses/agpl-3.0.html> for details.
 "use client";
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import HomeNavbar from "@/components/HomeNavbar";
 import MorphingText from "@/components/home/Morphing";
 import { HeroDomains } from "@/components/home/HeroDomains";
 import { useLanguage } from "@/hooks/LanguageProvider";
@@ -26,10 +29,21 @@ const Logo = () => (
 
 function getNested(obj: unknown, path: string[], fallback: any = undefined) {
   return (path as string[]).reduce(
-    (acc: any, key: string) => (acc && acc[key] !== undefined ? acc[key] : fallback),
+    (acc: any, key: string) =>
+      acc && acc[key] !== undefined ? acc[key] : fallback,
     obj
   );
 }
+
+const heroImages = [
+  "/home/hero/dialog-ino.png",
+  "/home/hero/movemate1.webp",
+  "/home/hero/3.jpg",
+  "/home/hero/1.webp",
+  "/home/hero/Codesprint.png",
+  "/home/hero/inno.png",
+  "/home/hero/2.webp",
+];
 
 export default function HomeHeroSection() {
   const { t } = useLanguage();
@@ -37,42 +51,33 @@ export default function HomeHeroSection() {
   const [currentHeroImage, setCurrentHeroImage] = useState(0);
   const [scrollProgress, setScrollProgress] = useState(0);
 
-  const heroImages = [
-    "/home/hero/1.jpg",
-    "/home/hero/5.jpg",
-    "/home/hero/6.jpg",
-  ];
-
   useEffect(() => {
     const timeout = window.setTimeout(() => {
       setCurrentHeroImage((prev) => (prev + 1) % heroImages.length);
     }, 5000);
-
     return () => window.clearTimeout(timeout);
-  }, [currentHeroImage, heroImages.length]);
+  }, [currentHeroImage]);
 
   useEffect(() => {
     const handleScroll = () => {
-      const scrollPosition = window.scrollY;
-      const windowHeight = window.innerHeight;
-      const progress = Math.min(scrollPosition / (windowHeight * 0.8), 1);
+      const progress = Math.min(window.scrollY / (window.innerHeight * 0.8), 1);
       setScrollProgress(progress);
     };
-
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  const total = heroImages.length;
+  const prevIndex = (currentHeroImage - 1 + total) % total;
+  const nextIndex = (currentHeroImage + 1) % total;
+  const mountedIndices = new Set([prevIndex, currentHeroImage, nextIndex]);
 
   return (
     <section
       id="home"
       className="relative min-h-svh md:min-h-screen flex items-center bg-black transition-all duration-300 pt-24 md:pt-20 overflow-x-hidden"
-      style={{
-        overflowY: scrollProgress > 0 ? "visible" : "hidden",
-      }}
+      style={{ overflowY: scrollProgress > 0 ? "visible" : "hidden" }}
     >
-      <HomeNavbar />
-
       <div
         className="absolute inset-0 transition-all duration-300 ease-out will-change-transform overflow-hidden"
         style={{
@@ -81,28 +86,32 @@ export default function HomeHeroSection() {
           margin: `${scrollProgress * 20}px`,
         }}
       >
-        {heroImages.map((image, index) => (
-          <div
-            key={index}
-            className={`absolute inset-0 transition-opacity duration-[1500ms] ease-out ${
-              index === currentHeroImage ? "opacity-100" : "opacity-0"
-            }`}
-          >
-            <img
-              src={image}
-              alt="Hero"
-              className="w-full h-full object-cover object-center"
-            />
-          </div>
-        ))}
-        <div className="absolute inset-0 bg-gradient-to-r from-black/95 via-black/70 to-black/40" />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-black/60" />
+        {heroImages.map((image, index) => {
+          if (!mountedIndices.has(index)) return null;
+
+          return (
+            <div
+              key={index}
+              className={`absolute inset-0 transition-opacity duration-[1500ms] ease-out ${index === currentHeroImage ? "opacity-100" : "opacity-0"
+                }`}
+            >
+              <img
+                src={image}
+                alt="Hero"
+                loading={index === 0 ? "eager" : "lazy"}
+                fetchPriority={index === 0 ? "high" : "auto"}
+                className="w-full h-full object-cover object-center"
+              />
+            </div>
+          );
+        })}
+
+        <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/45 to-black/15" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/25" />
 
         <div
           className="absolute bottom-0 left-0 right-0 h-20 sm:h-24 z-20 transition-opacity duration-300 overflow-hidden"
-          style={{
-            opacity: 1 - scrollProgress * 0.5,
-          }}
+          style={{ opacity: 1 - scrollProgress * 0.5 }}
         >
           <HeroDomains className="h-full" />
         </div>
@@ -129,7 +138,6 @@ export default function HomeHeroSection() {
             ]}
             className="w-full max-w-5xl mx-auto text-center mt-[-48px] mb-4 text-xl sm:text-2xl md:text-3xl text-white font-semibold"
           />
-
         </div>
 
         <div
@@ -151,10 +159,8 @@ export default function HomeHeroSection() {
         </div>
 
         <div
-          className="flex gap-2 mt-6 sm:mt-8 justify-center transition-opacity duration-300"
-          style={{
-            opacity: 1 - scrollProgress,
-          }}
+          className="flex gap-2 mt-6 sm:mt-8 mb-24 sm:mb-28 justify-center transition-opacity duration-300 relative z-30"
+          style={{ opacity: 1 - scrollProgress }}
         >
           {heroImages.map((_, index) => (
             <button
@@ -165,9 +171,8 @@ export default function HomeHeroSection() {
               className="h-1 bg-white/15 w-7 sm:w-10 rounded-full overflow-hidden hover:bg-white/25 transition-colors duration-300 cursor-pointer"
             >
               <div
-                className={`h-full bg-white transition-all duration-[5000ms] linear ${
-                  index === currentHeroImage ? "w-full" : "w-0"
-                }`}
+                className={`h-full bg-white transition-all duration-[5000ms] linear ${index === currentHeroImage ? "w-full" : "w-0"
+                  }`}
               />
             </button>
           ))}
@@ -175,4 +180,4 @@ export default function HomeHeroSection() {
       </div>
     </section>
   );
-}// Barrel file for home components
+}
