@@ -23,7 +23,7 @@ export function NavBar() {
     >
       <nav
         className={cn(
-          'flex items-center gap-2 p-3 rounded-2xl backdrop-blur-lg bg-background/80 border shadow-lg',
+          'flex items-center gap-1 p-2 rounded-2xl backdrop-blur-lg bg-background/80 border shadow-lg',
           // Mobile: horizontal layout with even distribution
           'justify-between md:justify-start',
           // Desktop: vertical layout

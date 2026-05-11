@@ -97,7 +97,7 @@ export default function ContributePage() {
   }
 
   return (
-    <div className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden bg-[#030303] text-white w-full">
+    <div className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden bg-[#030303] text-white w-full pb-28 md:pb-0">
       {/* Background geometric shapes with adjusted gradients for black theme */}
       <div className="absolute inset-0 bg-gradient-to-br from-gray-900/[0.05] via-transparent to-gray-800/[0.05] blur-3xl" />
       <div className="absolute inset-0 overflow-hidden ">
@@ -148,7 +148,7 @@ export default function ContributePage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 1, ease: "easeOut" }}
-        className="relative z-10 px-4 md:px-6 max-w-5xl"
+        className="relative z-10 w-full max-w-5xl px-4 md:px-6"
       >
         <WhatIsSdgp cardVariants={cardVariants} />
         <ContributingGuideSections cardVariants={cardVariants} />
