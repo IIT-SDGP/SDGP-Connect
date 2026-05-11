@@ -14,6 +14,10 @@ const CodeBlockWithCopy = dynamic(() => import("@/components/contribute/code-blo
   loading: () => <div className="bg-muted/50 rounded-md h-10 animate-pulse" />
 });
 
+const guideGridClassName =
+  "grid w-full gap-4 sm:gap-6 md:grid-cols-2 md:gap-8 lg:grid-cols-3 items-stretch [&>*]:min-w-0 [&_[data-slot=card]]:min-w-0";
+const guideGridWithMarginClassName = `${guideGridClassName} mb-10 md:mb-14`;
+
 export default function ContributingGuideSections({ cardVariants }: { cardVariants: any }) {
   const repoUrl = "https://github.com/IIT-SDGP/SDGP-Connect";
   const issuesUrl = "https://github.com/IIT-SDGP/SDGP-Connect/issues";
@@ -34,7 +38,7 @@ export default function ContributingGuideSections({ cardVariants }: { cardVarian
       </p>
 
       <h3 className="text-xl font-semibold text-center mb-6">Why Contribute?</h3>
-      <div className="grid w-full gap-4 sm:gap-6 md:grid-cols-2 md:gap-8 lg:grid-cols-3 items-stretch mb-10 md:mb-14 [&>*]:min-w-0 [&_[data-slot=card]]:min-w-0">
+      <div className={guideGridWithMarginClassName}>
         <motion.div whileHover={{ scale: 1.02, y: -5 }} transition={{ duration: 0.2 }} className="h-full">
           <Card className="h-full bg-white/[0.05] backdrop-blur-lg border border-white/[0.15] shadow-lg text-white">
             <CardHeader>
@@ -76,7 +80,7 @@ export default function ContributingGuideSections({ cardVariants }: { cardVarian
       </div>
 
       <h3 className="text-xl font-semibold text-center mb-6">Ways to Contribute (Not Only Code)</h3>
-      <div className="grid w-full gap-4 sm:gap-6 md:grid-cols-2 md:gap-8 lg:grid-cols-3 items-stretch mb-10 md:mb-14 [&>*]:min-w-0 [&_[data-slot=card]]:min-w-0">
+      <div className={guideGridWithMarginClassName}>
         <motion.div whileHover={{ scale: 1.02, y: -5 }} transition={{ duration: 0.2 }} className="h-full">
           <Card className="h-full bg-white/[0.05] backdrop-blur-lg border border-white/[0.15] shadow-lg text-white">
             <CardHeader>
@@ -118,7 +122,7 @@ export default function ContributingGuideSections({ cardVariants }: { cardVarian
       </div>
 
       <h3 className="text-xl font-semibold text-center mb-6">Working on a GitHub Issue (Code Changes)</h3>
-      <div className="grid w-full gap-4 sm:gap-6 md:grid-cols-2 md:gap-8 lg:grid-cols-3 items-stretch [&>*]:min-w-0 [&_[data-slot=card]]:min-w-0">
+      <div className={guideGridClassName}>
         {/* Request assignment */}
         <motion.div whileHover={{ scale: 1.02, y: -5 }} transition={{ duration: 0.2 }} className="h-full">
           <Card className="h-full bg-white/[0.05] backdrop-blur-lg border border-white/[0.15] shadow-lg text-white">
@@ -183,7 +187,7 @@ export default function ContributingGuideSections({ cardVariants }: { cardVarian
       </div>
 
       <h3 className="text-xl font-semibold text-center mt-14 mb-6">Local Development Setup (How to Code)</h3>
-      <div className="grid w-full gap-4 sm:gap-6 md:grid-cols-2 md:gap-8 lg:grid-cols-3 items-stretch [&>*]:min-w-0 [&_[data-slot=card]]:min-w-0">
+      <div className={guideGridClassName}>
         {/* Clone */}
         <motion.div whileHover={{ scale: 1.02, y: -5 }} transition={{ duration: 0.2 }} className="h-full">
           <Card className="h-full bg-white/[0.05] backdrop-blur-lg border border-white/[0.15] shadow-lg text-white">
