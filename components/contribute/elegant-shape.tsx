@@ -25,6 +25,7 @@ export default function ElegantShape({
 }) {
   return (
     <motion.div
+      aria-hidden="true"
       initial={{
         opacity: 0,
         y: -150,

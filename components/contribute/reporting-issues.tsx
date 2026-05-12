@@ -22,25 +22,25 @@ export default function ReportingIssues({ cardVariants }: { cardVariants: any })
       className="mb-16"
     >
       <h2 className="text-3xl font-bold text-center mb-8">Reporting Website Issues</h2>
-      <div className="grid md:grid-cols-2 gap-8 items-stretch">
+      <div className="grid w-full gap-4 sm:gap-6 md:grid-cols-2 md:gap-8 items-stretch [&>*]:min-w-0 [&_[data-slot=card]]:min-w-0">
         <motion.div whileHover={{ scale: 1.02, y: -5 }} transition={{ duration: 0.2 }} className="h-full">
-	          <Card className="h-full bg-white/[0.05] backdrop-blur-lg border border-white/[0.15] shadow-lg text-white">
-	            <CardHeader>
-	              <CardTitle className="text-xl">Opening an Issue</CardTitle>
-	              <CardDescription className="text-white/60">
-	                Report bugs, request features, or suggest improvements.
-	              </CardDescription>
-	            </CardHeader>
-	            <CardContent className="p-6 pt-0 md:p-8 md:pt-0">
-	              <p className="text-white/70 mb-4">
-	                Issues are tracked here:{" "}
-	                <a href={issuesUrl} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">
-	                  {issuesUrl}
-	                </a>
-	                . Please check this list before opening a new issue.
-	              </p>
+          <Card className="h-full bg-white/[0.05] backdrop-blur-lg border border-white/[0.15] shadow-lg text-white">
+            <CardHeader>
+              <CardTitle className="text-xl">Opening an Issue</CardTitle>
+              <CardDescription className="text-white/60">
+                Report bugs, request features, or suggest improvements.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-6 pt-0 md:p-8 md:pt-0">
+              <p className="text-white/70 mb-4">
+                Issues are tracked here:{" "}
+                <a href={issuesUrl} target="_blank" rel="noopener noreferrer" className="break-all text-blue-400 hover:underline">
+                  {issuesUrl}
+                </a>
+                . Please check this list before opening a new issue.
+              </p>
 
-              <Button asChild variant="outline" className="bg-white/[0.05] text-white border-white/[0.1] hover:bg-white/[0.1]">
+              <Button asChild variant="outline" className="h-auto min-h-9 max-w-full whitespace-normal break-words bg-white/[0.05] px-3 py-2 text-center text-white border-white/[0.1] hover:bg-white/[0.1]">
                 <a href={issuesUrl} target="_blank" rel="noopener noreferrer">
                   Submit Bug Report or Feature Request <ExternalLink className="ml-2 h-4 w-4" />
                 </a>
@@ -48,7 +48,7 @@ export default function ReportingIssues({ cardVariants }: { cardVariants: any })
 
               <p className="text-xs text-white/50 mt-3">
                 Repo:{" "}
-                <a href={repoUrl} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">
+                <a href={repoUrl} target="_blank" rel="noopener noreferrer" className="break-all text-blue-400 hover:underline">
                   {repoUrl}
                 </a>
               </p>
@@ -69,7 +69,7 @@ export default function ReportingIssues({ cardVariants }: { cardVariants: any })
                 </a>
                 .
               </p>
-              <Button asChild variant="outline" className="bg-white/[0.05] text-white border-white/[0.1] hover:bg-white/[0.1]">
+              <Button asChild variant="outline" className="h-auto min-h-9 max-w-full whitespace-normal break-words bg-white/[0.05] px-3 py-2 text-center text-white border-white/[0.1] hover:bg-white/[0.1]">
                 <a href="mailto:security@sdgp.lk">
                   Email Security Team <ExternalLink className="ml-2 h-4 w-4" />
                 </a>

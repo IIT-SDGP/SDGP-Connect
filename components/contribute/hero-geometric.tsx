@@ -5,7 +5,6 @@
 "use client";
 
 import { motion } from "framer-motion";
-import Image from "next/image";
 import ElegantShape from "@/components/contribute/elegant-shape";
 
 export default function HeroGeometric({
@@ -29,7 +28,7 @@ export default function HeroGeometric({
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center overflow-hidden bg-[#030303]">
+    <div className="min-h-[58svh] w-full flex items-center justify-center overflow-hidden bg-[#030303] md:min-h-screen">
       <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/[0.05] via-transparent to-rose-500/[0.05] blur-3xl" />
 
       <div className="absolute inset-0 overflow-hidden">
