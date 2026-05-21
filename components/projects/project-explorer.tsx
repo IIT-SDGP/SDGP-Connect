@@ -7,12 +7,13 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { useEffect, useRef } from "react";
 import { Skeleton } from "../ui/skeleton";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { ProjectQueryParams } from "@/hooks/project/useGetProjects";
 import { EmptyState } from "../ui/empty-state";
-import { FileX2, ChevronLeft, ChevronRight } from "lucide-react";
+import { FileX2 } from "lucide-react";
 import { PaginatedResponse } from "@/types/project/pagination";
 import { ProjectCardType } from "@/types/project/card";
 
@@ -33,6 +34,27 @@ export default function ProjectExplorer({
   meta,
   onPageChange,
 }: ProjectExplorerProps) {
+  const sentinelRef = useRef<HTMLDivElement>(null);
+
+  // IntersectionObserver: when sentinel becomes visible, it loads the next page
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (entry.isIntersecting && meta?.hasNextPage && !isLoading) {
+          onPageChange((meta.currentPage || 1) + 1);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [meta, isLoading, onPageChange]);
+
   if (error) {
     return (
       <div className="text-center py-10 text-red-500">
@@ -67,12 +89,7 @@ export default function ProjectExplorer({
     );
   }
 
-  const currentPage = meta?.currentPage || 1;
-  const totalPages = meta?.totalPages || 1;
-  const hasNextPage = meta?.hasNextPage ?? currentPage < totalPages;
-  const hasPrevPage = meta?.hasPrevPage ?? currentPage > 1;
-
-  // Render projects with pagination controls
+  // Render projects with infinite scroll
   return (
     <div className="flex flex-col gap-8">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -173,42 +190,21 @@ export default function ProjectExplorer({
         })}
       </div>
 
-      {/* Loading overlay for page transitions */}
+      {/* Loading spinner while fetching next page */}
       {isLoading && projects.length > 0 && (
-        <div className="flex justify-center py-4">
-          <div className="w-8 h-8 border-2 border-primary/50 border-t-primary rounded-full animate-spin"></div>
+        <div className="flex justify-center py-6">
+          <div className="w-8 h-8 border-2 border-primary/50 border-t-primary rounded-full animate-spin" />
         </div>
       )}
 
-      {/* Pagination Controls */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-4 py-4">
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={!hasPrevPage || isLoading}
-            onClick={() => onPageChange(currentPage - 1)}
-            className="flex items-center gap-1"
-          >
-            <ChevronLeft className="w-4 h-4" />
-            Previous
-          </Button>
+      {/* Invisible sentinel triggers loading more content on scroll */}
+      <div ref={sentinelRef} className="h-1 w-full" />
 
-          <span className="text-sm text-muted-foreground">
-            Page {currentPage} of {totalPages}
-          </span>
-
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={!hasNextPage || isLoading}
-            onClick={() => onPageChange(currentPage + 1)}
-            className="flex items-center gap-1"
-          >
-            Next
-            <ChevronRight className="w-4 h-4" />
-          </Button>
-        </div>
+      {/* End of results message */}
+      {!meta?.hasNextPage && projects.length > 0 && !isLoading && (
+        <p className="text-center text-sm text-muted-foreground py-4">
+          You&apos;ve reached the end of the results.
+        </p>
       )}
     </div>
   );
