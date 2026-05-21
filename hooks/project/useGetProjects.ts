@@ -3,7 +3,7 @@
 // with an additional restriction: Non-commercial use only.
 // See <https://www.gnu.org/licenses/agpl-3.0.html> for details.
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { PaginatedResponse } from "../../types/project/pagination";
 import { ProjectCardType } from "../../types/project/card";
 
@@ -15,8 +15,10 @@ function useProjects(currentParams: ProjectQueryParams) {
     PaginatedResponse<ProjectCardType>["meta"] | null
   >(null);
 
+  const prevFilterRef = useRef<string>("");
+
   const fetchProjects = useCallback(
-    async (page: number) => {
+    async (page: number, isNewFilter: boolean) => {
       setIsLoading(true);
       setError(null);
 
@@ -121,7 +123,15 @@ function useProjects(currentParams: ProjectQueryParams) {
           metaData = paginatedResult.meta;
         }
 
-        setProjects(projectsData);
+        if (isNewFilter) {
+          setProjects(projectsData);
+        } else {
+          setProjects((prev) => {
+            const existingIds = new Set(prev.map((p) => p.id));
+            const newItems = projectsData.filter((p) => !existingIds.has(p.id));
+            return [...prev, ...newItems];
+          });
+        }
 
         setMeta(metaData);
       } catch (err) {
@@ -131,7 +141,7 @@ function useProjects(currentParams: ProjectQueryParams) {
             : "An error occurred while fetching projects",
         );
         console.error("Error fetching projects:", err);
-        setProjects([]);
+        if (isNewFilter) setProjects([]);
       } finally {
         setIsLoading(false);
       }
@@ -139,10 +149,24 @@ function useProjects(currentParams: ProjectQueryParams) {
     [currentParams],
   );
 
-  // Fetch whenever params change
   useEffect(() => {
+    const filterKey = [
+      currentParams.featured,
+      currentParams.title,
+      currentParams.limit,
+      currentParams.projectTypes?.join(","),
+      currentParams.domains?.join(","),
+      currentParams.status?.join(","),
+      currentParams.sdgGoals?.join(","),
+      currentParams.techStack?.join(","),
+      currentParams.years?.join(","),
+    ].join("|");
+
+    const isNewFilter = filterKey !== prevFilterRef.current;
+    prevFilterRef.current = filterKey;
+
     const page = currentParams.page || 1;
-    fetchProjects(page);
+    fetchProjects(page, isNewFilter);
   }, [
     currentParams.featured,
     currentParams.page,

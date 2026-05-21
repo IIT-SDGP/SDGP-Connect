@@ -204,7 +204,7 @@ function ProjectsPageContent() {
                                     const params = new URLSearchParams(searchParams.toString());
                                     params.set('page', String(page));
                                     router.push(`${window.location.pathname}?${params.toString()}`, {
-                                        scroll: true,
+                                        scroll: false,
                                     });
                                 }}
                             />

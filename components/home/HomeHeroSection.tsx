@@ -40,7 +40,7 @@ const heroImages = [
   "/home/hero/movemate1.webp",
   "/home/hero/3.jpg",
   "/home/hero/1.webp",
-  "/home/hero/Codesprint.png",
+  "/home/hero/codesprint.png",
   "/home/hero/inno.png",
   "/home/hero/2.webp",
 ];
