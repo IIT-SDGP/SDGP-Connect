@@ -7,6 +7,7 @@
 import dynamic from "next/dynamic";
 import { Eye } from "lucide-react";
 import { useLanguage } from "@/hooks/LanguageProvider";
+import { useEffect, useRef, useState } from "react";
 
 const Globe = dynamic(
   () => import("@/components/ui/globe").then((m) => m.Globe),
@@ -20,6 +21,15 @@ function getNested(obj: any, path: string[], fallback: any = undefined) {
   );
 }
 
+const ORBIT_IMAGES = [
+  "/home/competition/IMG1.jpeg",
+  "/home/competition/IMG2.jpeg",
+  "/home/competition/IMG3.png",
+  "/home/competition/IMG4.jpeg",
+  "/home/competition/IMG5.jpeg",
+  "/home/competition/IMG6.jpeg",
+];
+
 const GLOBE_STYLES = `
   @keyframes sdgp-float {
     0%, 100% { transform: translateY(0); }
@@ -28,71 +38,31 @@ const GLOBE_STYLES = `
 
   @keyframes sdgp-pulse {
     0%, 100% { opacity: .4; transform: scale(1); }
-    50%      { opacity: 1;  transform: scale(1.15); }
+    50%       { opacity: 1;  transform: scale(1.15); }
   }
 
   @keyframes sdgp-badgePing {
     0%, 100% { box-shadow: 0 0 0 0   rgba(59,130,246,.35); }
-    50%      { box-shadow: 0 0 0 8px rgba(59,130,246,0); }
+    50%       { box-shadow: 0 0 0 8px rgba(59,130,246,0); }
   }
 
-  @keyframes sdgp-shimmer {
-    0%, 100% { opacity: .5; }
-    50%      { opacity: 1;  }
+  @keyframes sdgp-orbit {
+    from { transform: rotate(var(--orbit-start)) translateX(var(--orbit-radius)) rotate(calc(-1 * var(--orbit-start))); }
+    to   { transform: rotate(calc(var(--orbit-start) + 360deg)) translateX(var(--orbit-radius)) rotate(calc(-1 * (var(--orbit-start) + 360deg))); }
   }
 
-  @keyframes sdgp-fadeUp {
-    from { opacity: 0; transform: translateY(14px); }
-    to   { opacity: 1; transform: translateY(0); }
+  @keyframes sdgp-orbitReverse {
+    from { transform: rotate(var(--orbit-start)) translateX(var(--orbit-radius)) rotate(calc(-1 * var(--orbit-start))); }
+    to   { transform: rotate(calc(var(--orbit-start) - 360deg)) translateX(var(--orbit-radius)) rotate(calc(-1 * (var(--orbit-start) - 360deg))); }
+  }
+
+  @keyframes sdgp-fadeIn {
+    from { opacity: 0; transform: scale(0.7); }
+    to   { opacity: 1; transform: scale(1); }
   }
 
   .sdgp-globe-float {
     animation: sdgp-float 6s ease-in-out infinite;
-  }
-
-  .sdgp-stat-pill {
-    background: rgba(6,32,86,.85);
-    border: 1px solid rgba(59,130,246,.35);
-    border-radius: 12px;
-    padding: 10px 16px;
-    backdrop-filter: blur(10px);
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-    min-width: 130px;
-    animation: sdgp-fadeUp .7s ease both;
-  }
-
-  .sdgp-stat-pill--desktop {
-    position: absolute;
-  }
-
-  .sdgp-stat-num {
-    font-size: 22px;
-    font-weight: 700;
-    color: #fff;
-    line-height: 1;
-  }
-
-  .sdgp-stat-label {
-    font-size: 11px;
-    color: #71717a;
-    letter-spacing: .05em;
-  }
-
-  .sdgp-bar {
-    height: 2px;
-    border-radius: 2px;
-    background: rgba(59,130,246,.15);
-    margin-top: 6px;
-    overflow: hidden;
-  }
-
-  .sdgp-bar-fill {
-    height: 100%;
-    border-radius: 2px;
-    background: linear-gradient(90deg, #3b82f6, #6366f1);
-    animation: sdgp-shimmer 2.5s ease-in-out infinite;
   }
 
   .sdgp-badge-pill {
@@ -119,59 +89,133 @@ const GLOBE_STYLES = `
     animation: sdgp-pulse 2s ease-in-out infinite;
   }
 
-  .sdgp-mobile-stats {
-    display: none;
+  .sdgp-orbit-wrapper {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
   }
 
-  @media (max-width: 767px) {
-    .sdgp-desktop-stats {
-      display: none !important;
-    }
+  .sdgp-orbit-item {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    pointer-events: auto;
+  }
 
-    .sdgp-mobile-stats {
-      display: flex;
-      justify-content: center;
-      gap: 12px;
-      flex-wrap: wrap;
-      padding: 0 16px 24px;
-    }
+  .sdgp-orbit-item.sdgp-orbit-cw {
+    animation: sdgp-orbit var(--orbit-duration) linear infinite;
+  }
 
-    .sdgp-globe-wrapper {
-      min-height: auto !important;
-    }
+  .sdgp-orbit-item.sdgp-orbit-ccw {
+    animation: sdgp-orbitReverse var(--orbit-duration) linear infinite;
+  }
 
-    .sdgp-mobile-stats .sdgp-stat-pill {
-      flex: 1 1 90px;
-      min-width: 90px;
-      max-width: 140px;
-    }
+  .sdgp-orbit-avatar {
+    position: absolute;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 3px solid rgba(99,102,241,0.85);
+    box-shadow: 0 0 0 2px rgba(59,130,246,0.25), 0 0 18px rgba(59,130,246,0.55);
+    transition: border-color 0.25s ease, box-shadow 0.25s ease;
+    background: #0f172a;
+    opacity: 0;
+  }
+
+  .sdgp-orbit-avatar.sdgp-orbit-avatar--visible {
+    animation: sdgp-fadeIn 0.5s cubic-bezier(0.22,1,0.36,1) both;
+    opacity: 1;
+  }
+
+  .sdgp-orbit-avatar:hover {
+    border-color: rgba(139,92,246,1);
+    box-shadow: 0 0 0 3px rgba(99,102,241,0.35), 0 0 28px rgba(99,102,241,0.75);
+  }
+
+  .sdgp-orbit-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
   }
 `;
 
+const ORBIT_CONFIG = [
+  { radius: "155px", size: 76, duration: "18s",  start: "0deg",    dir: "cw"  },
+  { radius: "155px", size: 76, duration: "18s",  start: "120deg",  dir: "cw"  },
+  { radius: "155px", size: 76, duration: "18s",  start: "240deg",  dir: "cw"  },
+  { radius: "210px", size: 88, duration: "28s",  start: "60deg",   dir: "ccw" },
+  { radius: "210px", size: 88, duration: "28s",  start: "180deg",  dir: "ccw" },
+  { radius: "210px", size: 88, duration: "28s",  start: "300deg",  dir: "ccw" },
+];
+
+function OrbitImages({ visible }: { visible: boolean }) {
+  return (
+    <div className="sdgp-orbit-wrapper">
+      {ORBIT_IMAGES.map((src, i) => {
+        const cfg = ORBIT_CONFIG[i];
+        const offset = cfg.size / 2;
+        return (
+          <div
+            key={i}
+            className={`sdgp-orbit-item sdgp-orbit-${cfg.dir}`}
+            style={{
+              "--orbit-radius": cfg.radius,
+              "--orbit-start": cfg.start,
+              "--orbit-duration": cfg.duration,
+            } as React.CSSProperties}
+          >
+            <div
+              className={`sdgp-orbit-avatar${visible ? " sdgp-orbit-avatar--visible" : ""}`}
+              style={{
+                width: cfg.size,
+                height: cfg.size,
+                top: -offset,
+                left: -offset,
+                animationDelay: `${i * 0.12}s`,
+              }}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={src} alt="" />
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function GlobeSection() {
   const { t } = useLanguage();
+  const sectionRef = useRef<HTMLDivElement>(null);
+  const [cardsVisible, setCardsVisible] = useState(false);
+
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setCardsVisible(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.25 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   const content = getNested(t, ["home", "global_reach"], {
     badge_label: "Our Vision",
     heading: "Tech for global good",
     description:
       "To become a launchpad for socially-driven tech innovation, where young minds transform global challenges into digital opportunities, building a more sustainable and equitable future through software.",
-    projects_value: "120+",
-    projects_label: "Projects",
-    students_value: "500+",
-    students_label: "Students",
-    sdgs_value: "12",
-    sdgs_label: "SDGs targeted",
   });
 
-  const stats = [
-    { value: content.projects_value, label: content.projects_label, barWidth: "80%", delay: ".3s" },
-    { value: content.students_value, label: content.students_label, barWidth: "90%", delay: ".5s" },
-    { value: content.sdgs_value,     label: content.sdgs_label,     barWidth: "50%", delay: ".7s" },
-  ];
-
   return (
-    <section className="w-full text-white">
+    <section ref={sectionRef} className="w-full text-white">
       <style>{GLOBE_STYLES}</style>
 
       <div className="w-full py-6 md:py-8">
@@ -196,77 +240,29 @@ export default function GlobeSection() {
         </div>
       </div>
 
-      <div className="relative flex flex-col items-center justify-center w-full">
+      <div className="relative flex items-center justify-center w-full pb-10">
         <div
-          className="sdgp-globe-wrapper max-w-7xl mx-auto w-full relative flex items-center justify-center px-4"
-          style={{ minHeight: 500 }}
+          className="relative flex items-center justify-center flex-shrink-0"
+          style={{ width: "min(560px, 80vw)", height: "min(560px, 80vw)" }}
         >
-          <div className="sdgp-desktop-stats">
-            <div
-              className="sdgp-stat-pill sdgp-stat-pill--desktop"
-              style={{ left: "14%", top: "28%", animationDelay: ".3s" }}
-            >
-              <span className="sdgp-stat-num">{content.projects_value}</span>
-              <span className="sdgp-stat-label">{content.projects_label}</span>
-              <div className="sdgp-bar">
-                <div className="sdgp-bar-fill" style={{ width: "80%" }} />
-              </div>
-            </div>
-
-            <div
-              className="sdgp-stat-pill sdgp-stat-pill--desktop"
-              style={{ left: "14%", bottom: "28%", animationDelay: ".5s" }}
-            >
-              <span className="sdgp-stat-num">{content.students_value}</span>
-              <span className="sdgp-stat-label">{content.students_label}</span>
-              <div className="sdgp-bar">
-                <div className="sdgp-bar-fill" style={{ width: "90%" }} />
-              </div>
-            </div>
-
-            <div
-              className="sdgp-stat-pill sdgp-stat-pill--desktop"
-              style={{ right: "14%", top: "50%", transform: "translateY(-50%)", animationDelay: ".7s" }}
-            >
-              <span className="sdgp-stat-num">{content.sdgs_value}</span>
-              <span className="sdgp-stat-label">{content.sdgs_label}</span>
-              <div className="sdgp-bar">
-                <div className="sdgp-bar-fill" style={{ width: "50%" }} />
-              </div>
-            </div>
-          </div>
+          <div
+            className="absolute inset-0 rounded-full pointer-events-none"
+            style={{
+              background:
+                "radial-gradient(circle, rgba(59,130,246,0.2) 0%, rgba(99,102,241,0.06) 50%, transparent 70%)",
+              filter: "blur(40px)",
+              transform: "scale(1.2)",
+            }}
+          />
 
           <div
-            className="relative flex items-center justify-center"
-            style={{ width: "min(500px, 92vw)", height: "min(500px, 92vw)" }}
+            className="sdgp-globe-float relative overflow-hidden"
+            style={{ width: "min(480px, 60vw)", height: "min(480px, 60vw)" }}
           >
-            <div
-              className="absolute inset-0 rounded-full blur-3xl opacity-30"
-              style={{
-                background:
-                  "radial-gradient(circle, rgba(59,130,246,0.25) 0%, rgba(99,102,241,0.08) 45%, transparent 70%)",
-                transform: "scale(1.15)",
-              }}
-            />
-            <div
-              className="sdgp-globe-float relative overflow-hidden"
-              style={{ width: "80%", height: "80%" }}
-            >
-              <Globe className="w-full h-full" />
-            </div>
+            <Globe className="w-full h-full" />
           </div>
-        </div>
 
-        <div className="sdgp-mobile-stats">
-          {stats.map(({ value, label, barWidth, delay }) => (
-            <div key={label} className="sdgp-stat-pill" style={{ animationDelay: delay }}>
-              <span className="sdgp-stat-num">{value}</span>
-              <span className="sdgp-stat-label">{label}</span>
-              <div className="sdgp-bar">
-                <div className="sdgp-bar-fill" style={{ width: barWidth }} />
-              </div>
-            </div>
-          ))}
+          <OrbitImages visible={cardsVisible} />
         </div>
       </div>
     </section>

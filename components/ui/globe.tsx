@@ -4,14 +4,13 @@
 // See <https://www.gnu.org/licenses/agpl-3.0.html> for details.
 "use client"
 
-import { useEffect, useRef, useCallback, useState } from "react"
+import { useEffect, useRef, useCallback } from "react"
 import createGlobe from "cobe"
 
 export interface Marker {
   id: string
   location: [number, number]
-  name: string
-  users: number
+  size?: number
 }
 
 interface GlobeProps {
@@ -21,13 +20,13 @@ interface GlobeProps {
 }
 
 export const defaultMarkers: Marker[] = [
-  { id: "usa",       location: [37.77,  -122.42], name: "United States",        users: 3200 },
-  { id: "uk",        location: [51.51,    -0.13], name: "United Kingdom",       users: 2400 },
-  { id: "uae",       location: [25.2,    55.27],  name: "United Arab Emirates", users: 1400 },
-  { id: "sri-lanka", location: [6.93,    79.86],  name: "Sri Lanka",            users: 950  },
-  { id: "singapore", location: [1.35,   103.82],  name: "Singapore",            users: 1800 },
-  { id: "japan",     location: [35.68,  139.65],  name: "Japan",                users: 1600 },
-  { id: "australia", location: [-33.87, 151.21],  name: "Australia",            users: 1500 },
+  { id: "usa",       location: [37.77,  -122.42] },
+  { id: "uk",        location: [51.51,    -0.13] },
+  { id: "uae",       location: [25.2,    55.27]  },
+  { id: "sri-lanka", location: [6.93,    79.86]  },
+  { id: "singapore", location: [1.35,   103.82]  },
+  { id: "japan",     location: [35.68,  139.65]  },
+  { id: "australia", location: [-33.87, 151.21]  },
 ]
 
 export function Globe({
@@ -41,17 +40,6 @@ export function Globe({
   const phiOffsetRef = useRef(0)
   const thetaOffsetRef = useRef(0)
   const isPausedRef = useRef(false)
-  const [expanded, setExpanded] = useState<string | null>(null)
-  const [isMobile, setIsMobile] = useState(false)
-
-  const maxUsers = Math.max(...markers.map((m) => m.users))
-
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768)
-    check()
-    window.addEventListener("resize", check)
-    return () => window.removeEventListener("resize", check)
-  }, [])
 
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
     pointerInteracting.current = { x: e.clientX, y: e.clientY }
@@ -106,21 +94,20 @@ export function Globe({
         height: width,
         phi: 0,
         theta: 0.2,
-        dark: 0,
-        diffuse: 1.5,
+        dark: 1,
+        diffuse: 0.4,
         mapSamples: 16000,
-        mapBrightness: 10,
-        baseColor: [1, 1, 1],
-        markerColor: [0.1, 0.2, 0.45],
-        glowColor: [0.94, 0.93, 0.91],
+        mapBrightness: 6,
+        baseColor: [0.024, 0.125, 0.337],
+        markerColor: [0.024, 0.714, 0.831],
+        glowColor: [0.231, 0.510, 0.973],
         markerElevation: 0,
         markers: markers.map((marker) => ({
           location: marker.location,
-          size: 0.025,
-          id: marker.id,
+          size: marker.size ?? 0.025,
         })),
         arcs: [],
-        arcColor: [0.15, 0.3, 0.55],
+        arcColor: [0.024, 0.714, 0.831],
         arcWidth: 0.5,
         arcHeight: 0.25,
         opacity: 0.7,
@@ -173,104 +160,6 @@ export function Globe({
           touchAction: "none",
         }}
       />
-
-      {!isMobile && markers.map((marker) => (
-        <button
-          key={marker.id}
-          onClick={() => setExpanded(expanded === marker.id ? null : marker.id)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault()
-              setExpanded(expanded === marker.id ? null : marker.id)
-            }
-          }}
-          aria-pressed={expanded === marker.id}
-          aria-label={`${marker.name}: ${marker.users.toLocaleString()} users`}
-          style={{
-            position: "absolute",
-            // @ts-expect-error CSS Anchor Positioning
-            positionAnchor: `--cobe-${marker.id}`,
-            bottom: "anchor(top)",
-            left: "anchor(center)",
-            translate: "-50% 0",
-            marginBottom: 6,
-            display: "flex",
-            flexDirection: "column",
-            gap: 3,
-            padding: "10px 16px",
-            background: "rgba(6, 32, 86, 0.85)",
-            border: "1px solid rgba(59, 130, 246, 0.35)",
-            borderRadius: 12,
-            backdropFilter: "blur(10px)",
-            color: "#fff",
-            cursor: "pointer",
-            minWidth: 110,
-            boxShadow: "0 2px 12px rgba(0,0,0,0.3)",
-            opacity: `var(--cobe-visible-${marker.id}, 0)` as any,
-            filter: `blur(calc((1 - var(--cobe-visible-${marker.id}, 0)) * 8px))`,
-            transition: "opacity 0.4s, filter 0.4s, transform 0.2s",
-            transform: expanded === marker.id ? "scale(1.05)" : "scale(1)",
-            textAlign: "left",
-            fontFamily: "inherit",
-          }}
-        >
-          <span
-            style={{
-              fontSize: "0.65rem",
-              fontWeight: 700,
-              letterSpacing: "0.08em",
-              textTransform: "uppercase",
-              color: "#bfdbfe",
-            }}
-          >
-            {marker.name}
-          </span>
-
-          {expanded === marker.id && (
-            <>
-              <span
-                style={{
-                  fontSize: "22px",
-                  fontWeight: 700,
-                  color: "#fff",
-                  lineHeight: 1,
-                  animation: "sdgp-fadeUp 0.2s ease-out",
-                }}
-              >
-                {marker.users.toLocaleString()}
-              </span>
-              <span
-                style={{
-                  fontSize: "11px",
-                  color: "#71717a",
-                  letterSpacing: "0.05em",
-                }}
-              >
-                users
-              </span>
-              <div
-                style={{
-                  height: 2,
-                  borderRadius: 2,
-                  background: "rgba(59,130,246,0.15)",
-                  marginTop: 6,
-                  overflow: "hidden",
-                }}
-              >
-                <div
-                  style={{
-                    height: "100%",
-                    borderRadius: 2,
-                    background: "linear-gradient(90deg, #3b82f6, #6366f1)",
-                    width: `${Math.min(Math.round((marker.users / maxUsers) * 100), 100)}%`,
-                    animation: "sdgp-shimmer 2.5s ease-in-out infinite",
-                  }}
-                />
-              </div>
-            </>
-          )}
-        </button>
-      ))}
     </div>
   )
 }
