@@ -218,7 +218,7 @@ export default function ProjectExplorer({
           size="sm"
           variant="outline"
           title="Back to top"
-          className="fixed bottom-24 right-12 z-50 rounded-full shadow-lg h-9 w-9 p-0"
+          className="fixed bottom-32 right-6 md:bottom-24 md:right-12 z-50 rounded-full shadow-lg h-9 w-9 p-0 !bg-white !text-black !border-white hover:!bg-white/90"
         >
           <ArrowUp className="w-4 h-4" />
         </Button>
