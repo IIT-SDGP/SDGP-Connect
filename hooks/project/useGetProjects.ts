@@ -17,14 +17,23 @@ function useProjects(currentParams: ProjectQueryParams) {
 
   const prevFilterRef = useRef<string>("");
 
+  const requestIdRef = useRef<number>(0);
+  const abortControllerRef = useRef<AbortController | null>(null);
+
   const fetchProjects = useCallback(
     async (page: number, isNewFilter: boolean) => {
+      abortControllerRef.current?.abort();
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
+
+      const requestId = ++requestIdRef.current;
+
       setIsLoading(true);
       setError(null);
 
       try {
         let apiUrl = "/api/projects";
-        let queryParams = new URLSearchParams();
+        const queryParams = new URLSearchParams();
 
         if (currentParams.featured) {
           apiUrl = "/api/projects/featured";
@@ -36,50 +45,49 @@ function useProjects(currentParams: ProjectQueryParams) {
         if (currentParams.title)
           queryParams.append("title", currentParams.title);
 
-        if (
-          currentParams.projectTypes &&
-          currentParams.projectTypes.length > 0
-        ) {
+        if (currentParams.projectTypes?.length) {
           currentParams.projectTypes.forEach((type) =>
             queryParams.append("projectTypes", type),
           );
         }
 
-        if (currentParams.domains && currentParams.domains.length > 0) {
+        if (currentParams.domains?.length) {
           currentParams.domains.forEach((domain) =>
             queryParams.append("domains", domain),
           );
         }
 
-        if (currentParams.status && currentParams.status.length > 0) {
+        if (currentParams.status?.length) {
           currentParams.status.forEach((status) =>
             queryParams.append("status", status),
           );
         }
 
-        if (currentParams.sdgGoals && currentParams.sdgGoals.length > 0) {
+        if (currentParams.sdgGoals?.length) {
           currentParams.sdgGoals.forEach((goal) =>
             queryParams.append("sdgGoals", goal),
           );
         }
 
-        if (currentParams.techStack && currentParams.techStack.length > 0) {
+        if (currentParams.techStack?.length) {
           currentParams.techStack.forEach((tech) =>
             queryParams.append("techStack", tech),
           );
         }
 
-        if (currentParams.years && currentParams.years.length > 0) {
+        if (currentParams.years?.length) {
           currentParams.years.forEach((year) =>
             queryParams.append("years", year),
           );
         }
 
-        // Build final URL
         const finalUrl = queryParams.toString()
           ? `${apiUrl}?${queryParams.toString()}`
           : apiUrl;
-        const response = await fetch(finalUrl);
+
+        const response = await fetch(finalUrl, { signal: controller.signal });
+
+        if (requestId !== requestIdRef.current) return;
 
         if (!response.ok) {
           const errorData = await response.text();
@@ -90,12 +98,13 @@ function useProjects(currentParams: ProjectQueryParams) {
 
         const result = await response.json();
 
+        if (requestId !== requestIdRef.current) return;
+
         // Handle different response formats
         let projectsData: ProjectCardType[];
         let metaData: PaginatedResponse<ProjectCardType>["meta"];
 
         if (currentParams.featured) {
-          // Featured projects API might return a simple array
           if (Array.isArray(result)) {
             projectsData = result;
             metaData = {
@@ -107,7 +116,6 @@ function useProjects(currentParams: ProjectQueryParams) {
               hasPrevPage: false,
             };
           } else {
-            // Or it might return a paginated response
             projectsData = result.data || result;
             metaData = result.meta || {
               totalItems: projectsData.length,
@@ -117,7 +125,6 @@ function useProjects(currentParams: ProjectQueryParams) {
             };
           }
         } else {
-          // Regular projects API returns paginated response
           const paginatedResult = result as PaginatedResponse<ProjectCardType>;
           projectsData = paginatedResult.data;
           metaData = paginatedResult.meta;
@@ -135,6 +142,10 @@ function useProjects(currentParams: ProjectQueryParams) {
 
         setMeta(metaData);
       } catch (err) {
+        if (err instanceof DOMException && err.name === "AbortError") return;
+
+        if (requestId !== requestIdRef.current) return;
+
         setError(
           err instanceof Error
             ? err.message
@@ -143,7 +154,9 @@ function useProjects(currentParams: ProjectQueryParams) {
         console.error("Error fetching projects:", err);
         if (isNewFilter) setProjects([]);
       } finally {
-        setIsLoading(false);
+        if (requestId === requestIdRef.current) {
+          setIsLoading(false);
+        }
       }
     },
     [currentParams],
@@ -167,6 +180,10 @@ function useProjects(currentParams: ProjectQueryParams) {
 
     const page = currentParams.page || 1;
     fetchProjects(page, isNewFilter);
+
+    return () => {
+      abortControllerRef.current?.abort();
+    };
   }, [
     currentParams.featured,
     currentParams.page,

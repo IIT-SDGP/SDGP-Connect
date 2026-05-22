@@ -35,8 +35,8 @@ export default function ProjectExplorer({
   onPageChange,
 }: ProjectExplorerProps) {
   const sentinelRef = useRef<HTMLDivElement>(null);
+  const isRequestingNextPageRef = useRef(false);
 
-  // IntersectionObserver: when sentinel becomes visible, it loads the next page
   useEffect(() => {
     const sentinel = sentinelRef.current;
     if (!sentinel) return;
@@ -44,7 +44,14 @@ export default function ProjectExplorer({
     const observer = new IntersectionObserver(
       (entries) => {
         const entry = entries[0];
-        if (entry.isIntersecting && meta?.hasNextPage && !isLoading) {
+        if (
+          entry.isIntersecting &&
+          meta?.hasNextPage &&
+          !isLoading &&
+          !isRequestingNextPageRef.current
+        ) {
+          isRequestingNextPageRef.current = true;
+          observer.unobserve(sentinel);
           onPageChange((meta.currentPage || 1) + 1);
         }
       },
@@ -55,6 +62,12 @@ export default function ProjectExplorer({
     return () => observer.disconnect();
   }, [meta, isLoading, onPageChange]);
 
+  useEffect(() => {
+    if (!isLoading) {
+      isRequestingNextPageRef.current = false;
+    }
+  }, [isLoading]);
+
   if (error) {
     return (
       <div className="text-center py-10 text-red-500">
@@ -63,7 +76,6 @@ export default function ProjectExplorer({
     );
   }
 
-  // Initial loading state (when no projects are loaded yet)
   if (isLoading && (!projects || projects.length === 0)) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -76,7 +88,6 @@ export default function ProjectExplorer({
     );
   }
 
-  // Empty state when no projects match filters
   if (!projects || projects.length === 0) {
     return (
       <div className="flex items-center justify-center">
@@ -89,11 +100,9 @@ export default function ProjectExplorer({
     );
   }
 
-  // Render projects with infinite scroll
   return (
     <div className="flex flex-col gap-8">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {/* Map through loaded projects */}
         {projects.map((project) => {
           return (
             <div key={project.id} className="project-card-container">
@@ -112,7 +121,6 @@ export default function ProjectExplorer({
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     className="object-cover transition-transform duration-300 group-hover:scale-105"
                   />
-                  {/* Display status badge if status exists */}
                   {project.status && (
                     <div className="absolute top-2 right-2 z-10">
                       <Badge>{project.status}</Badge>
@@ -128,7 +136,6 @@ export default function ProjectExplorer({
                     {project.subtitle || "No subtitle available."}
                   </p>
 
-                  {/* Display Project Types */}
                   {project.projectTypes?.length > 0 && (
                     <div className="flex flex-wrap gap-1 mb-3">
                       {project.projectTypes
@@ -150,7 +157,6 @@ export default function ProjectExplorer({
                     </div>
                   )}
 
-                  {/* Display Domains and View Button */}
                   <div className="flex justify-between items-center mt-auto pt-2 border-t border-border/50">
                     {project.domains?.length > 0 ? (
                       <div className="flex gap-1 flex-wrap">
@@ -190,17 +196,14 @@ export default function ProjectExplorer({
         })}
       </div>
 
-      {/* Loading spinner while fetching next page */}
       {isLoading && projects.length > 0 && (
         <div className="flex justify-center py-6">
           <div className="w-8 h-8 border-2 border-primary/50 border-t-primary rounded-full animate-spin" />
         </div>
       )}
 
-      {/* Invisible sentinel triggers loading more content on scroll */}
       <div ref={sentinelRef} className="h-1 w-full" />
 
-      {/* End of results message */}
       {!meta?.hasNextPage && projects.length > 0 && !isLoading && (
         <p className="text-center text-sm text-muted-foreground py-4">
           You&apos;ve reached the end of the results.

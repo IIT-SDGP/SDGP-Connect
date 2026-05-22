@@ -4,7 +4,6 @@
 // See <https://www.gnu.org/licenses/agpl-3.0.html> for details.
 "use client";
 
-import React from "react";
 import dynamic from "next/dynamic";
 import { Eye } from "lucide-react";
 import { useLanguage } from "@/hooks/LanguageProvider";

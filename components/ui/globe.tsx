@@ -33,7 +33,7 @@ export const defaultMarkers: Marker[] = [
 export function Globe({
   markers = defaultMarkers,
   className = "",
-  speed = 0.003,
+  speed = 0.006,
 }: GlobeProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const pointerInteracting = useRef<{ x: number; y: number } | null>(null)
@@ -43,6 +43,8 @@ export function Globe({
   const isPausedRef = useRef(false)
   const [expanded, setExpanded] = useState<string | null>(null)
   const [isMobile, setIsMobile] = useState(false)
+
+  const maxUsers = Math.max(...markers.map((m) => m.users))
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768)
@@ -92,10 +94,11 @@ export function Globe({
     let animationId: number
     let phi = 0
 
-    function init() {
-      const width = canvas.offsetWidth
-      if (width === 0) return
-      if (globe) return
+    function init(width: number) {
+      if (globe) {
+        globe.destroy()
+        globe = null
+      }
 
       globe = createGlobe(canvas, {
         devicePixelRatio: Math.min(window.devicePixelRatio || 1, 2),
@@ -139,19 +142,17 @@ export function Globe({
       })
     }
 
-    if (canvas.offsetWidth > 0) {
-      init()
-    } else {
-      const resizeObserver = new ResizeObserver((entries) => {
-        if (entries[0]?.contentRect.width > 0) {
-          resizeObserver.disconnect()
-          init()
-        }
-      })
-      resizeObserver.observe(canvas)
-    }
+    const resizeObserver = new ResizeObserver((entries) => {
+      const width = entries[0]?.contentRect.width ?? 0
+      if (width === 0) return
+      if (animationId) cancelAnimationFrame(animationId)
+      init(width)
+    })
+
+    resizeObserver.observe(canvas)
 
     return () => {
+      resizeObserver.disconnect()
       if (animationId) cancelAnimationFrame(animationId)
       if (globe) globe.destroy()
     }
@@ -174,9 +175,17 @@ export function Globe({
       />
 
       {!isMobile && markers.map((marker) => (
-        <div
+        <button
           key={marker.id}
           onClick={() => setExpanded(expanded === marker.id ? null : marker.id)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault()
+              setExpanded(expanded === marker.id ? null : marker.id)
+            }
+          }}
+          aria-pressed={expanded === marker.id}
+          aria-label={`${marker.name}: ${marker.users.toLocaleString()} users`}
           style={{
             position: "absolute",
             // @ts-expect-error CSS Anchor Positioning
@@ -201,6 +210,8 @@ export function Globe({
             filter: `blur(calc((1 - var(--cobe-visible-${marker.id}, 0)) * 8px))`,
             transition: "opacity 0.4s, filter 0.4s, transform 0.2s",
             transform: expanded === marker.id ? "scale(1.05)" : "scale(1)",
+            textAlign: "left",
+            fontFamily: "inherit",
           }}
         >
           <span
@@ -251,14 +262,14 @@ export function Globe({
                     height: "100%",
                     borderRadius: 2,
                     background: "linear-gradient(90deg, #3b82f6, #6366f1)",
-                    width: `${Math.round((marker.users / 3200) * 100)}%`,
+                    width: `${Math.min(Math.round((marker.users / maxUsers) * 100), 100)}%`,
                     animation: "sdgp-shimmer 2.5s ease-in-out infinite",
                   }}
                 />
               </div>
             </>
           )}
-        </div>
+        </button>
       ))}
     </div>
   )
