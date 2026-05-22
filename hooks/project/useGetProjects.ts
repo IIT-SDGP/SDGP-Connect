@@ -1,9 +1,4 @@
-// © 2026 SDGP.lk
-// Licensed under the GNU Affero General Public License v3.0 or later,
-// with an additional restriction: Non-commercial use only.
-// See <https://www.gnu.org/licenses/agpl-3.0.html> for details.
-
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { PaginatedResponse } from "../../types/project/pagination";
 import { ProjectCardType } from "../../types/project/card";
 
@@ -15,14 +10,25 @@ function useProjects(currentParams: ProjectQueryParams) {
     PaginatedResponse<ProjectCardType>["meta"] | null
   >(null);
 
+  const prevFilterRef = useRef<string>("");
+
+  const requestIdRef = useRef<number>(0);
+  const abortControllerRef = useRef<AbortController | null>(null);
+
   const fetchProjects = useCallback(
-    async (page: number) => {
+    async (page: number, isNewFilter: boolean) => {
+      abortControllerRef.current?.abort();
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
+
+      const requestId = ++requestIdRef.current;
+
       setIsLoading(true);
       setError(null);
 
       try {
         let apiUrl = "/api/projects";
-        let queryParams = new URLSearchParams();
+        const queryParams = new URLSearchParams();
 
         if (currentParams.featured) {
           apiUrl = "/api/projects/featured";
@@ -34,50 +40,49 @@ function useProjects(currentParams: ProjectQueryParams) {
         if (currentParams.title)
           queryParams.append("title", currentParams.title);
 
-        if (
-          currentParams.projectTypes &&
-          currentParams.projectTypes.length > 0
-        ) {
+        if (currentParams.projectTypes?.length) {
           currentParams.projectTypes.forEach((type) =>
             queryParams.append("projectTypes", type),
           );
         }
 
-        if (currentParams.domains && currentParams.domains.length > 0) {
+        if (currentParams.domains?.length) {
           currentParams.domains.forEach((domain) =>
             queryParams.append("domains", domain),
           );
         }
 
-        if (currentParams.status && currentParams.status.length > 0) {
+        if (currentParams.status?.length) {
           currentParams.status.forEach((status) =>
             queryParams.append("status", status),
           );
         }
 
-        if (currentParams.sdgGoals && currentParams.sdgGoals.length > 0) {
+        if (currentParams.sdgGoals?.length) {
           currentParams.sdgGoals.forEach((goal) =>
             queryParams.append("sdgGoals", goal),
           );
         }
 
-        if (currentParams.techStack && currentParams.techStack.length > 0) {
+        if (currentParams.techStack?.length) {
           currentParams.techStack.forEach((tech) =>
             queryParams.append("techStack", tech),
           );
         }
 
-        if (currentParams.years && currentParams.years.length > 0) {
+        if (currentParams.years?.length) {
           currentParams.years.forEach((year) =>
             queryParams.append("years", year),
           );
         }
 
-        // Build final URL
         const finalUrl = queryParams.toString()
           ? `${apiUrl}?${queryParams.toString()}`
           : apiUrl;
-        const response = await fetch(finalUrl);
+
+        const response = await fetch(finalUrl, { signal: controller.signal });
+
+        if (requestId !== requestIdRef.current) return;
 
         if (!response.ok) {
           const errorData = await response.text();
@@ -88,12 +93,12 @@ function useProjects(currentParams: ProjectQueryParams) {
 
         const result = await response.json();
 
-        // Handle different response formats
+        if (requestId !== requestIdRef.current) return;
+
         let projectsData: ProjectCardType[];
         let metaData: PaginatedResponse<ProjectCardType>["meta"];
 
         if (currentParams.featured) {
-          // Featured projects API might return a simple array
           if (Array.isArray(result)) {
             projectsData = result;
             metaData = {
@@ -105,7 +110,6 @@ function useProjects(currentParams: ProjectQueryParams) {
               hasPrevPage: false,
             };
           } else {
-            // Or it might return a paginated response
             projectsData = result.data || result;
             metaData = result.meta || {
               totalItems: projectsData.length,
@@ -115,34 +119,71 @@ function useProjects(currentParams: ProjectQueryParams) {
             };
           }
         } else {
-          // Regular projects API returns paginated response
           const paginatedResult = result as PaginatedResponse<ProjectCardType>;
           projectsData = paginatedResult.data;
           metaData = paginatedResult.meta;
         }
 
-        setProjects(projectsData);
+        if (isNewFilter) {
+          setProjects(projectsData);
+        } else {
+          setProjects((prev) => {
+            const existingIds = new Set(prev.map((p) => p.id));
+            const newItems = projectsData.filter((p) => !existingIds.has(p.id));
+            return [...prev, ...newItems];
+          });
+        }
 
         setMeta(metaData);
       } catch (err) {
+        if (err instanceof DOMException && err.name === "AbortError") return;
+
+        if (requestId !== requestIdRef.current) return;
+
         setError(
           err instanceof Error
             ? err.message
             : "An error occurred while fetching projects",
         );
         console.error("Error fetching projects:", err);
-        setProjects([]);
+        if (isNewFilter) setProjects([]);
       } finally {
-        setIsLoading(false);
+        if (requestId === requestIdRef.current) {
+          setIsLoading(false);
+        }
       }
     },
     [currentParams],
   );
 
-  // Fetch whenever params change
+  const resetToFirstPage = useCallback(() => {
+    setProjects([]);
+    setMeta(null);
+    fetchProjects(1, true);
+  }, [fetchProjects]);
+
   useEffect(() => {
+    const filterKey = [
+      currentParams.featured,
+      currentParams.title,
+      currentParams.limit,
+      currentParams.projectTypes?.join(","),
+      currentParams.domains?.join(","),
+      currentParams.status?.join(","),
+      currentParams.sdgGoals?.join(","),
+      currentParams.techStack?.join(","),
+      currentParams.years?.join(","),
+    ].join("|");
+
+    const isNewFilter = filterKey !== prevFilterRef.current;
+    prevFilterRef.current = filterKey;
+
     const page = currentParams.page || 1;
-    fetchProjects(page);
+    fetchProjects(page, isNewFilter);
+
+    return () => {
+      abortControllerRef.current?.abort();
+    };
   }, [
     currentParams.featured,
     currentParams.page,
@@ -154,7 +195,6 @@ function useProjects(currentParams: ProjectQueryParams) {
     currentParams.sdgGoals?.join(","),
     currentParams.techStack?.join(","),
     currentParams.years?.join(","),
-    // NOTE: fetchProjects intentionally excluded to prevent re-render loops
   ]);
 
   return {
@@ -162,6 +202,7 @@ function useProjects(currentParams: ProjectQueryParams) {
     isLoading,
     error,
     meta,
+    resetToFirstPage,
   };
 }
 
