@@ -1,8 +1,3 @@
-// © 2026 SDGP.lk
-// Licensed under the GNU Affero General Public License v3.0 or later,
-// with an additional restriction: Non-commercial use only.
-// See <https://www.gnu.org/licenses/agpl-3.0.html> for details.
-
 import { useEffect, useState, useCallback, useRef } from "react";
 import { PaginatedResponse } from "../../types/project/pagination";
 import { ProjectCardType } from "../../types/project/card";
@@ -100,7 +95,6 @@ function useProjects(currentParams: ProjectQueryParams) {
 
         if (requestId !== requestIdRef.current) return;
 
-        // Handle different response formats
         let projectsData: ProjectCardType[];
         let metaData: PaginatedResponse<ProjectCardType>["meta"];
 
@@ -162,6 +156,12 @@ function useProjects(currentParams: ProjectQueryParams) {
     [currentParams],
   );
 
+  const resetToFirstPage = useCallback(() => {
+    setProjects([]);
+    setMeta(null);
+    fetchProjects(1, true);
+  }, [fetchProjects]);
+
   useEffect(() => {
     const filterKey = [
       currentParams.featured,
@@ -195,7 +195,6 @@ function useProjects(currentParams: ProjectQueryParams) {
     currentParams.sdgGoals?.join(","),
     currentParams.techStack?.join(","),
     currentParams.years?.join(","),
-    // NOTE: fetchProjects intentionally excluded to prevent re-render loops
   ]);
 
   return {
@@ -203,6 +202,7 @@ function useProjects(currentParams: ProjectQueryParams) {
     isLoading,
     error,
     meta,
+    resetToFirstPage,
   };
 }
 

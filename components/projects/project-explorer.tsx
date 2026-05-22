@@ -1,8 +1,3 @@
-// © 2026 SDGP.lk
-// Licensed under the GNU Affero General Public License v3.0 or later,
-// with an additional restriction: Non-commercial use only.
-// See <https://www.gnu.org/licenses/agpl-3.0.html> for details.
-// filepath: d:\MyProjects\LEXi\SDGP-Connect\components\projects\project-explorer.tsx
 "use client";
 
 import Link from "next/link";
@@ -13,7 +8,7 @@ import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { ProjectQueryParams } from "@/hooks/project/useGetProjects";
 import { EmptyState } from "../ui/empty-state";
-import { FileX2 } from "lucide-react";
+import { FileX2, ArrowUp } from "lucide-react";
 import { PaginatedResponse } from "@/types/project/pagination";
 import { ProjectCardType } from "@/types/project/card";
 
@@ -24,6 +19,7 @@ interface ProjectExplorerProps {
   error: string | null;
   meta: PaginatedResponse<ProjectCardType>["meta"] | null;
   onPageChange: (page: number) => void;
+  onReset: () => void;
 }
 
 export default function ProjectExplorer({
@@ -33,6 +29,7 @@ export default function ProjectExplorer({
   error,
   meta,
   onPageChange,
+  onReset,
 }: ProjectExplorerProps) {
   const sentinelRef = useRef<HTMLDivElement>(null);
   const isRequestingNextPageRef = useRef(false);
@@ -67,6 +64,11 @@ export default function ProjectExplorer({
       isRequestingNextPageRef.current = false;
     }
   }, [isLoading]);
+
+  const handleBackToTop = () => {
+    onReset();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   if (error) {
     return (
@@ -208,6 +210,18 @@ export default function ProjectExplorer({
         <p className="text-center text-sm text-muted-foreground py-4">
           You&apos;ve reached the end of the results.
         </p>
+      )}
+
+      {(meta?.currentPage ?? 1) > 1 && (
+        <Button
+          onClick={handleBackToTop}
+          size="sm"
+          variant="outline"
+          title="Back to top"
+          className="fixed bottom-24 right-12 z-50 rounded-full shadow-lg h-9 w-9 p-0"
+        >
+          <ArrowUp className="w-4 h-4" />
+        </Button>
       )}
     </div>
   );

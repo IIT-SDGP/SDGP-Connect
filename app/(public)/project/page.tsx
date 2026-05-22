@@ -51,7 +51,7 @@ function ProjectsPageContent() {
     }), [searchParams]);
 
     // Use the hook with pagination capabilities
-    const { projects, isLoading, error, meta } = useProjects(currentParams);
+    const { projects, isLoading, error, meta, resetToFirstPage } = useProjects(currentParams);
 
     // Set initial load to false after first load completes
     useEffect(() => {
@@ -207,6 +207,7 @@ function ProjectsPageContent() {
                                         scroll: false,
                                     });
                                 }}
+                                onReset={resetToFirstPage}
                             />
                         </div>
                     </div>
