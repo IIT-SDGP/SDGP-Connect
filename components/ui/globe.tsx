@@ -13,10 +13,55 @@ export interface Marker {
   size?: number
 }
 
+export interface GlobeArc {
+  id?: string
+  order?: number
+  startLat?: number
+  startLng?: number
+  endLat?: number
+  endLng?: number
+  from?: [number, number]
+  to?: [number, number]
+  arcAlt?: number
+  color?: string
+}
+
+export interface GlobeConfig {
+  pointSize?: number
+  globeColor?: string
+  showAtmosphere?: boolean
+  atmosphereColor?: string
+  atmosphereAltitude?: number
+  emissive?: string
+  emissiveIntensity?: number
+  shininess?: number
+  polygonColor?: string
+  ambientLight?: string
+  directionalLeftLight?: string
+  directionalTopLight?: string
+  pointLight?: string
+  arcTime?: number
+  arcLength?: number
+  rings?: number
+  maxRings?: number
+  initialPosition?: { lat: number; lng: number }
+  autoRotate?: boolean
+  autoRotateSpeed?: number
+}
+
+type GlobeCobeArc = {
+  id: string | undefined
+  from: [number, number]
+  to: [number, number]
+  color: [number, number, number] | undefined
+}
+
 interface GlobeProps {
   markers?: Marker[]
   className?: string
   speed?: number
+  data?: GlobeArc[]
+  globeConfig?: GlobeConfig
 }
 
 export const defaultMarkers: Marker[] = [
@@ -29,10 +74,30 @@ export const defaultMarkers: Marker[] = [
   { id: "australia", location: [-33.87, 151.21]  },
 ]
 
+function parseHexColor(color: string | undefined, fallback: [number, number, number]) {
+  if (!color || !color.startsWith("#")) return fallback
+  const hex = color.slice(1)
+  const values =
+    hex.length === 3
+      ? [hex[0] + hex[0], hex[1] + hex[1], hex[2] + hex[2]]
+      : hex.length === 6
+      ? [hex.slice(0, 2), hex.slice(2, 4), hex.slice(4, 6)]
+      : null
+
+  if (!values) return fallback
+
+  const rgb = values.map((chunk) => parseInt(chunk, 16))
+  if (rgb.some(Number.isNaN)) return fallback
+
+  return [rgb[0] / 255, rgb[1] / 255, rgb[2] / 255] as [number, number, number]
+}
+
 export function Globe({
   markers = defaultMarkers,
   className = "",
   speed = 0.006,
+  data = [],
+  globeConfig,
 }: GlobeProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const pointerInteracting = useRef<{ x: number; y: number } | null>(null)
@@ -88,6 +153,31 @@ export function Globe({
         globe = null
       }
 
+      const animationSpeed =
+        globeConfig?.autoRotate === false ? 0 : globeConfig?.autoRotateSpeed ?? speed
+
+      const arcs = data
+        .map((arc) => {
+          const from =
+            arc.from ??
+            (arc.startLat != null && arc.startLng != null
+              ? ([arc.startLat, arc.startLng] as [number, number])
+              : undefined)
+          const to =
+            arc.to ??
+            (arc.endLat != null && arc.endLng != null
+              ? ([arc.endLat, arc.endLng] as [number, number])
+              : undefined)
+          if (!from || !to) return null
+          return {
+            id: arc.id,
+            from,
+            to,
+            color: arc.color ? parseHexColor(arc.color, [1, 1, 1]) : undefined,
+          }
+        })
+        .filter((arc): arc is GlobeCobeArc => arc !== null)
+
       globe = createGlobe(canvas, {
         devicePixelRatio: Math.min(window.devicePixelRatio || 1, 2),
         width,
@@ -98,23 +188,23 @@ export function Globe({
         diffuse: 0.4,
         mapSamples: 16000,
         mapBrightness: 6,
-        baseColor: [0.024, 0.125, 0.337],
-        markerColor: [0.024, 0.714, 0.831],
-        glowColor: [0.231, 0.510, 0.973],
+        baseColor: parseHexColor(globeConfig?.globeColor, [0.024, 0.125, 0.337]),
+        markerColor: parseHexColor(globeConfig?.directionalLeftLight, [0.024, 0.714, 0.831]),
+        glowColor: parseHexColor(globeConfig?.directionalTopLight, [0.231, 0.510, 0.973]),
         markerElevation: 0,
         markers: markers.map((marker) => ({
           location: marker.location,
-          size: marker.size ?? 0.025,
+          size: marker.size ?? globeConfig?.pointSize ?? 0.025,
         })),
-        arcs: [],
-        arcColor: [0.024, 0.714, 0.831],
-        arcWidth: 0.5,
-        arcHeight: 0.25,
+        arcs,
+        arcColor: parseHexColor(globeConfig?.pointLight, [0.024, 0.714, 0.831]),
+        arcWidth: globeConfig?.arcLength ?? 0.5,
+        arcHeight: globeConfig?.arcLength ?? 0.25,
         opacity: 0.7,
       })
 
       function animate() {
-        if (!isPausedRef.current) phi += speed
+        if (!isPausedRef.current) phi += animationSpeed
         globe?.update({
           phi: phi + phiOffsetRef.current + dragOffset.current.phi,
           theta: 0.2 + thetaOffsetRef.current + dragOffset.current.theta,
@@ -143,7 +233,7 @@ export function Globe({
       if (animationId) cancelAnimationFrame(animationId)
       if (globe) globe.destroy()
     }
-  }, [markers, speed])
+}, [markers, speed, data, globeConfig])
 
   return (
     <div className={`relative aspect-square select-none ${className}`}>
