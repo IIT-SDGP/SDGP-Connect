@@ -38,6 +38,8 @@ export default function ProjectExplorer({
     const sentinel = sentinelRef.current;
     if (!sentinel) return;
 
+    const scrollRoot = sentinel.closest<HTMLElement>('.overflow-y-auto');
+
     const observer = new IntersectionObserver(
       (entries) => {
         const entry = entries[0];
@@ -52,7 +54,7 @@ export default function ProjectExplorer({
           onPageChange((meta.currentPage || 1) + 1);
         }
       },
-      { threshold: 0.1 }
+      { threshold: 0.1, root: scrollRoot ?? null }
     );
 
     observer.observe(sentinel);
@@ -199,8 +201,12 @@ export default function ProjectExplorer({
       </div>
 
       {isLoading && projects.length > 0 && (
-        <div className="flex justify-center py-6">
-          <div className="w-8 h-8 border-2 border-primary/50 border-t-primary rounded-full animate-spin" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {Array(3)
+            .fill(0)
+            .map((_, i) => (
+              <Skeleton key={`next-batch-${i}`} className="h-[350px] rounded-xl bg-muted" />
+            ))}
         </div>
       )}
 

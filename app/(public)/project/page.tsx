@@ -36,6 +36,7 @@ function ProjectsPageContent() {
     const searchParams = useSearchParams();
     const [showMobileFilters, setShowMobileFilters] = useState(false);
     const [isInitialLoad, setIsInitialLoad] = useState(true);
+    const rightPanelRef = useRef<HTMLDivElement>(null);
 
     const currentParams = useMemo((): ProjectQueryParams => ({
         page: parseInt(searchParams.get('page') || '1', 10),
@@ -59,6 +60,19 @@ function ProjectsPageContent() {
             setIsInitialLoad(false);
         }
     }, [isLoading, projects, isInitialLoad]);
+
+    // Intercept all wheel events and redirect to the right panel
+    useEffect(() => {
+        const handleWheel = (e: WheelEvent) => {
+            if (rightPanelRef.current) {
+                e.preventDefault();
+                rightPanelRef.current.scrollTop += e.deltaY;
+            }
+        };
+
+        document.addEventListener('wheel', handleWheel, { passive: false });
+        return () => document.removeEventListener('wheel', handleWheel);
+    }, []);
 
     const initialFilters = useMemo((): FilterState => ({
         featured: currentParams.featured || false,
@@ -122,9 +136,6 @@ function ProjectsPageContent() {
 
         const newUrl = `${window.location.pathname}?${params.toString()}`;
         router.push(newUrl, { scroll: false });
-
-        // Close mobile filters after applying changes
-        //setShowMobileFilters(false);
     }, [router, currentParams.limit, currentParams.title]);
 
     const handleSearch = useCallback((value: string) => {
@@ -149,13 +160,12 @@ function ProjectsPageContent() {
     useEffect(() => {
         const handleEscape = (e: KeyboardEvent) => {
             if (e.key === 'Escape' && showMobileFilters) {
-                //setShowMobileFilters(false);
+                // setShowMobileFilters(false);
             }
         };
 
         if (showMobileFilters) {
             document.addEventListener('keydown', handleEscape);
-            // Prevent body scroll when mobile filters are open
             document.body.style.overflow = 'hidden';
         } else {
             document.body.style.overflow = 'unset';
@@ -185,15 +195,14 @@ function ProjectsPageContent() {
                         onSearch={handleSearch}
                     />
 
-                    <div className="flex flex-col md:flex-row gap-6 mt-8">
+                    <div className="flex flex-col md:flex-row gap-6 mt-8 md:h-[calc(100vh-12rem)]">
                         {/* Desktop Filter Sidebar */}
-                        <div className="hidden md:block w-64 lg:w-72 flex-shrink-0">
-                            <div className="sticky top-0">
-                                <FilterSidebar onFilterChange={handleFilterChange} initialFilters={initialFilters} />
-                            </div>
+                        <div className="hidden md:block w-64 lg:w-72 flex-shrink-0 overflow-y-auto overscroll-contain">
+                            <FilterSidebar onFilterChange={handleFilterChange} initialFilters={initialFilters} />
                         </div>
 
-                        <div className="flex-1">
+                        {/* Right panel — ref used to capture all wheel scroll */}
+                        <div ref={rightPanelRef} className="flex-1 overflow-y-auto overscroll-contain">
                             <ProjectExplorer
                                 currentParams={currentParams}
                                 projects={projects || []}
