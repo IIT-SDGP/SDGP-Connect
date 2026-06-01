@@ -16,6 +16,7 @@ interface ProjectExplorerProps {
   currentParams: ProjectQueryParams;
   projects: any[];
   isLoading: boolean;
+  isFilterLoading: boolean;
   error: string | null;
   meta: PaginatedResponse<ProjectCardType>["meta"] | null;
   onPageChange: (page: number) => void;
@@ -26,6 +27,7 @@ export default function ProjectExplorer({
   currentParams,
   projects,
   isLoading,
+  isFilterLoading,
   error,
   meta,
   onPageChange,
@@ -76,6 +78,18 @@ export default function ProjectExplorer({
     return (
       <div className="text-center py-10 text-red-500">
         Error loading projects: {error}
+      </div>
+    );
+  }
+
+  if (isFilterLoading) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {Array(currentParams.limit || 9)
+          .fill(0)
+          .map((_, i) => (
+            <Skeleton key={i} className="h-[350px] rounded-xl bg-muted" />
+          ))}
       </div>
     );
   }
