@@ -36,6 +36,7 @@ function ProjectsPageContent() {
     const searchParams = useSearchParams();
     const [showMobileFilters, setShowMobileFilters] = useState(false);
     const [isInitialLoad, setIsInitialLoad] = useState(true);
+    const [isFilterLoading, setIsFilterLoading] = useState(false);
     const rightPanelRef = useRef<HTMLDivElement>(null);
 
     const currentParams = useMemo((): ProjectQueryParams => ({
@@ -54,10 +55,13 @@ function ProjectsPageContent() {
     // Use the hook with pagination capabilities
     const { projects, isLoading, error, meta, resetToFirstPage } = useProjects(currentParams);
 
-    // Set initial load to false after first load completes
+    // Clear isFilterLoading and isInitialLoad once loading finishes
     useEffect(() => {
-        if (!isLoading && projects && isInitialLoad) {
-            setIsInitialLoad(false);
+        if (!isLoading) {
+            setIsFilterLoading(false);
+            if (projects && isInitialLoad) {
+                setIsInitialLoad(false);
+            }
         }
     }, [isLoading, projects, isInitialLoad]);
 
@@ -111,6 +115,7 @@ function ProjectsPageContent() {
         }
 
         prevFiltersRef.current = newFilters;
+        setIsFilterLoading(true);
 
         const params = new URLSearchParams();
         params.append('page', '1');
@@ -207,6 +212,7 @@ function ProjectsPageContent() {
                                 currentParams={currentParams}
                                 projects={projects || []}
                                 isLoading={isLoading}
+                                isFilterLoading={isFilterLoading}
                                 error={error}
                                 meta={meta}
                                 onPageChange={(page) => {
