@@ -51,14 +51,7 @@ export default function Footer() {
               />
             
             </a> */}
-              <a href="https://ebadge.bestweb.lk/api/v1/clicked/sdgp.lk/BestWeb/2025/Rate_Us">
-                <img
-                  src="https://ebadge.bestweb.lk/eBadgeSystem/domainNames/sdgp.lk/BestWeb/2025/Rate_Us/image.png"
-                  alt="logo"
-                  width="150"
-                  height="150"
-                />
-              </a>
+<a href="https://ebadge.bestweb.lk/api/v1/clicked/sdgp.iit.ac.lk/TopWeb/2026-June/Qualified"><img src="https://ebadge.bestweb.lk/eBadgeSystem/domainNames/sdgp.iit.ac.lk/TopWeb/2026-June/Qualified/image.png" alt="logo" width="150" height="150" />              </a>
             </div>
 
           {sections.map((section, index) => (
