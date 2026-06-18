@@ -476,7 +476,7 @@ export default function FilterSidebar({
 
   // --- JSX Rendering ---
   return (
-    <div className="bg-card p-3 rounded-lg border shadow-sm h-full flex flex-col">
+    <div className="bg-card p-3 rounded-lg border shadow-sm">
       {/* Header with Title and Clear Button */}
       <div className="flex justify-between items-center mb-3 pb-2 border-b">
         <h3 className="font-semibold text-base">Filters</h3>
@@ -508,7 +508,7 @@ export default function FilterSidebar({
       )}
 
       {/* Scrollable Filter Sections */}
-      <div className="space-y-1 divide-y divide-border/50 overflow-y-auto flex-grow">
+      <div className="space-y-1 divide-y divide-border/50">
         <FeaturedFilterSection
           selection={featuredOnly}
           setSelection={setFeaturedOnly}

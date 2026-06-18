@@ -37,7 +37,6 @@ function ProjectsPageContent() {
     const [showMobileFilters, setShowMobileFilters] = useState(false);
     const [isInitialLoad, setIsInitialLoad] = useState(true);
     const [isFilterLoading, setIsFilterLoading] = useState(false);
-    const rightPanelRef = useRef<HTMLDivElement>(null);
 
     const currentParams = useMemo((): ProjectQueryParams => ({
         page: parseInt(searchParams.get('page') || '1', 10),
@@ -64,19 +63,6 @@ function ProjectsPageContent() {
             }
         }
     }, [isLoading, projects, isInitialLoad]);
-
-    // Intercept all wheel events and redirect to the right panel
-    useEffect(() => {
-        const handleWheel = (e: WheelEvent) => {
-            if (rightPanelRef.current) {
-                e.preventDefault();
-                rightPanelRef.current.scrollTop += e.deltaY;
-            }
-        };
-
-        document.addEventListener('wheel', handleWheel, { passive: false });
-        return () => document.removeEventListener('wheel', handleWheel);
-    }, []);
 
     const initialFilters = useMemo((): FilterState => ({
         featured: currentParams.featured || false,
@@ -165,7 +151,7 @@ function ProjectsPageContent() {
     useEffect(() => {
         const handleEscape = (e: KeyboardEvent) => {
             if (e.key === 'Escape' && showMobileFilters) {
-                // setShowMobileFilters(false);
+                setShowMobileFilters(false);
             }
         };
 
@@ -188,7 +174,7 @@ function ProjectsPageContent() {
     }
 
     return (
-        <div className="relative min-h-screen overflow-hidden">
+        <div className="relative min-h-screen">
             {/* Three.js starfield background — sits behind all content */}
             <ThreeScene />
 
@@ -199,15 +185,14 @@ function ProjectsPageContent() {
                         defaultTitle={currentParams.title ?? ""}
                         onSearch={handleSearch}
                     />
-
-                    <div className="flex flex-col md:flex-row gap-6 mt-8 md:h-[calc(100vh-12rem)]">
-                        {/* Desktop Filter Sidebar */}
-                        <div className="hidden md:block w-64 lg:w-72 flex-shrink-0 overflow-y-auto overscroll-contain">
+                    <div className="flex flex-col md:flex-row gap-6 mt-8">
+                        {/* Desktop Filter Sidebar — FIX: removed overflow-y-auto overscroll-contain */}
+                        <div className="hidden md:block w-64 lg:w-72 flex-shrink-0">
                             <FilterSidebar onFilterChange={handleFilterChange} initialFilters={initialFilters} />
                         </div>
 
-                        {/* Right panel — ref used to capture all wheel scroll */}
-                        <div ref={rightPanelRef} className="flex-1 overflow-y-auto overscroll-contain">
+                        {/* Right panel — FIX: removed ref, overflow-y-auto, overscroll-contain */}
+                        <div className="flex-1">
                             <ProjectExplorer
                                 currentParams={currentParams}
                                 projects={projects || []}
