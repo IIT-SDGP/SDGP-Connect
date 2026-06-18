@@ -36,12 +36,12 @@ function getNested(obj: unknown, path: string[], fallback: any = undefined) {
 }
 
 const heroImages = [
-  "/home/hero/dialog-ino.png",
+  "/home/hero/dialog-ino.webp",
   "/home/hero/movemate1.webp",
-  "/home/hero/3.jpg",
+  "/home/hero/3.webp",
   "/home/hero/1.webp",
-  "/home/hero/codesprint.png",
-  "/home/hero/inno.png",
+  "/home/hero/codesprint.webp",
+  "/home/hero/inno.webp",
   "/home/hero/2.webp",
 ];
 
