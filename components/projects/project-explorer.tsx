@@ -40,7 +40,7 @@ export default function ProjectExplorer({
     const sentinel = sentinelRef.current;
     if (!sentinel) return;
 
-    const scrollRoot = sentinel.closest<HTMLElement>('.overflow-y-auto');
+    // root: null targets the viewport, which is correct now that the page scrolls naturally
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -56,7 +56,7 @@ export default function ProjectExplorer({
           onPageChange((meta.currentPage || 1) + 1);
         }
       },
-      { threshold: 0.1, root: scrollRoot ?? null }
+      { threshold: 0.1, root: null }
     );
 
     observer.observe(sentinel);
@@ -84,7 +84,7 @@ export default function ProjectExplorer({
 
   if (isFilterLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
         {Array(currentParams.limit || 9)
           .fill(0)
           .map((_, i) => (
@@ -96,7 +96,7 @@ export default function ProjectExplorer({
 
   if (isLoading && (!projects || projects.length === 0)) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
         {Array(currentParams.limit || 9)
           .fill(0)
           .map((_, i) => (
@@ -120,15 +120,15 @@ export default function ProjectExplorer({
 
   return (
     <div className="flex flex-col gap-8">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
         {projects.map((project) => {
           return (
-            <div key={project.id} className="project-card-container">
+            <div key={project.id} className="h-full">
               <Link
                 href={`/project/${project.id}`}
-                className="project-card group block rounded-xl overflow-hidden border bg-card shadow-sm hover:shadow-lg transition-all duration-300 ease-in-out"
+                className="project-card group flex flex-col h-full rounded-xl overflow-hidden border bg-card shadow-sm hover:shadow-lg transition-all duration-300 ease-in-out"
               >
-                <div className="relative aspect-video overflow-hidden">
+                <div className="relative aspect-video overflow-hidden flex-shrink-0">
                   <Image
                     src={
                       project.coverImage ||
@@ -146,7 +146,7 @@ export default function ProjectExplorer({
                   )}
                 </div>
 
-                <div className="p-4 flex flex-col h-[calc(100%-aspect-video)]">
+                <div className="p-4 flex flex-col flex-1">
                   <h3 className="text-lg font-semibold mb-1 line-clamp-1">
                     {project.title}
                   </h3>
@@ -215,7 +215,7 @@ export default function ProjectExplorer({
       </div>
 
       {isLoading && projects.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
           {Array(3)
             .fill(0)
             .map((_, i) => (
