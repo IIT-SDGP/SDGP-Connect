@@ -187,7 +187,7 @@ function ProjectsPageContent() {
                     />
                     <div className="flex flex-col md:flex-row gap-6 mt-8">
                         {/* Desktop Filter Sidebar — FIX: removed overflow-y-auto overscroll-contain */}
-                        <div className="hidden md:block w-64 lg:w-72 flex-shrink-0">
+                        <div className="hidden md:block w-64 lg:w-72 flex-shrink-0 self-start sticky top-8">
                             <FilterSidebar onFilterChange={handleFilterChange} initialFilters={initialFilters} />
                         </div>
 
