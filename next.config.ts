@@ -56,6 +56,11 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       {
+        source: '/vote',
+        destination: 'https://rate.bestweb.lk/voting-categories/voting-websites/26/213',
+        permanent: false,
+      },
+      {
         source: '/student',
         destination: '/dashboard',
         permanent: false,
