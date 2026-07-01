@@ -121,7 +121,7 @@ export function CustomCursor() {
     <>
       {/* Main cursor */}
       <div
-        className={`fixed pointer-events-none z-50 transition-opacity duration-300 ${
+        className={`fixed pointer-events-none z-[10050] transition-opacity duration-300 ${
           hidden ? "opacity-0" : "opacity-100"
         }`}
         style={{
@@ -156,7 +156,7 @@ export function CustomCursor() {
 
       {/* Trailing circle with delay */}
       <div
-        className="fixed pointer-events-none z-40 opacity-30 rounded-full"
+        className="fixed pointer-events-none z-[10040] opacity-30 rounded-full"
         style={{
           left: `${trailPosition.x}px`,
           top: `${trailPosition.y}px`,
