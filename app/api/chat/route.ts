@@ -6,13 +6,18 @@ const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 const MODEL = "llama-3.3-70b-versatile";
 
+let quotaResetAt: number | null = null;
+
 const SYSTEM_PROMPT = `You are the assistant embedded on SDGP.lk, a directory of student software/hardware projects (AI, ML, healthtech, fintech, edtech, and more).
 
 Rules:
 - For any question about specific projects, teams, domains, tech stacks, SDG goals, or "best/featured" projects, ALWAYS call the search_projects tool first. Never invent project details.
 - If the tool returns no results, say so plainly and don't make something up.
-- For open-ended or advice questions (e.g. "what AI or medical project should I build?"), you may combine real examples from search_projects with your own general knowledge to suggest ideas — but clearly distinguish "here's what's already on SDGP.lk" from "here's an idea you could build."
-- Keep answers concise and link to the project's website field when available.
+- If the user asks for an idea, inspiration, or "what should I build" (rather than asking about existing projects), you MUST do two things, in this order:
+  1. Call search_projects and list 1-3 relevant existing projects under a heading like "Similar projects already on SDGP.lk", each with its View Project link — for context/inspiration only.
+  2. Then propose at least one genuinely NEW idea, under a heading like "An idea you could build", that is NOT one of the projects returned by search_projects. Base it on gaps you notice in the search results or general domain knowledge, and describe it in 2-3 sentences.
+  Never present an existing project as if it were a suggestion for the user to go build.
+- Keep answers concise. For each project you mention, write its title as plain text (do NOT turn the title itself into a markdown link), then include a separate "View Project" link using its pageUrl field, e.g.: "BlynQ. — An AI Powered Vehicle Management System. [View Project](pageUrl)". Never use the website field, and never link the same pageUrl twice in one line.
 - Never reveal internal fields like emails, phone numbers, or unapproved/pending projects — the tool already filters these out, so just don't speculate beyond what it returns.`;
 
 const tools: Groq.Chat.Completions.ChatCompletionTool[] = [
@@ -39,7 +44,7 @@ const tools: Groq.Chat.Completions.ChatCompletionTool[] = [
           sdgGoal: { type: "string", description: "One of the SDGGoalEnum values, e.g. GOOD_HEALTH, CLIMATE_ACTION" },
           status: { type: "string", enum: ["IDEA", "MVP", "RESEARCH", "DEPLOYED", "STARTUP"] },
           featuredOnly: { type: "boolean", description: "Set true when the user asks for 'best' or 'featured' projects" },
-          limit: { type: "number", description: "Max results, default 5, max 10" },
+          limit: { type: "number", description: "Max results, default 3, max 8" },
         },
       },
     },
@@ -48,15 +53,54 @@ const tools: Groq.Chat.Completions.ChatCompletionTool[] = [
 
 type ChatMessage = { role: "user" | "assistant"; content: string };
 
-async function withRetry<T>(fn: () => Promise<T>, retries = 2): Promise<T> {
+interface GroqErrorShape {
+  status?: number;
+  headers?: Headers;
+  error?: {
+    error?: {
+      code?: string;
+      message?: string;
+      type?: string;
+    };
+  };
+}
+
+function toGroqErrorShape(err: unknown): GroqErrorShape {
+  return typeof err === "object" && err !== null ? (err as GroqErrorShape) : {};
+}
+
+function isDailyQuotaExceeded(err: unknown): boolean {
+  const { error } = toGroqErrorShape(err);
+  const message = error?.error?.message ?? "";
+  return error?.error?.type === "tokens" && /tokens per day|TPD/i.test(message);
+}
+
+function getRetryAfterMinutes(err: unknown): number | null {
+  const { headers } = toGroqErrorShape(err);
+  const raw = headers?.get?.("retry-after");
+  if (!raw) return null;
+  const seconds = Number(raw);
+  if (Number.isNaN(seconds)) return null;
+  return Math.ceil(seconds / 60);
+}
+
+async function withRetry<T>(fn: () => Promise<T>, retries = 3): Promise<T> {
   for (let attempt = 0; ; attempt++) {
     try {
       return await fn();
     } catch (err) {
-      const status = (err as { status?: number })?.status;
-      const isTransient = status === 503 || status === 429;
+      if (isDailyQuotaExceeded(err)) {
+        const mins = getRetryAfterMinutes(err);
+        if (mins) quotaResetAt = Date.now() + mins * 60_000;
+        console.warn(`[groq] daily token quota exhausted, resets in ~${mins ?? "?"} min`);
+        throw err;
+      }
+
+      const { status, error } = toGroqErrorShape(err);
+      const code = error?.error?.code;
+      const isTransient = status === 503 || status === 429 || code === "tool_use_failed";
       if (!isTransient || attempt >= retries) throw err;
-      await new Promise((r) => setTimeout(r, 500 * 2 ** attempt));
+      await new Promise((r) => setTimeout(r, 400 * 2 ** attempt));
     }
   }
 }
@@ -69,10 +113,23 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "messages array is required" }, { status: 400 });
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const chatMessages: any[] = [
+    if (quotaResetAt && Date.now() < quotaResetAt) {
+      const mins = Math.ceil((quotaResetAt - Date.now()) / 60_000);
+      return NextResponse.json(
+        {
+          reply: `I've hit today's usage limit. Please try again in about ${mins} minute${mins === 1 ? "" : "s"}.`,
+        },
+        { status: 200 }
+      );
+    }
+
+    type GroqMessage = Groq.Chat.Completions.ChatCompletionMessageParam;
+    const MAX_HISTORY_MESSAGES = 8;
+    const trimmedMessages = messages.slice(-MAX_HISTORY_MESSAGES);
+
+    const chatMessages: GroqMessage[] = [
       { role: "system", content: SYSTEM_PROMPT },
-      ...messages.map((m: ChatMessage) => ({ role: m.role, content: m.content })),
+      ...trimmedMessages.map((m: ChatMessage) => ({ role: m.role, content: m.content })),
     ];
 
     for (let turn = 0; turn < 4; turn++) {
@@ -81,10 +138,14 @@ export async function POST(req: NextRequest) {
           model: MODEL,
           messages: chatMessages,
           tools,
+          temperature: 0.2,
         })
       );
 
       const choice = response.choices[0];
+      console.log(
+        `[groq usage] turn ${turn} — prompt: ${response.usage?.prompt_tokens}, completion: ${response.usage?.completion_tokens}, total: ${response.usage?.total_tokens}`
+      );
       const toolCalls = choice.message.tool_calls;
 
       if (!toolCalls || toolCalls.length === 0) {
@@ -95,7 +156,16 @@ export async function POST(req: NextRequest) {
 
       for (const call of toolCalls) {
         if (call.function.name === "search_projects") {
-          const args = JSON.parse(call.function.arguments) as ProjectSearchParams;
+          let args: ProjectSearchParams = {};
+          try {
+            const parsed = call.function.arguments
+              ? JSON.parse(call.function.arguments)
+              : null;
+            if (parsed && typeof parsed === "object") args = parsed;
+          } catch {
+            // malformed JSON from the model — fall back to an unfiltered search
+          }
+          console.log("search_projects called with:", args);
           const results = await searchProjects(args);
           chatMessages.push({
             role: "tool",
@@ -108,17 +178,38 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ reply: "Sorry, I couldn't complete that request." });
   } catch (err) {
-    console.error("Chat API error:", err);
-    const status = (err as { status?: number })?.status;
+    const { status, error } = toGroqErrorShape(err);
+    const code = error?.error?.code;
+    if (!(status === 429 && isDailyQuotaExceeded(err))) {
+      console.error("Chat API error:", err);
+    }
+
     if (status === 429) {
+      if (isDailyQuotaExceeded(err)) {
+        const mins = getRetryAfterMinutes(err);
+        return NextResponse.json(
+          {
+            reply: mins
+              ? `I've hit today's usage limit. Please try again in about ${mins} minute${mins === 1 ? "" : "s"}.`
+              : "I've hit today's usage limit. Please try again later.",
+          },
+          { status: 200 }
+        );
+      }
       return NextResponse.json(
-        { reply: "I'm getting a lot of questions right now and hit today's free usage limit. Please try again in a bit." },
+        { reply: "I'm getting a lot of questions right now. Please try again in a bit." },
         { status: 200 }
       );
     }
     if (status === 503) {
       return NextResponse.json(
         { reply: "The AI service is overloaded right now. Please try again in a moment." },
+        { status: 200 }
+      );
+    }
+    if (code === "tool_use_failed") {
+      return NextResponse.json(
+        { reply: "I had trouble processing that — could you rephrase your question?" },
         { status: 200 }
       );
     }

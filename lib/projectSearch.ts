@@ -18,9 +18,7 @@ export interface ProjectSearchParams {
   limit?: number;
 }
 
-// Only ever return content that has passed moderation. Never leak PENDING/REJECTED
-// projects or internal fields (team emails/phones) to the public-facing chatbot.
-export async function searchProjects(params: ProjectSearchParams) {
+export async function searchProjects(params: ProjectSearchParams | null | undefined) {
   const {
     keyword,
     domain,
@@ -29,8 +27,10 @@ export async function searchProjects(params: ProjectSearchParams) {
     sdgGoal,
     status,
     featuredOnly,
-    limit = 5,
-  } = params;
+    limit = 3,
+  } = params ?? {};
+
+  const take = Math.min(limit, 8);
 
   const associationFilters: Record<string, unknown>[] = [];
   if (domain) associationFilters.push({ type: "PROJECT_DOMAIN", domain });
@@ -38,17 +38,12 @@ export async function searchProjects(params: ProjectSearchParams) {
   if (projectType) associationFilters.push({ type: "PROJECT_TYPE", projectType });
   if (sdgGoal) associationFilters.push({ type: "PROJECT_SDG", sdgGoal });
 
-  const results = await prisma.projectMetadata.findMany({
+  const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
+  const normalizedKeyword = keyword ? normalize(keyword) : "";
+
+  const candidates = await prisma.projectMetadata.findMany({
     where: {
       ...(featuredOnly ? { featured: true } : {}),
-      ...(keyword
-        ? {
-            OR: [
-              { title: { contains: keyword } },
-              { subtitle: { contains: keyword } },
-            ],
-          }
-        : {}),
       projectContent: {
         status: { approved_status: "APPROVED" },
         ...(status ? { status: { status } } : {}),
@@ -65,8 +60,6 @@ export async function searchProjects(params: ProjectSearchParams) {
       project_id: true,
       title: true,
       subtitle: true,
-      website: true,
-      cover_image: true,
       featured: true,
       sdgp_year: true,
       projectContent: {
@@ -75,26 +68,28 @@ export async function searchProjects(params: ProjectSearchParams) {
           associations: {
             select: { type: true, domain: true, techStack: true, sdgGoal: true, projectType: true },
           },
-          projectDetails: {
-            select: { problem_statement: true, solution: true, features: true },
-          },
         },
       },
     },
-    take: Math.min(limit, 10),
     orderBy: { featured: "desc" },
   });
 
-  // Flatten into a compact shape — keeps the token cost of tool_result low
-  // and strips anything not meant for public consumption (no team_email/phone).
+  const filtered = normalizedKeyword
+    ? candidates.filter(
+        (p) =>
+          normalize(p.title ?? "").includes(normalizedKeyword) ||
+          normalize(p.subtitle ?? "").includes(normalizedKeyword)
+      )
+    : candidates;
+
+  const results = filtered.slice(0, take);
+
   return results.map((p) => ({
     id: p.project_id,
     title: p.title,
     subtitle: p.subtitle,
-    website: p.website,
-    year: p.sdgp_year,
+    pageUrl: `/project/${p.project_id}`,
     featured: p.featured,
-    status: p.projectContent?.status?.status ?? null,
     domains: p.projectContent?.associations
       .filter((a) => a.type === "PROJECT_DOMAIN")
       .map((a) => a.domain),
@@ -104,7 +99,5 @@ export async function searchProjects(params: ProjectSearchParams) {
     sdgGoals: p.projectContent?.associations
       .filter((a) => a.type === "PROJECT_SDG")
       .map((a) => a.sdgGoal),
-    solution: p.projectContent?.projectDetails?.solution ?? null,
-    features: p.projectContent?.projectDetails?.features ?? null,
   }));
 }
