@@ -162,7 +162,7 @@ export default function ChatBot() {
         <div className="fixed inset-0 z-[9999] flex h-[100dvh] w-screen flex-col overflow-hidden bg-black text-white sm:static sm:z-auto sm:mb-3 sm:h-[min(600px,calc(100dvh-6rem))] sm:w-[380px] sm:rounded-3xl sm:border sm:border-white/10 sm:shadow-2xl sm:shadow-black/40">
           <div className="flex items-center justify-between border-b border-white/10 px-4 py-3.5">
             <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-white/5">
+              <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border border-white/10 bg-white/5">
                 <Image
                   src={LOGO_SRC}
                   alt="Logo"
@@ -172,7 +172,7 @@ export default function ChatBot() {
                 />
               </div>
               <div>
-                <p className="text-sm font-semibold leading-tight">Assistant</p>
+                <p className="text-sm font-semibold leading-tight">SDGP Assistant</p>
                 <p className="flex items-center gap-1.5 text-xs text-white/50">
                   <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
                   Online
@@ -207,7 +207,7 @@ export default function ChatBot() {
               <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto px-4 py-4">
                 {messages.length === 0 ? (
                   <div className="flex flex-col items-center pt-6 text-center">
-                    <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/5">
+                    <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full border border-white/10 bg-white/5">
                       <BotIcon className="h-7 w-7" />
                     </div>
                     <p className="text-sm text-white/50">{greetingForTime()} 👋</p>
@@ -230,9 +230,8 @@ export default function ChatBot() {
                   messages.map((m, i) => (
                     <div
                       key={i}
-                      className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed ${
-                        m.role === "user" ? "ml-auto bg-white text-black" : "mr-auto bg-white/[0.06] text-white/90"
-                      }`}
+                      className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed ${m.role === "user" ? "ml-auto bg-white text-black" : "mr-auto bg-white/[0.06] text-white/90"
+                        }`}
                     >
                       {m.role === "assistant" ? (
                         <ReactMarkdown
@@ -325,7 +324,7 @@ export default function ChatBot() {
       <button
         onClick={() => setOpen((v) => !v)}
         aria-label="Toggle chat"
-        className={`${open ? "hidden sm:flex" : "flex"} mb-5 mr-5 h-14 w-14 items-center justify-center rounded-2xl border border-blue-500/50 bg-black text-white shadow-xl transition hover:scale-105 hover:border-blue-500 sm:mb-0 sm:mr-0`}
+        className={`${open ? "hidden sm:flex" : "flex"} mb-5 mr-5 h-14 w-14 items-center justify-center rounded-full border border-blue-500/50 bg-black text-white shadow-xl transition hover:scale-105 hover:border-blue-500 sm:mb-0 sm:mr-0`}
       >
         {open ? <XIcon className="h-5 w-5" /> : <BotIcon className="h-6 w-6" />}
       </button>

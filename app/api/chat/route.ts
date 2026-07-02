@@ -84,10 +84,10 @@ function getRetryAfterMinutes(err: unknown): number | null {
   return Math.ceil(seconds / 60);
 }
 
-async function withRetry<T>(fn: () => Promise<T>, retries = 3): Promise<T> {
+async function withRetry<T>(fn: (attempt: number) => Promise<T>, retries = 3): Promise<T> {
   for (let attempt = 0; ; attempt++) {
     try {
-      return await fn();
+      return await fn(attempt);
     } catch (err) {
       if (isDailyQuotaExceeded(err)) {
         const mins = getRetryAfterMinutes(err);
@@ -133,12 +133,15 @@ export async function POST(req: NextRequest) {
     ];
 
     for (let turn = 0; turn < 4; turn++) {
-      const response = await withRetry(() =>
+      const response = await withRetry((attempt) =>
         groq.chat.completions.create({
           model: MODEL,
           messages: chatMessages,
           tools,
           temperature: 0.2,
+          ...(attempt > 0
+            ? { tool_choice: { type: "function", function: { name: "search_projects" } } as const }
+            : {}),
         })
       );
 
@@ -156,15 +159,30 @@ export async function POST(req: NextRequest) {
 
       for (const call of toolCalls) {
         if (call.function.name === "search_projects") {
-          let args: ProjectSearchParams = {};
+          let args: ProjectSearchParams | null = null;
           try {
             const parsed = call.function.arguments
               ? JSON.parse(call.function.arguments)
-              : null;
+              : {};
             if (parsed && typeof parsed === "object") args = parsed;
           } catch {
-            // malformed JSON from the model — fall back to an unfiltered search
+            console.warn(
+              "search_projects: malformed tool-call arguments from model:",
+              call.function.arguments
+            );
           }
+
+          if (args === null) {
+            chatMessages.push({
+              role: "tool",
+              tool_call_id: call.id,
+              content: JSON.stringify({
+                error: "Invalid arguments: could not parse as JSON. Retry the call with valid JSON arguments.",
+              }),
+            });
+            continue;
+          }
+
           console.log("search_projects called with:", args);
           const results = await searchProjects(args);
           chatMessages.push({
@@ -181,7 +199,12 @@ export async function POST(req: NextRequest) {
     const { status, error } = toGroqErrorShape(err);
     const code = error?.error?.code;
     if (!(status === 429 && isDailyQuotaExceeded(err))) {
-      console.error("Chat API error:", err);
+      console.error(
+        "Chat API error:",
+        status ?? "no-status",
+        code ?? "no-code",
+        error?.error?.message ?? (err instanceof Error ? err.message : String(err))
+      );
     }
 
     if (status === 429) {
