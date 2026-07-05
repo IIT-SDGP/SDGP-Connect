@@ -6,24 +6,17 @@
 import Groq from "groq-sdk";
 import { NextRequest, NextResponse } from "next/server";
 import { searchProjects, ProjectSearchParams } from "@/lib/projectSearch";
-
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
-
-const MODEL = "openai/gpt-oss-120b";
+import {
+  groq,
+  MODEL,
+  SYSTEM_PROMPT,
+  MAX_HISTORY_MESSAGES,
+  MAX_MESSAGES,
+  MAX_MESSAGE_LENGTH,
+  QUOTA_EXCEEDED_MESSAGE,
+} from "@/lib/constants/groq";
 
 let quotaResetAt: number | null = null;
-
-const SYSTEM_PROMPT = `You are the assistant embedded on SDGP.lk, a directory of student software/hardware projects (AI, ML, healthtech, fintech, edtech, and more).
-
-Rules:
-- For any question about specific projects, teams, domains, tech stacks, SDG goals, or "best/featured" projects, ALWAYS call the search_projects tool first. Never invent project details.
-- If the tool returns no results, say so plainly and don't make something up.
-- If the user asks for an idea, inspiration, or "what should I build" (rather than asking about existing projects), you MUST do two things, in this order:
-  1. Call search_projects and list 1-3 relevant existing projects under a heading like "Similar projects already on SDGP.lk", each with its View Project link — for context/inspiration only.
-  2. Then propose at least one genuinely NEW idea, under a heading like "An idea you could build", that is NOT one of the projects returned by search_projects. Base it on gaps you notice in the search results or general domain knowledge, and describe it in 2-3 sentences.
-  Never present an existing project as if it were a suggestion for the user to go build.
-- Keep answers concise. For each project you mention, write its title as plain text (do NOT turn the title itself into a markdown link), then include a separate "View Project" link using its pageUrl field, e.g.: "BlynQ. — An AI Powered Vehicle Management System. [View Project](pageUrl)". Never use the website field, and never link the same pageUrl twice in one line.
-- Never reveal internal fields like emails, phone numbers, or unapproved/pending projects — the tool already filters these out, so just don't speculate beyond what it returns.`;
 
 const tools: Groq.Chat.Completions.ChatCompletionTool[] = [
   {
@@ -57,6 +50,17 @@ const tools: Groq.Chat.Completions.ChatCompletionTool[] = [
 ];
 
 type ChatMessage = { role: "user" | "assistant"; content: string };
+
+function isValidChatMessage(m: unknown): m is ChatMessage {
+  if (typeof m !== "object" || m === null) return false;
+  const { role, content } = m as Record<string, unknown>;
+  return (
+    (role === "user" || role === "assistant") &&
+    typeof content === "string" &&
+    content.trim().length > 0 &&
+    content.length <= MAX_MESSAGE_LENGTH
+  );
+}
 
 interface GroqErrorShape {
   status?: number;
@@ -112,29 +116,42 @@ async function withRetry<T>(fn: (attempt: number) => Promise<T>, retries = 3): P
 
 export async function POST(req: NextRequest) {
   try {
-    const { messages } = await req.json();
+    let body: unknown;
+    try {
+      body = await req.json();
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON body." }, { status: 400 });
+    }
+
+    const { messages } = (body ?? {}) as { messages?: unknown };
 
     if (!Array.isArray(messages) || messages.length === 0) {
       return NextResponse.json({ error: "messages array is required" }, { status: 400 });
     }
 
-    if (quotaResetAt && Date.now() < quotaResetAt) {
-      const mins = Math.ceil((quotaResetAt - Date.now()) / 60_000);
+    if (messages.length > MAX_MESSAGES) {
+      return NextResponse.json({ error: "Too many messages." }, { status: 400 });
+    }
+
+    if (!messages.every(isValidChatMessage)) {
       return NextResponse.json(
-        {
-          reply: `I've hit today's usage limit. Please try again in about ${mins} minute${mins === 1 ? "" : "s"}.`,
-        },
-        { status: 200 }
+        { error: "Each message must have a role of 'user' or 'assistant' and non-empty string content." },
+        { status: 400 }
       );
     }
 
+    if (quotaResetAt && Date.now() < quotaResetAt) {
+      const mins = Math.ceil((quotaResetAt - Date.now()) / 60_000);
+      console.warn(`[groq] blocked request, daily quota resets in ~${mins} min`);
+      return NextResponse.json({ reply: QUOTA_EXCEEDED_MESSAGE }, { status: 200 });
+    }
+
     type GroqMessage = Groq.Chat.Completions.ChatCompletionMessageParam;
-    const MAX_HISTORY_MESSAGES = 8;
-    const trimmedMessages = messages.slice(-MAX_HISTORY_MESSAGES);
+    const trimmedMessages = (messages as ChatMessage[]).slice(-MAX_HISTORY_MESSAGES);
 
     const chatMessages: GroqMessage[] = [
       { role: "system", content: SYSTEM_PROMPT },
-      ...trimmedMessages.map((m: ChatMessage) => ({ role: m.role, content: m.content })),
+      ...trimmedMessages.map((m) => ({ role: m.role, content: m.content })),
     ];
 
     for (let turn = 0; turn < 4; turn++) {
@@ -215,14 +232,8 @@ export async function POST(req: NextRequest) {
     if (status === 429) {
       if (isDailyQuotaExceeded(err)) {
         const mins = getRetryAfterMinutes(err);
-        return NextResponse.json(
-          {
-            reply: mins
-              ? `I've hit today's usage limit. Please try again in about ${mins} minute${mins === 1 ? "" : "s"}.`
-              : "I've hit today's usage limit. Please try again later.",
-          },
-          { status: 200 }
-        );
+        console.warn(`[groq] daily quota exceeded, resets in ~${mins ?? "?"} min`);
+        return NextResponse.json({ reply: QUOTA_EXCEEDED_MESSAGE }, { status: 200 });
       }
       return NextResponse.json(
         { reply: "I'm getting a lot of questions right now. Please try again in a bit." },

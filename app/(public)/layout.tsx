@@ -72,7 +72,7 @@ export default function RootLayout({
           rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Geist:wght@400;700&display=swap"
         />
-        {/* Preload the Geist Mono font
+        {/* temporarily removing third-party AI chatbot
         <script
           defer
           src="https://api.psycodelabs.lk/widget.js"

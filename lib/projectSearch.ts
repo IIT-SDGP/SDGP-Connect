@@ -23,6 +23,8 @@ export interface ProjectSearchParams {
   limit?: number;
 }
 
+const HARD_FETCH_CAP = 100;
+
 export async function searchProjects(params: ProjectSearchParams | null | undefined) {
   const {
     keyword,
@@ -35,7 +37,8 @@ export async function searchProjects(params: ProjectSearchParams | null | undefi
     limit = 3,
   } = params ?? {};
 
-  const take = Math.min(limit, 8);
+  const rawLimit = Number.isFinite(limit) ? Math.floor(limit as number) : 3;
+  const take = Math.min(Math.max(rawLimit, 1), 8);
 
   const associationFilters: Record<string, unknown>[] = [];
   if (domain) associationFilters.push({ type: "PROJECT_DOMAIN", domain });
@@ -49,9 +52,19 @@ export async function searchProjects(params: ProjectSearchParams | null | undefi
   const candidates = await prisma.projectMetadata.findMany({
     where: {
       ...(featuredOnly ? { featured: true } : {}),
+      ...(keyword
+        ? {
+            OR: [
+              { title: { contains: keyword, mode: "insensitive" } },
+              { subtitle: { contains: keyword, mode: "insensitive" } },
+            ],
+          }
+        : {}),
       projectContent: {
-        status: { approved_status: "APPROVED" },
-        ...(status ? { status: { status } } : {}),
+        status: {
+          approved_status: "APPROVED",
+          ...(status ? { status } : {}),
+        },
         ...(associationFilters.length
           ? {
               AND: associationFilters.map((f) => ({
@@ -76,7 +89,8 @@ export async function searchProjects(params: ProjectSearchParams | null | undefi
         },
       },
     },
-    orderBy: { featured: "desc" },
+    orderBy: [{ featured: "desc" }, { project_id: "asc" }],
+    take: HARD_FETCH_CAP,
   });
 
   const filtered = normalizedKeyword

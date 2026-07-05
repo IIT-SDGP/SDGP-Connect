@@ -9,6 +9,7 @@ import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import Image from "next/image";
 import ReactMarkdown from "react-markdown";
+import { CONSENT_KEY, TOOLTIP_KEY, MAX_LEN } from "@/lib/constants/chat";
 
 type Message = { role: "user" | "assistant"; content: string };
 
@@ -96,10 +97,6 @@ function greetingForTime() {
   if (hour < 18) return "Good afternoon";
   return "Good evening";
 }
-
-const CONSENT_KEY = "sdgp_chat_consent";
-const TOOLTIP_KEY = "sdgp_chat_tooltip_dismissed";
-const MAX_LEN = 200;
 
 export default function ChatBot() {
   const [mounted, setMounted] = useState(false);
@@ -292,6 +289,7 @@ export default function ChatBot() {
                       value={input}
                       onChange={(e) => setInput(e.target.value.slice(0, MAX_LEN))}
                       placeholder="Message..."
+                      aria-label="Message"
                       maxLength={MAX_LEN}
                       className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 pr-14 text-sm text-white outline-none focus:border-blue-500"
                     />
