@@ -29,15 +29,14 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     ? ""
     : isHome
       ? "mx-3 md:mx-5 lg:mx-8"
-      : "md:mx-24";
+      : "md:mx-6 lg:mx-12 xl:mx-24";
 
-  /* Fixed desktop NavBar is a left rail (md+); symmetric inset — trimmed a bit for wider content */
-  const projectNavClearance = isProjectPage ? "md:px-[5.5rem] lg:px-24" : "";
+  /* Project page: light padding on tablet; room for sidebar + nav from lg */
+  const projectNavClearance = isProjectPage ? "md:px-3 lg:px-[5.5rem] xl:px-24" : "";
 
-  /* Mobile dock is bottom-fixed; leave scroll room + home indicator (iOS) */
-  const projectPageBottomPad = isProjectPage
-    ? "pb-[max(5.5rem,env(safe-area-inset-bottom,0px)+4.5rem)] md:pb-0"
-    : "";
+  /* Left dock on desktop — no top inset. Mobile: bottom dock clearance. */
+  const navBottomPad =
+    "pb-[max(6rem,env(safe-area-inset-bottom,0px)+4rem)] md:pb-0";
 
   return (
     <ThemeProvider>
@@ -47,7 +46,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
           "min-w-0",
           horizontalMarginClass,
           projectNavClearance,
-          projectPageBottomPad
+          navBottomPad
         )}
       >
         {children}

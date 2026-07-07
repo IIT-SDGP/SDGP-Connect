@@ -146,8 +146,8 @@ function ProjectsPageContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/25">
-      <div className="mx-auto w-full max-w-7xl px-3 pb-8 pt-6 sm:px-4 sm:pt-8 md:px-6 md:pb-12 md:pt-10 lg:px-8 xl:px-10">
+    <div className="min-h-screen overflow-x-hidden bg-gradient-to-b from-background via-background to-muted/25">
+      <div className="w-full px-0 pt-2 sm:pt-3 md:pt-4">
         <SearchHeader
           toggleFilters={toggleFilters}
           defaultTitle={currentParams.title ?? ""}
@@ -155,9 +155,11 @@ function ProjectsPageContent() {
           resultsSummary={resultsSummary}
           isLoading={isLoading && !resultsSummary}
         />
+      </div>
 
-        <div className="mt-6 flex flex-col gap-8 md:mt-8 md:flex-row md:gap-8 lg:gap-10">
-          <div className="hidden w-[17.5rem] shrink-0 lg:w-72 md:block">
+      <div className="mx-auto w-full min-w-0 max-w-7xl px-3 pb-8 pt-5 sm:px-4 sm:pt-6 md:px-6 md:pb-12 md:pt-7 lg:px-8 xl:px-10">
+        <div className="flex min-w-0 flex-col gap-6 sm:gap-8 lg:flex-row lg:gap-8 xl:gap-10">
+          <div className="hidden w-[17.5rem] shrink-0 lg:block xl:w-72">
             <div className="sticky top-6">
               <FilterSidebar onFilterChange={handleFilterChange} initialFilters={initialFilters} />
             </div>
@@ -178,7 +180,7 @@ function ProjectsPageContent() {
 
       {showMobileFilters ? (
         <div
-          className="fixed inset-0 z-[200] flex flex-col bg-background md:hidden"
+          className="fixed inset-0 z-[200] flex max-h-[100dvh] flex-col bg-background lg:hidden"
           role="dialog"
           aria-modal="true"
           aria-label="Filter projects"
@@ -219,8 +221,8 @@ const Page = () => {
 };
 
 const LoadingSkeleton = () => (
-  <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/25">
-    <div className="mx-auto w-full max-w-7xl px-3 py-6 sm:px-4 sm:py-8 md:px-6 md:py-10 lg:px-8">
+  <div className="min-h-screen overflow-x-hidden bg-gradient-to-b from-background via-background to-muted/25">
+    <div className="w-full px-0 pt-2 sm:pt-3 md:pt-4">
       <div className="overflow-hidden rounded-2xl border bg-card/90 p-5 shadow-sm ring-1 ring-border/50 sm:p-6 md:p-8">
         <div className="flex gap-3 sm:gap-4">
           <Skeleton className="h-11 w-11 shrink-0 rounded-xl sm:h-12 sm:w-12" />
@@ -232,11 +234,13 @@ const LoadingSkeleton = () => (
           </div>
         </div>
       </div>
-      <div className="mt-6 flex flex-col gap-8 md:mt-8 md:flex-row">
-        <div className="hidden w-72 shrink-0 md:block">
+    </div>
+    <div className="mx-auto w-full min-w-0 max-w-7xl px-3 pb-8 pt-5 sm:px-4 sm:pt-6 md:px-6 md:pb-12 md:pt-7 lg:px-8 xl:px-10">
+      <div className="flex min-w-0 flex-col gap-6 sm:gap-8 lg:flex-row lg:gap-8">
+        <div className="hidden w-[17.5rem] shrink-0 lg:block xl:w-72">
           <Skeleton className="h-[min(28rem,70vh)] w-full rounded-2xl" />
         </div>
-        <div className="grid flex-1 grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid min-w-0 flex-1 grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-2 xl:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
             <Skeleton key={i} className="h-[320px] rounded-2xl sm:h-[340px]" />
           ))}

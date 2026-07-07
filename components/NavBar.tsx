@@ -5,70 +5,76 @@
 'use client';
 
 import { sidebarItems } from '@/data/NavBarItems';
+import {
+  isPsycodeMobileViewport,
+  openPsycodeChat,
+  setPsycodeLauncherVisible,
+} from '@/lib/psycode-chat';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Moon, Sun } from 'lucide-react';
-import { useTheme } from 'next-themes';
-import { useEffect, useState } from 'react';
-import { Button } from '@/components/ui/button';
+import { MessageCircle } from 'lucide-react';
+import { useEffect } from 'react';
 
-function DockThemeToggle() {
-  const { theme, setTheme, resolvedTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
+const dockIconIdle =
+  'text-muted-foreground/85 group-hover:text-foreground/90 dark:text-muted-foreground dark:group-hover:text-foreground';
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+const dockIconActive = 'text-foreground';
 
-  const active = theme === 'system' ? resolvedTheme : theme;
-  const isDark = active === 'dark';
+const dockSurfaceIdle = 'hover:bg-black/[0.06] dark:hover:bg-white/[0.08]';
 
-  return (
-    <Button
-      type="button"
-      variant="ghost"
-      size="icon"
-      className={cn(
-        'relative h-11 w-11 shrink-0 rounded-xl touch-manipulation md:h-12 md:w-12',
-        'text-muted-foreground hover:bg-primary/10 hover:text-foreground'
-      )}
-      onClick={() => setTheme(isDark ? 'light' : 'dark')}
-      aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-      title={mounted ? `Use ${isDark ? 'light' : 'dark'} mode` : 'Theme'}
-      disabled={!mounted}
-    >
-      {!mounted ? (
-        <span className="h-5 w-5 md:h-6 md:w-6" aria-hidden />
-      ) : isDark ? (
-        <Sun className="h-5 w-5 md:h-6 md:w-6" aria-hidden />
-      ) : (
-        <Moon className="h-5 w-5 md:h-6 md:w-6" aria-hidden />
-      )}
-    </Button>
-  );
-}
+const dockSurfaceActive =
+  'bg-black/[0.1] dark:bg-white/[0.12] shadow-[inset_0_1px_1px_rgba(255,255,255,0.15)] dark:shadow-[inset_0_1px_1px_rgba(0,0,0,0.2)]';
+
+/** iPad-style frosted bar — horizontal on mobile, vertical stack on desktop left */
+const appleGlassNav = cn(
+  'isolate flex flex-nowrap items-center justify-center gap-1 rounded-2xl p-2 sm:gap-1.5 sm:p-2.5 md:flex-col md:gap-1.5 md:rounded-[1.35rem] md:p-3 md:py-3.5',
+  'border border-black/[0.06] dark:border-white/[0.12]',
+  'bg-white/65 shadow-[0_8px_32px_rgba(0,0,0,0.08),0_2px_8px_rgba(0,0,0,0.04)]',
+  'dark:bg-neutral-900/55 dark:shadow-[0_12px_40px_rgba(0,0,0,0.45),0_2px_8px_rgba(0,0,0,0.2)]',
+  'backdrop-blur-2xl backdrop-saturate-[1.6] [-webkit-backdrop-filter:blur(24px)_saturate(1.6)]',
+  'ring-1 ring-black/[0.04] dark:ring-white/[0.06]'
+);
 
 export function NavBar() {
   const pathname = usePathname();
 
+  /* Hide Psycode’s fixed FAB on mobile; nav bar owns the chat affordance there. */
+  useEffect(() => {
+    const sync = () => {
+      const hideLauncher = isPsycodeMobileViewport();
+      setPsycodeLauncherVisible(!hideLauncher);
+    };
+    sync();
+    const mq = window.matchMedia('(max-width: 767px)');
+    mq.addEventListener('change', sync);
+    const observer = new MutationObserver(sync);
+    observer.observe(document.body, { childList: true, subtree: true });
+    const stop = window.setTimeout(() => observer.disconnect(), 20000);
+    return () => {
+      mq.removeEventListener('change', sync);
+      observer.disconnect();
+      clearTimeout(stop);
+      setPsycodeLauncherVisible(true);
+    };
+  }, []);
+
   return (
     <aside
       className={cn(
-        'fixed z-50',
-        // Mobile: bottom center with proper width
-        'bottom-4 left-1/2 w-[95%] max-w-md -translate-x-1/2 transform',
-        // Desktop: left side, vertically centered
-        'md:left-4 md:top-1/2 md:w-auto md:max-w-none md:-translate-y-1/2 md:translate-x-0'
+        'pointer-events-none fixed z-50',
+        /* mobile: bottom dock, centered */
+        'bottom-[max(1rem,env(safe-area-inset-bottom,0px))] left-1/2 flex w-full max-w-none -translate-x-1/2 justify-center px-3',
+        /* desktop: left rail, vertically centered */
+        'md:left-[max(1rem,env(safe-area-inset-left,0px))] md:top-1/2 md:w-auto md:-translate-y-1/2 md:translate-x-0 md:justify-start md:px-0',
+        'md:bottom-auto md:right-auto'
       )}
     >
       <nav
+        aria-label="Main navigation"
         className={cn(
-          'flex items-center gap-2 rounded-2xl border bg-background/80 p-3 shadow-lg backdrop-blur-lg',
-          // Mobile: horizontal layout with even distribution
-          'justify-between md:justify-start',
-          // Desktop: vertical layout
-          'md:flex-col md:gap-3 md:p-4'
+          'pointer-events-auto max-w-[min(100%,32rem)] sm:max-w-none md:max-w-none',
+          appleGlassNav
         )}
       >
         {sidebarItems.map((item) => {
@@ -79,32 +85,31 @@ export function NavBar() {
               key={item.href}
               href={item.href}
               className={cn(
-                'group relative flex-shrink-0 rounded-xl p-2 transition-all duration-200 hover:bg-primary/10',
-                isActive && 'bg-primary/10',
-                // Ensure consistent sizing on mobile
-                'flex min-w-[44px] items-center justify-center'
+                'group relative flex min-h-12 min-w-12 flex-shrink-0 items-center justify-center rounded-xl transition-[transform,background-color,box-shadow] duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1)] sm:min-h-[3.25rem] sm:min-w-[3.25rem] md:min-h-[3.25rem] md:min-w-[3.25rem] md:rounded-2xl',
+                'active:scale-95',
+                isActive ? dockSurfaceActive : dockSurfaceIdle
               )}
               aria-current={isActive ? 'page' : undefined}
               tabIndex={0}
             >
-              {/* Visually hidden text for screen readers */}
               <span className="sr-only">{item.label}</span>
               <Icon
-                aria-label={item.label}
+                aria-hidden
+                strokeWidth={isActive ? 2.25 : 2}
                 className={cn(
-                  'h-5 w-5 transition-colors md:h-6 md:w-6',
-                  isActive ? 'text-primary' : 'text-muted-foreground'
+                  'h-5 w-5 transition-[transform,color,opacity] duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1)] sm:h-6 sm:w-6',
+                  'group-hover:scale-[1.06]',
+                  isActive ? dockIconActive : dockIconIdle
                 )}
               />
-              {/* Tooltip - hidden on mobile, visible on desktop hover */}
               <span
                 className={cn(
-                  'absolute rounded-md bg-popover px-2 py-1 text-sm text-popover-foreground',
-                  'invisible opacity-0 transition-all duration-200',
-                  // Mobile: hide tooltips
+                  'pointer-events-none absolute z-10 rounded-lg px-2 py-1',
+                  'invisible opacity-0 transition-all duration-200 ease-out',
                   'hidden md:block',
-                  // Desktop: show on hover, positioned to the right
-                  'md:left-full md:ml-2 md:translate-x-2',
+                  'text-[12px] font-medium tracking-wide text-foreground',
+                  'bg-popover/95 shadow-md ring-1 ring-border/60 backdrop-blur-xl',
+                  'md:left-full md:ml-2 md:translate-x-1',
                   'md:group-hover:visible md:group-hover:translate-x-0 md:group-hover:opacity-100'
                 )}
               >
@@ -113,16 +118,27 @@ export function NavBar() {
             </Link>
           );
         })}
-
-        <div
+        <button
+          type="button"
           className={cn(
-            'flex w-full justify-center border-border/60 md:w-auto md:border-t md:pt-2',
-            'border-t pt-2 md:mt-0'
+            'md:hidden',
+            'group relative flex min-h-12 min-w-12 flex-shrink-0 items-center justify-center rounded-xl transition-[transform,background-color,box-shadow] duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1)] sm:min-h-[3.25rem] sm:min-w-[3.25rem]',
+            'active:scale-95',
+            dockSurfaceIdle
           )}
-          role="presentation"
+          onClick={() => openPsycodeChat()}
+          aria-label="Open chat assistant"
         >
-          <DockThemeToggle />
-        </div>
+          <MessageCircle
+            aria-hidden
+            strokeWidth={2}
+            className={cn(
+              'h-5 w-5 transition-[transform,color,opacity] duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1)] sm:h-6 sm:w-6',
+              'group-hover:scale-[1.06]',
+              dockIconIdle
+            )}
+          />
+        </button>
       </nav>
     </aside>
   );

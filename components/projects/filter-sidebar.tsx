@@ -62,10 +62,10 @@ function FeaturedFilterSection({
       <CollapsibleTrigger asChild>
         <Button
           variant="ghost"
-          className="flex w-full justify-between p-2 font-medium hover:bg-muted/50"
+          className="flex h-auto min-h-10 w-full min-w-0 justify-between gap-2 p-2 font-medium hover:bg-muted/50"
         >
-          Featured Projects
-          <ChevronDown className={cn("h-4 w-4 transition-transform", isOpen && "rotate-180")} />
+          <span className="truncate text-left">Featured Projects</span>
+          <ChevronDown className={cn("h-4 w-4 shrink-0 transition-transform", isOpen && "rotate-180")} />
         </Button>
       </CollapsibleTrigger>
       <CollapsibleContent className="px-2 data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up overflow-hidden">
@@ -130,10 +130,10 @@ function GenericFilterSection({
       <CollapsibleTrigger asChild>
         <Button
           variant="ghost"
-          className="flex w-full justify-between p-2 font-medium hover:bg-muted/50"
+          className="flex h-auto min-h-10 w-full min-w-0 justify-between gap-2 p-2 font-medium hover:bg-muted/50"
         >
-          {title}
-          <ChevronDown className={cn("h-4 w-4 transition-transform", isOpen && "rotate-180")} />
+          <span className="truncate text-left">{title}</span>
+          <ChevronDown className={cn("h-4 w-4 shrink-0 transition-transform", isOpen && "rotate-180")} />
         </Button>
       </CollapsibleTrigger>
       <CollapsibleContent className="px-2 data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up overflow-hidden">
@@ -222,10 +222,10 @@ function TechStackSection({
       <CollapsibleTrigger asChild>
         <Button
           variant="ghost"
-          className="flex w-full justify-between p-2 font-medium hover:bg-muted/50"
+          className="flex h-auto min-h-10 w-full min-w-0 justify-between gap-2 p-2 font-medium hover:bg-muted/50"
         >
-          Tech Stack
-          <ChevronDown className={cn("h-4 w-4 transition-transform", isOpen && "rotate-180")} />
+          <span className="truncate text-left">Tech Stack</span>
+          <ChevronDown className={cn("h-4 w-4 shrink-0 transition-transform", isOpen && "rotate-180")} />
         </Button>
       </CollapsibleTrigger>
       <CollapsibleContent className="px-2 data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up overflow-hidden">
@@ -454,12 +454,12 @@ export default function FilterSidebar({
 
   // --- JSX Rendering ---
   return (
-    <div className="relative flex max-h-[calc(100dvh-5rem)] flex-col overflow-hidden rounded-2xl border bg-card/90 p-4 shadow-sm ring-1 ring-border/45 md:max-h-[calc(100dvh-4rem)]">
+    <div className="relative flex w-full min-w-0 flex-col overflow-hidden rounded-2xl border bg-card/90 p-4 shadow-sm ring-1 ring-border/45 md:max-h-[calc(100dvh-4rem)]">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_100%_0%,rgba(99,102,241,0.1),transparent_45%)]" />
       <div className="relative flex min-h-0 flex-1 flex-col">
       {/* Header with Title and Clear Button */}
-      <div className="mb-3 flex items-center justify-between border-b border-border/60 pb-3">
-        <div>
+      <div className="mb-3 flex min-w-0 items-center justify-between gap-2 border-b border-border/60 pb-3">
+        <div className="min-w-0">
           <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-muted-foreground">Refine</p>
           <h3 className="text-base font-semibold tracking-tight">Filters</h3>
         </div>
@@ -491,7 +491,7 @@ export default function FilterSidebar({
       )}
 
       {/* Scrollable Filter Sections */}
-      <div className="min-h-0 flex-1 space-y-1 divide-y divide-border/50 overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch]">
+      <div className="min-h-0 flex-1 space-y-1 divide-y divide-border/50 overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch] max-md:overflow-visible md:min-h-0">
         <FeaturedFilterSection
           selection={featuredOnly}
           setSelection={setFeaturedOnly}

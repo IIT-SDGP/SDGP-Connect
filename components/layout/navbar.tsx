@@ -5,8 +5,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Menu, Bell, Sun, Moon } from 'lucide-react';
-import { useTheme } from 'next-themes';
+import { Menu, Bell } from 'lucide-react';
 import { useSession, signOut } from 'next-auth/react';
 import { usePathname } from 'next/navigation';
 import {
@@ -17,6 +16,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { cn } from '@/lib/utils';
 
 interface NavbarProps {
   onMenuClick: () => void; // opens on mobile, collapses on desktop
@@ -42,7 +42,6 @@ function formatNavTime(d: Date) {
 }
 
 export function Navbar({ onMenuClick, isSidebarCollapsed }: NavbarProps) {
-  const { theme, setTheme, resolvedTheme } = useTheme();
   const { data: session } = useSession();
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
@@ -67,11 +66,6 @@ export function Navbar({ onMenuClick, isSidebarCollapsed }: NavbarProps) {
     .join('')
     .slice(0, 2)
     .toUpperCase();
-  const activeTheme = theme === 'system' ? resolvedTheme : theme;
-  const isDarkMode = activeTheme === 'dark';
-  const toggleTheme = () => {
-    setTheme(isDarkMode ? 'light' : 'dark');
-  };
   const getPageTitle = () => {
     if (pathname === '/admin') return 'Dashboard';
     if (pathname === '/admin/users') return 'User Management';
@@ -105,9 +99,13 @@ export function Navbar({ onMenuClick, isSidebarCollapsed }: NavbarProps) {
             size="icon"
             onClick={onMenuClick}
             aria-label="Toggle sidebar"
-            className="shrink-0 lg:hidden"
+            className={cn(
+              'shrink-0 rounded-xl lg:hidden',
+              'text-indigo-500 hover:bg-indigo-500/10 hover:text-indigo-600',
+              'dark:text-indigo-400 dark:hover:text-indigo-300'
+            )}
           >
-            <Menu className="h-6 w-6" />
+            <Menu className="h-6 w-6" strokeWidth={2.25} />
           </Button>
 
           <h1 className="truncate text-base font-semibold tracking-tight text-foreground sm:text-lg">
@@ -135,30 +133,34 @@ export function Navbar({ onMenuClick, isSidebarCollapsed }: NavbarProps) {
           </div>
         ) : null}
 
-        <div className="flex flex-1 items-center justify-end gap-2 sm:gap-4">
+        <div className="flex flex-1 items-center justify-end gap-1.5 sm:gap-3">
           <Button
             variant="ghost"
             size="icon"
-            onClick={toggleTheme}
-            aria-label={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
-            title={mounted ? `Switch to ${isDarkMode ? 'light' : 'dark'} mode` : 'Toggle theme'}
+            aria-label="Notifications"
+            className={cn(
+              'rounded-xl',
+              'text-amber-500 hover:bg-amber-500/10 hover:text-amber-600',
+              'dark:text-amber-400 dark:hover:text-amber-300'
+            )}
           >
-            {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-          </Button>
-
-          <Button variant="ghost" size="icon">
-            <Bell className="h-6 w-6" />
+            <Bell className="h-6 w-6" strokeWidth={2.25} />
           </Button>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
-                className="flex items-center space-x-2 rounded-full px-2 py-1 hover:bg-accent"
+                className={cn(
+                  'flex items-center space-x-2 rounded-full px-2 py-1',
+                  'ring-2 ring-transparent transition-all hover:bg-violet-500/10 hover:ring-violet-400/35'
+                )}
               >
-                <Avatar>
-                <AvatarImage src="https://github.com/shadcn.png" />
-                  <AvatarFallback>{initials}</AvatarFallback>
+                <Avatar className="ring-2 ring-violet-400/40 ring-offset-2 ring-offset-background">
+                  <AvatarImage src="https://github.com/shadcn.png" />
+                  <AvatarFallback className="bg-violet-500/15 text-violet-700 dark:text-violet-200">
+                    {initials}
+                  </AvatarFallback>
                 </Avatar>
                 <span className="hidden text-sm font-medium text-foreground md:inline">
                   {userName}

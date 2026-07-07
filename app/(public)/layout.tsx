@@ -71,7 +71,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning className="public-site">
       <head>
         <link rel="icon" href="/iconw.svg" type="image/png" sizes="128x128" />
         <link
@@ -89,7 +89,7 @@ export default function RootLayout({
 
       </head>
       <body
-        className={`${notoSansLatin.variable} ${notoSansTamil.variable} ${notoSansSinhala.variable} ${geistMono.variable} font-sans antialiased`}
+        className={`public-site ${notoSansLatin.variable} ${notoSansTamil.variable} ${notoSansSinhala.variable} ${geistMono.variable} font-sans antialiased`}
       >
         <ClientLayout>{children}</ClientLayout>
       </body>

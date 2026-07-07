@@ -109,7 +109,7 @@ export default function ProjectExplorer({
 
   if (isLoading && (!projects || projects.length === 0)) {
     return (
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
+      <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-2 xl:grid-cols-3">
         {Array(currentParams.limit || 9)
           .fill(0)
           .map((_, i) => (
@@ -132,8 +132,8 @@ export default function ProjectExplorer({
   }
 
   return (
-    <div className="flex flex-col gap-8 sm:gap-10">
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
+    <div className="flex min-w-0 flex-col gap-6 sm:gap-8 md:gap-10">
+      <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-2 xl:grid-cols-3">
         {projects.map((project, index) => {
           const isLastProject = index === projects.length - 1;
           const status = project.status as string | undefined;
@@ -161,7 +161,7 @@ export default function ProjectExplorer({
                     }
                     alt={project.title || "Project cover"}
                     fill
-                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
                     className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
                   />
                   <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background/90 via-background/10 to-transparent opacity-80 transition duration-300 group-hover:opacity-95" />
@@ -262,8 +262,9 @@ export default function ProjectExplorer({
             "fixed z-[60] flex h-11 w-11 items-center justify-center rounded-full",
             "border border-border/80 bg-card/95 text-foreground shadow-lg backdrop-blur-md",
             "transition hover:bg-muted",
-            "bottom-[max(1rem,env(safe-area-inset-bottom,0px)+4.5rem)] right-4",
-            "md:bottom-6 md:right-6 md:max-lg:bottom-6"
+            /* clear mobile dock; desktop unchanged */
+            "bottom-[max(5.75rem,env(safe-area-inset-bottom,0px)+4.25rem)] right-3 max-[430px]:right-3 sm:right-4",
+            "md:bottom-6 md:right-6"
           )}
           aria-label="Back to top"
         >
