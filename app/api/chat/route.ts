@@ -6,6 +6,7 @@
 import Groq from "groq-sdk";
 import { NextRequest, NextResponse } from "next/server";
 import { searchProjects, ProjectSearchParams } from "@/lib/projectSearch";
+import { checkRateLimit } from "@/lib/rateLimit";
 import {
   groq,
   MODEL,
@@ -13,7 +14,11 @@ import {
   MAX_HISTORY_MESSAGES,
   MAX_MESSAGES,
   MAX_MESSAGE_LENGTH,
+  MAX_USER_MESSAGE_LENGTH,
+  MAX_COMPLETION_TOKENS,
   QUOTA_EXCEEDED_MESSAGE,
+  RATE_LIMIT_MESSAGE,
+  CHAT_RATE_LIMIT_RULES,
 } from "@/lib/constants/groq";
 
 let quotaResetAt: number | null = null;
@@ -54,12 +59,16 @@ type ChatMessage = { role: "user" | "assistant"; content: string };
 function isValidChatMessage(m: unknown): m is ChatMessage {
   if (typeof m !== "object" || m === null) return false;
   const { role, content } = m as Record<string, unknown>;
-  return (
-    (role === "user" || role === "assistant") &&
-    typeof content === "string" &&
-    content.trim().length > 0 &&
-    content.length <= MAX_MESSAGE_LENGTH
-  );
+  if (role !== "user" && role !== "assistant") return false;
+  if (typeof content !== "string" || content.trim().length === 0) return false;
+  const maxLength = role === "user" ? MAX_USER_MESSAGE_LENGTH : MAX_MESSAGE_LENGTH;
+  return content.length <= maxLength;
+}
+
+function getClientIp(req: NextRequest): string {
+  const forwarded = req.headers.get("x-forwarded-for");
+  if (forwarded) return forwarded.split(",")[0].trim();
+  return req.headers.get("x-real-ip") ?? "unknown";
 }
 
 interface GroqErrorShape {
@@ -116,6 +125,17 @@ async function withRetry<T>(fn: (attempt: number) => Promise<T>, retries = 3): P
 
 export async function POST(req: NextRequest) {
   try {
+    const rateLimit = await checkRateLimit(getClientIp(req), CHAT_RATE_LIMIT_RULES);
+    if (!rateLimit.ok) {
+      return NextResponse.json(
+        { reply: RATE_LIMIT_MESSAGE },
+        {
+          status: 429,
+          headers: { "Retry-After": String(rateLimit.retryAfterSeconds) },
+        }
+      );
+    }
+
     let body: unknown;
     try {
       body = await req.json();
@@ -136,6 +156,13 @@ export async function POST(req: NextRequest) {
     if (!messages.every(isValidChatMessage)) {
       return NextResponse.json(
         { error: "Each message must have a role of 'user' or 'assistant' and non-empty string content." },
+        { status: 400 }
+      );
+    }
+
+    if (messages[messages.length - 1].role !== "user") {
+      return NextResponse.json(
+        { error: "The last message must be from the user." },
         { status: 400 }
       );
     }
@@ -161,6 +188,7 @@ export async function POST(req: NextRequest) {
           messages: chatMessages,
           tools,
           temperature: 0.2,
+          max_completion_tokens: MAX_COMPLETION_TOKENS,
           ...(attempt > 0
             ? { tool_choice: { type: "function", function: { name: "search_projects" } } as const }
             : {}),
