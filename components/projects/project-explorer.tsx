@@ -6,22 +6,26 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { useEffect, useRef } from "react";
 import { Skeleton } from "../ui/skeleton";
 import { Badge } from "../ui/badge";
 import { ProjectQueryParams } from "@/hooks/project/useGetProjects";
 import { EmptyState } from "../ui/empty-state";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import { FileX2, ArrowUpRight, ArrowUp, AlertCircle } from "lucide-react";
-import { useEffect, useRef, useCallback, useState } from "react";
+import { PaginatedResponse } from "@/types/project/pagination";
+import { ProjectCardType } from "@/types/project/card";
 import { cn } from "@/lib/utils";
 
 interface ProjectExplorerProps {
   currentParams: ProjectQueryParams;
   projects: any[];
   isLoading: boolean;
+  isFilterLoading: boolean;
   error: string | null;
-  hasMore: boolean;
-  loadMore: () => void;
+  meta: PaginatedResponse<ProjectCardType>["meta"] | null;
+  onPageChange: (page: number) => void;
+  onReset: () => void;
 }
 
 const statusTone: Record<string, string> = {
@@ -36,64 +40,48 @@ export default function ProjectExplorer({
   currentParams,
   projects,
   isLoading,
+  isFilterLoading,
   error,
-  hasMore,
-  loadMore,
+  meta,
+  onPageChange,
+  onReset,
 }: ProjectExplorerProps) {
-  const observerRef = useRef<IntersectionObserver | null>(null);
-  const loadingRef = useRef<HTMLDivElement | null>(null);
-  const [showScrollTop, setShowScrollTop] = useState(false);
-
-  const loadMoreRef = useRef(loadMore);
-  const hasMoreRef = useRef(hasMore);
-  const isLoadingRef = useRef(isLoading);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  const isRequestingNextPageRef = useRef(false);
 
   useEffect(() => {
-    loadMoreRef.current = loadMore;
-  }, [loadMore]);
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (
+          entry.isIntersecting &&
+          meta?.hasNextPage &&
+          !isLoading &&
+          !isRequestingNextPageRef.current
+        ) {
+          isRequestingNextPageRef.current = true;
+          observer.unobserve(sentinel);
+          onPageChange((meta.currentPage || 1) + 1);
+        }
+      },
+      { threshold: 0.1, root: null },
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [meta, isLoading, onPageChange]);
 
   useEffect(() => {
-    hasMoreRef.current = hasMore;
-  }, [hasMore]);
-
-  useEffect(() => {
-    isLoadingRef.current = isLoading;
+    if (!isLoading) {
+      isRequestingNextPageRef.current = false;
+    }
   }, [isLoading]);
 
-  const lastProjectElementRef = useCallback(
-    (node: HTMLDivElement) => {
-      if (observerRef.current) observerRef.current.disconnect();
-      if (!node) return;
-
-      observerRef.current = new IntersectionObserver(
-        (entries) => {
-          if (
-            entries[0].isIntersecting &&
-            hasMoreRef.current &&
-            !isLoadingRef.current
-          ) {
-            isLoadingRef.current = true;
-            loadMoreRef.current();
-          }
-        },
-        { threshold: 0.35, rootMargin: "80px" },
-      );
-
-      observerRef.current.observe(node);
-    },
-    [projects.length],
-  );
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setShowScrollTop(window.scrollY > 400);
-    };
-
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  const scrollToTop = () => {
+  const handleBackToTop = () => {
+    onReset();
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -104,6 +92,18 @@ export default function ProjectExplorer({
         <AlertTitle>Couldn&apos;t load projects</AlertTitle>
         <AlertDescription>{error}</AlertDescription>
       </Alert>
+    );
+  }
+
+  if (isFilterLoading) {
+    return (
+      <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-2 xl:grid-cols-3">
+        {Array(currentParams.limit || 9)
+          .fill(0)
+          .map((_, i) => (
+            <Skeleton key={i} className="h-[320px] rounded-2xl sm:h-[340px]" />
+          ))}
+      </div>
     );
   }
 
@@ -134,23 +134,18 @@ export default function ProjectExplorer({
   return (
     <div className="flex min-w-0 flex-col gap-6 sm:gap-8 md:gap-10">
       <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-2 xl:grid-cols-3">
-        {projects.map((project, index) => {
-          const isLastProject = index === projects.length - 1;
+        {projects.map((project) => {
           const status = project.status as string | undefined;
           const tone = status ? statusTone[status] : "";
 
           return (
-            <div
-              key={project.id}
-              ref={isLastProject ? lastProjectElementRef : null}
-              className="min-w-0"
-            >
+            <div key={project.id} className="min-w-0">
               <Link
                 href={`/project/${project.id}`}
                 className={cn(
                   "group relative block overflow-hidden rounded-2xl border bg-card/85 shadow-sm ring-1 ring-border/55",
                   "transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:ring-primary/25",
-                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                 )}
               >
                 <div className="relative aspect-[16/10] overflow-hidden bg-muted sm:aspect-video">
@@ -171,7 +166,7 @@ export default function ProjectExplorer({
                         variant="outline"
                         className={cn(
                           "border text-[10px] font-semibold uppercase tracking-wide backdrop-blur-sm sm:text-xs",
-                          tone || "bg-background/80"
+                          tone || "bg-background/80",
                         )}
                       >
                         {String(project.status).replace(/_/g, " ")}
@@ -245,26 +240,36 @@ export default function ProjectExplorer({
       </div>
 
       {isLoading && projects.length > 0 && (
-        <div className="flex justify-center py-2" ref={loadingRef}>
-          <div
-            className="h-8 w-8 animate-spin rounded-full border-2 border-primary/40 border-t-primary"
-            role="status"
-            aria-label="Loading more"
-          />
+        <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-2 xl:grid-cols-3">
+          {Array(3)
+            .fill(0)
+            .map((_, i) => (
+              <Skeleton
+                key={`next-batch-${i}`}
+                className="h-[320px] rounded-2xl sm:h-[340px]"
+              />
+            ))}
         </div>
       )}
 
-      {showScrollTop && (
+      <div ref={sentinelRef} className="h-1 w-full" />
+
+      {!meta?.hasNextPage && projects.length > 0 && !isLoading && (
+        <p className="py-4 text-center text-sm text-muted-foreground">
+          You&apos;ve reached the end of the results.
+        </p>
+      )}
+
+      {(meta?.currentPage ?? 1) > 1 && (
         <button
           type="button"
-          onClick={scrollToTop}
+          onClick={handleBackToTop}
           className={cn(
             "fixed z-[60] flex h-11 w-11 items-center justify-center rounded-full",
             "border border-border/80 bg-card/95 text-foreground shadow-lg backdrop-blur-md",
             "transition hover:bg-muted",
-            /* clear mobile dock; desktop unchanged */
             "bottom-[max(5.75rem,env(safe-area-inset-bottom,0px)+4.25rem)] right-3 max-[430px]:right-3 sm:right-4",
-            "md:bottom-6 md:right-6"
+            "md:bottom-6 md:right-6",
           )}
           aria-label="Back to top"
         >

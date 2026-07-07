@@ -27,9 +27,10 @@ interface MarkdownEditorProps {
   onChange: (value: string) => void;
   placeholder?: string;
   className?: string;
+  id?: string;
 }
 
-export default function MarkdownEditor({ value, onChange, placeholder, className }: MarkdownEditorProps) {
+export default function MarkdownEditor({ value, onChange, placeholder, className, id }: MarkdownEditorProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const insertText = (before: string, after: string = "", placeholder: string = "") => {
@@ -171,6 +172,7 @@ export default function MarkdownEditor({ value, onChange, placeholder, className
       {/* Textarea */}
       <Textarea
         ref={textareaRef}
+        id={id}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}

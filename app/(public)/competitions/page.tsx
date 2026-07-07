@@ -45,7 +45,7 @@ export default function AwardsPage() {
     router.push("/contact")
   }
 
-  // Setup intersection observer once - uses refs to avoid recreating on every state change
+  // Setup intersection observer and recreate only when list length changes
   useEffect(() => {
     if (observerRef.current) observerRef.current.disconnect()
 
@@ -66,7 +66,7 @@ export default function AwardsPage() {
     return () => {
       if (observerRef.current) observerRef.current.disconnect()
     }
-  }, []) // Empty dependency array - only run once on mount
+  }, [competitions.length])
 
   return (
     <div className="min-h-screen bg-#0c0a09">
@@ -217,13 +217,13 @@ export default function AwardsPage() {
         </p>
           <div className="mt-8 flex flex-wrap justify-center gap-4">
           
-          <Link href="/submit/competition">
+          <Link href="/dashboard/submit/competition">
           <Button size="lg" variant="default">
           
            Enter a missing Competition
           </Button>
         </Link>
-        <Link href="/submit/award">
+        <Link href="/dashboard/submit/award">
           <Button size="lg" variant="outline" >
            Submit your Award Win
           </Button>

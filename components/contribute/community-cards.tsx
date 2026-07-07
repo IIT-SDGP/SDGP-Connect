@@ -25,7 +25,7 @@ export default function CommunityCards({ cardVariants }: { cardVariants: any }) 
         Connect with fellow developers, get support, and collaborate on exciting projects.
       </p>
 
-      <div className="grid md:grid-cols-2 gap-8 items-stretch">
+      <div className="grid w-full gap-4 sm:gap-6 md:grid-cols-2 md:gap-8 items-stretch [&>*]:min-w-0 [&_[data-slot=card]]:min-w-0">
         <motion.div whileHover={{ scale: 1.02, y: -5 }} transition={{ duration: 0.2 }} className="h-full">
           <Card className="h-full bg-white/[0.05] backdrop-blur-lg border border-white/[0.15] shadow-lg text-white">
             <CardHeader>
@@ -34,7 +34,7 @@ export default function CommunityCards({ cardVariants }: { cardVariants: any }) 
             </CardHeader>
             <CardContent className="p-6 pt-0 md:p-8 md:pt-0">
               <p className="text-white/70 mb-4">Connect with us on WhatsApp to discuss ideas, get support, and collaborate.</p>
-              <Button asChild variant="outline" className="bg-white/[0.05] text-white border-white/[0.1] hover:bg-white/[0.1]">
+              <Button asChild variant="outline" className="h-auto min-h-9 max-w-full whitespace-normal break-words bg-white/[0.05] px-3 py-2 text-center text-white border-white/[0.1] hover:bg-white/[0.1]">
                 <a href="https://chat.whatsapp.com/IFJH9D1sbiT7OsNsBT4neT" target="_blank" rel="noopener noreferrer">
                   Join WhatsApp Community <ExternalLink className="ml-2 h-4 w-4" />
                 </a>
@@ -53,7 +53,7 @@ export default function CommunityCards({ cardVariants }: { cardVariants: any }) 
               <p className="text-white/70 mb-4">
                 Access the SDGP Connect repository on GitHub for issues, discussions, documentation, and code.
               </p>
-              <Button asChild variant="outline" className="bg-white/[0.05] text-white border-white/[0.1] hover:bg-white/[0.1]">
+              <Button asChild variant="outline" className="h-auto min-h-9 max-w-full whitespace-normal break-words bg-white/[0.05] px-3 py-2 text-center text-white border-white/[0.1] hover:bg-white/[0.1]">
                 <a href={repoUrl} target="_blank" rel="noopener noreferrer">
                   Visit GitHub Repository <ExternalLink className="ml-2 h-4 w-4" />
                 </a>

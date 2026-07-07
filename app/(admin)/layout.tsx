@@ -16,6 +16,7 @@ import { getServerSession } from "next-auth/next";
 import { redirect } from "next/navigation";
 import { authOptions } from "../api/auth/[...nextauth]/route";
 import { ClientProviders } from "@/components/Providers/ClientProvider";
+import { Role } from "@/types/prisma-types";
 
 const notoSansLatin = Noto_Sans({
   variable: "--font-noto-sans-core",
@@ -52,6 +53,9 @@ export default async function RootLayout({
 }) {
   const session = await getServerSession(authOptions);
   if (!session) redirect("/login");
+
+  const userRole = (session.user as any)?.role as Role | undefined;
+  if (userRole === Role.STUDENT) redirect("/dashboard");
 
   return (
     <html lang="en" suppressHydrationWarning>

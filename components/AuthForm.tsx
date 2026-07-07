@@ -5,53 +5,68 @@
 "use client"
 
 import * as React from "react"
-import { ChevronLeft, ShieldCheck } from "lucide-react"
+import { ChevronLeft } from "lucide-react"
 import { motion } from "framer-motion"
-import { signIn } from "next-auth/react"
-import { useRouter } from "next/navigation"
+import { signIn, signOut } from "next-auth/react"
+import { useSearchParams } from "next/navigation"
 import { toast } from "sonner"
 import Image from "next/image"
 import Link from "next/link"
-import { Button } from "@/components/ui/button"
+
+const loginImages = [
+  "/home/hero/dialog-ino.png",
+  "/home/hero/movemate1.webp",
+  "/home/hero/3.jpg",
+]
 
 const AuthForm: React.FC = () => {
   return (
-    <div className="dark relative flex min-h-screen items-center justify-center overflow-hidden bg-zinc-950 px-4 py-10 text-zinc-100">
-      <div className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute -left-24 top-16 h-72 w-72 rounded-full bg-primary/20 blur-3xl" />
-        <div className="absolute right-0 top-1/3 h-72 w-72 rounded-full bg-emerald-500/20 blur-3xl" />
-      </div>
-
+    <div className="grid h-screen place-items-center overflow-hidden bg-black text-zinc-200">
       <BackButton />
-
       <motion.div
         initial={{ opacity: 0, y: 25 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.45, ease: "easeOut" }}
-        className="relative z-10 w-full max-w-4xl"
+        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+        className="relative z-10 w-full max-w-4xl px-4 sm:px-0"
       >
-        <div className="grid overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-900/90 shadow-2xl shadow-black/40 backdrop-blur-md lg:grid-cols-2">
-          <div className="relative hidden min-h-[560px] border-r border-zinc-800 bg-gradient-to-br from-zinc-900 via-zinc-900 to-zinc-800 p-10 lg:flex lg:items-center lg:justify-center">
-            <div className="mx-auto flex max-w-sm flex-col items-center text-center">
-              <div className="rounded-[2rem] bg-primary/12 p-7 ring-1 ring-primary/30 shadow-[0_0_60px_-20px_rgba(16,185,129,0.6)]">
-                <Image src="/iconw.svg" alt="SDGP logo" width={220} height={220} />
+        {/* Split card container */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 rounded-2xl border border-zinc-800 overflow-hidden shadow-[0_24px_80px_-12px_rgba(0,0,0,0.7)]">
+          {/* LEFT PANEL: Form */}
+          <div className="bg-zinc-900 px-10 py-12 flex flex-col justify-between min-h-[520px]">
+            {/* Logo */}
+            <motion.div
+              initial={{ scale: 0.85, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.5 }}
+              className="flex items-center gap-3"
+            >
+              <Image src="/iconw.svg" alt="Logo" width={40} height={40} className="h-25 w-25" />
+            </motion.div>
+
+            {/* Heading + form */}
+            <div className="flex flex-col gap-8">
+              <div>
+                <h1 className="text-4xl font-bold text-white tracking-tight leading-tight">
+                  Welcome<br />
+                  <span className="text-zinc-500">back.</span>
+                </h1>
+                <p className="mt-3 text-sm text-zinc-400">
+                  Sign in to your account to continue
+                </p>
               </div>
-              <h2 className="mt-8 text-3xl font-semibold tracking-tight text-zinc-100">SDGP Connect</h2>
-              <p className="mt-2 text-sm text-zinc-400">Admin Workspace</p>
-              <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-zinc-700 bg-zinc-800/70 px-3 py-1.5 text-sm text-zinc-300">
-                <ShieldCheck className="h-4 w-4 text-primary" />
-                Secure admin access
-              </div>
+              <LoginForm />
             </div>
+
+            {/* Footer */}
+            <p className="text-xs text-zinc-600">© 2026 SDGP.lk · All rights reserved</p>
           </div>
 
-          <div className="p-6 sm:p-10 lg:p-12">
-            <Logo />
-            <Header />
-            <LoginForm />
-          </div>
+          {/* RIGHT PANEL: Visual */}
+          <RightPanel />
         </div>
       </motion.div>
+
+      <BackgroundDecoration />
     </div>
   )
 }
@@ -60,178 +75,194 @@ const BackButton: React.FC = () => (
   <motion.div
     initial={{ opacity: 0, x: -20 }}
     animate={{ opacity: 1, x: 0 }}
-    transition={{ delay: 0.1 }}
-    className="absolute left-4 top-4 z-20 sm:left-8 sm:top-8"
+    transition={{ delay: 0.2 }}
+    className="fixed left-4 top-4 sm:left-8 sm:top-8 z-50" 
   >
-    <Link
-      href="/"
-      className="inline-flex items-center gap-2 rounded-xl border border-zinc-800 bg-zinc-900/85 px-3 py-2 text-sm font-medium text-zinc-300 transition-colors hover:bg-zinc-800 hover:text-zinc-100"
-    >
-      <ChevronLeft size={16} />
-      Go back
+    <Link href="/">
+      <button
+        type="button"
+        className="flex items-center justify-center gap-2 rounded-xl border border-zinc-800
+        bg-zinc-900 px-4 py-2.5 font-medium text-zinc-200
+        transition-all duration-300 hover:bg-zinc-800 active:scale-[0.98]
+        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-600/40 w-fit"
+      >
+        <span className="text-zinc-400"><ChevronLeft size={16} /></span>
+        <span>Go back</span>
+      </button>
     </Link>
   </motion.div>
 )
 
-const Logo: React.FC = () => (
-  <motion.div 
-    initial={{ scale: 0.8, opacity: 0 }}
-    animate={{ scale: 1, opacity: 1 }}
-    transition={{ duration: 0.3 }}
-    className="mb-8 flex items-center justify-center lg:hidden"
-  >
-    <div className="rounded-3xl bg-primary/10 p-6 ring-1 ring-primary/25">
-      <Image src="/iconw.svg" alt="Logo" width={156} height={156} />
-    </div>
-  </motion.div>
-)
-
-const Header: React.FC = () => (
-  <div className="mb-8 text-center lg:text-left">
-    <h1 className="text-3xl font-bold tracking-tight">Welcome back</h1>
-    <p className="mt-2 text-sm text-muted-foreground">Sign in to continue to the admin dashboard.</p>
-  </div>
-)
+const getAuthErrorMessage = (error: string | null) => {
+  if (!error || error === "undefined") {
+    return "Sign-in failed. Please check the Asgardeo configuration and try again."
+  }
+  return `Sign-in failed (${error}). Please try again.`
+}
 
 const LoginForm: React.FC = () => {
-  const router = useRouter();
-  const [username, setUsername] = React.useState("");
-  const [password, setPassword] = React.useState("");
-  const [error, setError] = React.useState("");
-  const [isLoading, setIsLoading] = React.useState(false);
-  const [showForgotMessage, setShowForgotMessage] = React.useState(false);
+  const searchParams = useSearchParams()
+  const [error, setError] = React.useState("")
+  const [loading, setLoading] = React.useState(false)
+  const callbackUrlFromQuery = searchParams.get("callbackUrl")
+  const dashboardCallbackUrl = callbackUrlFromQuery ?? "/dashboard"
+  const authError = searchParams.get("error")
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setIsLoading(true);
-
-    if (!username.trim()) {
-      setError("Username is required");
-      setIsLoading(false);
-      toast.error("Username is required");
-      return;
+  React.useEffect(() => {
+    if (authError) {
+      setError(getAuthErrorMessage(authError))
+      toast.error("Sign-in failed.")
     }
+  }, [authError])
 
-    if (!password) {
-      setError("Password is required");
-      setIsLoading(false);
-      toast.error("Password is required");
-      return;
-    }
-
+  const handleSignIn = async () => {
+    setLoading(true)
     try {
-      if (process.env.NODE_ENV === 'development') {
-      
-      }
-      // Attempt to sign in using NextAuth credentials provider
-      const result = await signIn("credentials", {
-        name: username,
-        password,
-        redirect: false
-      });
-
-
-      if (result?.error) {
-        setError(result.error);
-
-        if (result.error.includes("User not found")) {
-          toast.error("No user found with this username");
-        } else if (result.error.includes("Invalid password")) {
-          toast.error("Password is incorrect");
-        } else {
-          toast.error("Authentication failed");
-        }
-      } else if (result?.ok) {
-        toast.success("Login successful!");
-        router.push("/admin");  // Redirect to the dashboard on successful login
-      }
-    } catch (err) {
-      console.error("SignIn Error:", err); // LOG
-      setError("An error occurred during sign in");
-      toast.error("An error occurred during sign in");
-    } finally {
-      setIsLoading(false);
+      await signOut({ redirect: false })
+      await signIn("asgardeo", { callbackUrl: dashboardCallbackUrl })
+    } catch {
+      setLoading(false)
+      setError("Something went wrong. Please try again.")
     }
-  };
-
+  }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <div className="space-y-5">
       {error && (
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-500 dark:text-red-400"
+          className="rounded-xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-400"
         >
           <p className="flex items-center gap-2">
-            <span className="size-1.5 rounded-full bg-red-500" />
+            <span className="size-1.5 rounded-full bg-red-400 shrink-0" />
             {error}
           </p>
         </motion.div>
       )}
-      {showForgotMessage && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="rounded-xl border border-border/70 bg-muted/40 p-4 text-sm text-muted-foreground"
-        >
-          <p>Please contact your administrator to reset your password.</p>
-        </motion.div>
-      )}
-      <div className="space-y-2">
-        <label
-          htmlFor="username-input"
-          className="block text-sm font-medium text-foreground/90"
-        >
-          Username
-        </label>
-        <input
-          id="username-input"
-          type="text"
-          placeholder="Enter your username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          className="w-full rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-3 text-zinc-100 placeholder:text-zinc-500 transition-colors duration-200 hover:border-zinc-600 focus:border-ring focus:outline-none"
-        />
-      </div>
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <label
-            htmlFor="password-input"
-            className="block text-sm font-medium text-foreground/90"
-          >
-            Password
-          </label>
-          <button
-            type="button"
-            onClick={() => setShowForgotMessage(true)}
-            className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Forgot password?
-          </button>
-        </div>
-        <input
-          id="password-input"
-          type="password"
-          placeholder="••••••••••••"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-3 text-zinc-100 placeholder:text-zinc-500 transition-colors duration-200 hover:border-zinc-600 focus:border-ring focus:outline-none"
-        />
-      </div>
-      <Button type="submit" className="h-11 w-full rounded-xl" disabled={isLoading}>
-        {isLoading ? (
-          <div className="flex items-center justify-center gap-2">
-            <div className="size-4 animate-spin rounded-full border-2 border-current/40 border-t-current" />
-            <span>Signing in...</span>
-          </div>
+
+      {/* Asgardeo sign-in button */}
+      <button
+        type="button"
+        onClick={handleSignIn}
+        disabled={loading}
+        className="flex w-full items-center justify-center gap-3 rounded-xl border border-zinc-700
+          bg-zinc-800 px-5 py-3.5 text-sm font-medium text-zinc-200
+          transition-all duration-200 hover:bg-zinc-700 hover:border-zinc-600
+          active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed
+          focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500/40"
+      >
+        {loading ? (
+          <>
+            <span className="size-4 animate-spin rounded-full border-2 border-zinc-600 border-t-zinc-200 shrink-0" />
+            <span>Redirecting to Asgardeo...</span>
+          </>
         ) : (
-          "Sign in"
+          <>
+            {/* Asgardeo wordmark icon */}
+            <svg width="18" height="18" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0">
+              <rect width="40" height="40" rx="8" fill="#FF7300"/>
+              <path d="M20 8L32 28H8L20 8Z" fill="white"/>
+            </svg>
+            <span>Continue with Asgardeo</span>
+          </>
         )}
-      </Button>
-    </form>
-  );
-};
+      </button>
+
+      <p className="text-center text-xs text-zinc-600">
+        Secure sign-in via WSO2 Asgardeo
+      </p>
+    </div>
+  )
+}
+
+const RightPanel: React.FC = () => {
+  const [current, setCurrent] = React.useState(0)
+  const total = loginImages.length
+
+  React.useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setCurrent(prev => (prev + 1) % total)
+    }, 5000)
+    return () => window.clearTimeout(timer)
+  }, [current, total])
+
+  return (
+    <div className="relative hidden sm:flex flex-col justify-between bg-zinc-950 overflow-hidden p-8">
+      {/* Image carousel */}
+      <div className="absolute inset-0">
+        {loginImages.map((src, i) => (
+          <img
+            key={src}
+            src={src}
+            alt="Hero"
+            loading={i === 0 ? "eager" : "lazy"}
+            className={`absolute inset-0 w-full h-full object-cover object-center transition-opacity duration-[1500ms] ease-out ${
+              i === current ? "opacity-100" : "opacity-0"
+            }`}
+          />
+        ))}
+        <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/45 to-black/15" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/25" />
+      </div>
+
+      {/* Grid overlay */}
+      <div
+        className="pointer-events-none absolute inset-0 z-0 opacity-[0.03]"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(255,255,255,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.6) 1px, transparent 1px)",
+          backgroundSize: "32px 32px",
+        }}
+      />
+
+      {/* Top spacer — keeps layout consistent */}
+      <div className="relative z-10" />
+
+      {/* Bottom: dots + info card */}
+      <div className="relative z-10">
+        {/* Progress dots */}
+        <div className="flex gap-2 mb-4">
+          {loginImages.map((_, i) => (
+            <button
+              key={i}
+              type="button"
+              onClick={() => setCurrent(i)}
+              aria-label={`Show image ${i + 1}`}
+              className="h-1 w-8 rounded-full overflow-hidden bg-white/15 hover:bg-white/25 transition-colors duration-300 cursor-pointer"
+            >
+              <div
+                className={`h-full bg-white rounded-full transition-all linear ${
+                  i === current ? "w-full duration-[5000ms]" : "w-0 duration-0"
+                }`}
+              />
+            </button>
+          ))}
+        </div>
+
+        {/* Info card */}
+        <div className="rounded-xl border border-zinc-800 bg-zinc-900/80 p-5 backdrop-blur">
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-600 mb-2">Platform</p>
+          <p className="text-sm text-zinc-400 leading-relaxed mb-4">
+            Manage your Software Development Group Project — track progress, collaborate, and ship faster.
+          </p>
+          <div className="flex items-center gap-2">
+            <span className="flex items-center gap-1.5 rounded-full border border-zinc-700 bg-zinc-800 px-3 py-1 text-xs text-zinc-400">
+              <span className="size-1.5 rounded-full bg-emerald-400" />
+              Live
+            </span>
+            <span className="rounded-full border border-zinc-700 bg-zinc-800 px-3 py-1 text-xs text-zinc-400">
+              SDGP 2026
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+const BackgroundDecoration: React.FC = () => (
+  <div className="fixed inset-0 bg-[radial-gradient(circle_800px_at_50%_50%,#18181b,transparent)]" />
+)
 
 export default AuthForm

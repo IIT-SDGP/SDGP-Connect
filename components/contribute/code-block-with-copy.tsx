@@ -27,9 +27,9 @@ export default function CodeBlockWithCopy({ code, className = "" }: CodeBlockWit
   };
 
   return (
-    <div className={`relative bg-gray-900 rounded-md overflow-hidden ${className}`}>
+    <div className={`relative w-full max-w-full bg-gray-900 rounded-md overflow-hidden ${className}`}>
       <div className="flex items-center justify-between p-2">
-        <code className="text-xs font-mono text-green-400 flex-1 overflow-x-auto whitespace-nowrap">
+        <code className="min-w-0 flex-1 break-all text-xs font-mono text-green-400 whitespace-pre-wrap">
           {code}
         </code>
         <Button

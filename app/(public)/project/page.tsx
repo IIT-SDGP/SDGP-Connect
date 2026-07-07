@@ -11,8 +11,16 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ProjectQueryParams, useProjects } from "@/hooks/project/useGetProjects";
 import { X } from "lucide-react";
+import dynamic from "next/dynamic";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+
+const ThreeScene = dynamic(() => import("@/components/home/three-scene"), {
+  ssr: false,
+  loading: () => (
+    <div className="absolute inset-0 bg-gradient-to-b from-transparent to-background/50" />
+  ),
+});
 
 interface FilterState {
   featured: boolean;
@@ -29,6 +37,7 @@ function ProjectsPageContent() {
   const searchParams = useSearchParams();
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [isFilterLoading, setIsFilterLoading] = useState(false);
 
   const currentParams = useMemo(
     (): ProjectQueryParams => ({
@@ -46,11 +55,14 @@ function ProjectsPageContent() {
     [searchParams],
   );
 
-  const { projects, isLoading, error, meta, hasMore, loadMore } = useProjects(currentParams);
+  const { projects, isLoading, error, meta, resetToFirstPage } = useProjects(currentParams);
 
   useEffect(() => {
-    if (!isLoading && projects && isInitialLoad) {
-      setIsInitialLoad(false);
+    if (!isLoading) {
+      setIsFilterLoading(false);
+      if (projects && isInitialLoad) {
+        setIsInitialLoad(false);
+      }
     }
   }, [isLoading, projects, isInitialLoad]);
 
@@ -81,8 +93,35 @@ function ProjectsPageContent() {
     setShowMobileFilters((prev) => !prev);
   }, []);
 
+  const prevFiltersRef = useRef(initialFilters);
+
+  useEffect(() => {
+    prevFiltersRef.current = initialFilters;
+  }, [initialFilters]);
+
   const handleFilterChange = useCallback(
     (newFilters: FilterState) => {
+      const prev = prevFiltersRef.current;
+      const isSame =
+        prev.featured === newFilters.featured &&
+        JSON.stringify([...prev.status].sort()) ===
+          JSON.stringify([...newFilters.status].sort()) &&
+        JSON.stringify([...prev.years].sort()) ===
+          JSON.stringify([...newFilters.years].sort()) &&
+        JSON.stringify([...prev.projectTypes].sort()) ===
+          JSON.stringify([...newFilters.projectTypes].sort()) &&
+        JSON.stringify([...prev.domains].sort()) ===
+          JSON.stringify([...newFilters.domains].sort()) &&
+        JSON.stringify([...prev.sdgGoals].sort()) ===
+          JSON.stringify([...newFilters.sdgGoals].sort()) &&
+        JSON.stringify([...prev.techStack].sort()) ===
+          JSON.stringify([...newFilters.techStack].sort());
+
+      if (isSame) return;
+
+      prevFiltersRef.current = newFilters;
+      setIsFilterLoading(true);
+
       const params = new URLSearchParams();
       params.append("page", "1");
       params.append("limit", String(currentParams.limit || 15));
@@ -109,9 +148,14 @@ function ProjectsPageContent() {
 
   const handleSearch = useCallback(
     (value: string) => {
+      const normalizedValue = value.trim();
+      const currentTitle = (searchParams.get("title") || "").trim();
+
+      if (normalizedValue === currentTitle) return;
+
       const params = new URLSearchParams(searchParams.toString());
-      if (value) {
-        params.set("title", value);
+      if (normalizedValue) {
+        params.set("title", normalizedValue);
       } else {
         params.delete("title");
       }
@@ -146,68 +190,92 @@ function ProjectsPageContent() {
   }
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-gradient-to-b from-background via-background to-muted/25">
-      <div className="w-full px-0 pt-2 sm:pt-3 md:pt-4">
-        <SearchHeader
-          toggleFilters={toggleFilters}
-          defaultTitle={currentParams.title ?? ""}
-          onSearch={handleSearch}
-          resultsSummary={resultsSummary}
-          isLoading={isLoading && !resultsSummary}
-        />
-      </div>
+    <div className="relative min-h-screen overflow-x-hidden">
+      <ThreeScene />
 
-      <div className="mx-auto w-full min-w-0 max-w-7xl px-3 pb-8 pt-5 sm:px-4 sm:pt-6 md:px-6 md:pb-12 md:pt-7 lg:px-8 xl:px-10">
-        <div className="flex min-w-0 flex-col gap-6 sm:gap-8 lg:flex-row lg:gap-8 xl:gap-10">
-          <div className="hidden w-[17.5rem] shrink-0 lg:block xl:w-72">
-            <div className="sticky top-6">
+      <div className="relative z-10 bg-gradient-to-b from-background/80 via-background/90 to-muted/25">
+        <div className="w-full px-0 pt-2 sm:pt-3 md:pt-4">
+          <SearchHeader
+            toggleFilters={toggleFilters}
+            defaultTitle={currentParams.title ?? ""}
+            onSearch={handleSearch}
+            resultsSummary={resultsSummary}
+            isLoading={isLoading && !resultsSummary}
+          />
+        </div>
+
+        <div className="mx-auto w-full min-w-0 max-w-7xl px-3 pb-8 pt-5 sm:px-4 sm:pt-6 md:px-6 md:pb-12 md:pt-7 lg:px-8 xl:px-10">
+          <div className="flex min-w-0 flex-col gap-6 sm:gap-8 lg:flex-row lg:gap-8 xl:gap-10">
+            <div className="hidden w-[17.5rem] shrink-0 lg:block xl:w-72">
+              <div className="sticky top-6">
+                <FilterSidebar onFilterChange={handleFilterChange} initialFilters={initialFilters} />
+              </div>
+            </div>
+
+            <div className="min-w-0 flex-1">
+              <ProjectExplorer
+                currentParams={currentParams}
+                projects={projects || []}
+                isLoading={isLoading}
+                isFilterLoading={isFilterLoading}
+                error={error}
+                meta={meta}
+                onPageChange={(page) => {
+                  const params = new URLSearchParams(searchParams.toString());
+                  params.set("page", String(page));
+                  router.push(`${window.location.pathname}?${params.toString()}`, {
+                    scroll: false,
+                  });
+                }}
+                onReset={resetToFirstPage}
+              />
+            </div>
+          </div>
+        </div>
+
+        {showMobileFilters ? (
+          <div
+            className="fixed inset-0 z-[200] flex max-h-[100dvh] flex-col bg-background lg:hidden"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Filter projects"
+          >
+            <div className="flex shrink-0 items-center justify-between border-b border-border/70 bg-card/50 px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top,0px))] backdrop-blur-md">
+              <div>
+                <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+                  Refine results
+                </p>
+                <h2 className="text-lg font-semibold">Filters</h2>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowMobileFilters(false)}
+                type="button"
+                className="h-10 w-10 shrink-0 rounded-full"
+                aria-label="Close filters"
+              >
+                <X className="h-5 w-5" />
+              </Button>
+            </div>
+
+            <div className="min-h-0 flex-1 overflow-y-auto px-3 py-4 pb-[env(safe-area-inset-bottom,0px)]">
               <FilterSidebar onFilterChange={handleFilterChange} initialFilters={initialFilters} />
             </div>
-          </div>
 
-          <div className="min-w-0 flex-1">
-            <ProjectExplorer
-              currentParams={currentParams}
-              projects={projects || []}
-              isLoading={isLoading}
-              error={error}
-              hasMore={hasMore}
-              loadMore={loadMore}
-            />
-          </div>
-        </div>
-      </div>
-
-      {showMobileFilters ? (
-        <div
-          className="fixed inset-0 z-[200] flex max-h-[100dvh] flex-col bg-background lg:hidden"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Filter projects"
-        >
-          <div className="flex shrink-0 items-center justify-between border-b border-border/70 bg-card/50 px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top,0px))] backdrop-blur-md">
-            <div>
-              <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
-                Refine results
-              </p>
-              <h2 className="text-lg font-semibold">Filters</h2>
+            <div className="flex shrink-0 gap-2 border-t border-border/70 bg-card/80 px-3 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] backdrop-blur-md">
+              <Button
+                variant="outline"
+                className="flex-1 rounded-xl"
+                onClick={() => setShowMobileFilters(false)}
+                type="button"
+              >
+                Done
+              </Button>
             </div>
-            <Button variant="ghost" size="icon" onClick={() => setShowMobileFilters(false)} type="button" className="h-10 w-10 shrink-0 rounded-full" aria-label="Close filters">
-              <X className="h-5 w-5" />
-            </Button>
           </div>
-
-          <div className="min-h-0 flex-1 overflow-y-auto px-3 py-4 pb-[env(safe-area-inset-bottom,0px)]">
-            <FilterSidebar onFilterChange={handleFilterChange} initialFilters={initialFilters} />
-          </div>
-
-          <div className="flex shrink-0 gap-2 border-t border-border/70 bg-card/80 px-3 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] backdrop-blur-md">
-            <Button variant="outline" className="flex-1 rounded-xl" onClick={() => setShowMobileFilters(false)} type="button">
-              Done
-            </Button>
-          </div>
-        </div>
-      ) : null}
+        ) : null}
+      </div>
     </div>
   );
 }

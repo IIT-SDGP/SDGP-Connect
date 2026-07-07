@@ -1,3 +1,7 @@
+// © 2026 SDGP.lk
+// Licensed under the GNU Affero General Public License v3.0 or later,
+// with an additional restriction: Non-commercial use only.
+// See <https://www.gnu.org/licenses/agpl-3.0.html> for details.
 'use client'
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -19,7 +23,6 @@ import useUploadImageToBlob from "@/hooks/azure/useUploadImageToBlob";
 import { UploadingSequence } from "@/components/ui/UploadingSequence";
 import { ProjectStatusEnum } from "@/types/prisma-types";
 import type { SubmitProjectResponse } from "@/types/project/response";
-import { ChevronLeft, ChevronRight, Send } from "lucide-react";
 
 const TOTAL_STEPS = 5;
 
@@ -39,7 +42,8 @@ const ProjectSubmissionForm = () => {
   const { uploadImage } = useUploadImageToBlob();
   const router = useRouter();
 
-  const { submitProject, isSubmitting, error } = useSubmitProject();
+  const { submitProject, isSubmitting } = useSubmitProject();
+
   const buildCopyPayload = (result: Partial<SubmitProjectResponse>, fallbackError?: unknown) => {
     const payload: Record<string, any> = {
       message: result.message,
@@ -72,10 +76,10 @@ const ProjectSubmissionForm = () => {
 
     const description = truncate(
       validationMessage ||
-        result.details ||
-        result.error ||
-        result.message ||
-        "There was an error submitting your project."
+      result.details ||
+      result.error ||
+      result.message ||
+      "There was an error submitting your project."
     );
 
     const copyPayload = buildCopyPayload(
@@ -138,6 +142,7 @@ const ProjectSubmissionForm = () => {
     mode: "onBlur",
   });
 
+  // Restore slide previews when navigating back to step 2
   useEffect(() => {
     if (currentStep === 2) {
       const formSlides = methods.getValues("slides");
@@ -175,9 +180,9 @@ const ProjectSubmissionForm = () => {
       4: [
         "socialLinks",
         "projectDetails.team_email",
-        "projectDetails.country_code",  
-        "projectDetails.phone_number", 
-        "projectDetails.team_phone"     
+        "projectDetails.country_code",
+        "projectDetails.phone_number",
+        "projectDetails.team_phone"
       ],
       5: [
         "team"
@@ -193,13 +198,13 @@ const ProjectSubmissionForm = () => {
     const isValid = results.every(result => result === true);
 
     if (!isValid) {
-      methods.formState.errors;
       toast.error("Please complete all required fields", {
         description: "Check the highlighted fields and ensure all required information is provided.",
       });
       return;
     }
 
+    // Step 1 — ensure files are actually selected then upload
     if (currentStep === 1) {
       if (!logoFile) {
         toast.error("Logo is required", {
@@ -231,6 +236,7 @@ const ProjectSubmissionForm = () => {
       setUploading(false);
     }
 
+    // Step 2 — upload slides
     if (currentStep === 2) {
       setUploading(true);
       try {
@@ -246,7 +252,6 @@ const ProjectSubmissionForm = () => {
             urls.map((url) => ({ slides_content: url })),
             { shouldValidate: true }
           );
-
           setSlidePreviews(urls);
           setSlideFiles([]);
         }
@@ -258,6 +263,7 @@ const ProjectSubmissionForm = () => {
       setUploading(false);
     }
 
+    // Step 5 — upload team profile images
     if (currentStep === 5) {
       setUploading(true);
       try {
@@ -297,40 +303,12 @@ const ProjectSubmissionForm = () => {
     }
   };
 
+  // By the time onSubmit fires, the page is guaranteed to be authenticated
+  // (the page itself redirects unauthenticated users before the form renders).
+  // All file uploads (cover, logo, slides, team profiles) have already been
+  // handled in handleNext — onSubmit only needs to call the API.
   const onSubmit: SubmitHandler<ProjectSubmissionSchema> = async (data) => {
     try {
-      const hasProfileImages = teamProfileFiles.some(file => file !== null);
-
-      if (hasProfileImages) {
-        setUploading(true);
-        try {
-          const currentTeam = [...data.team];
-
-          const updatedTeam = await Promise.all(
-            currentTeam.map(async (member, i) => {
-              const file = teamProfileFiles[i];
-              if (file) {
-                const url = await uploadImage(file);
-                return { ...member, profile_image: url };
-              }
-              return member;
-            })
-          );
-
-          data = {
-            ...data,
-            team: updatedTeam
-          };
-
-        } catch (err) {
-          console.error("Error uploading team profile images:", err);
-          toast.error("Team profile image upload failed. Please try again.");
-          setUploading(false);
-          return;
-        }
-        setUploading(false);
-      }
-
       const result = await submitProject(data);
 
       if (result.success && result.data?.projectId) {
@@ -410,65 +388,48 @@ const ProjectSubmissionForm = () => {
     }
   };
 
-  const busy = isSubmitting || uploading;
-
   return (
     <FormProvider {...methods}>
-      <div className="relative overflow-hidden rounded-2xl border border-border/80 bg-card/40 shadow-xl shadow-black/[0.04] backdrop-blur-sm dark:bg-card/25 dark:shadow-black/25">
-        <div
-          className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/35 to-transparent"
-          aria-hidden
-        />
-        <div className="p-5 sm:p-7 md:p-8">
-          <FormStepper currentStep={currentStep} totalSteps={TOTAL_STEPS} />
+      <div className="rounded-xl bg-white p-6 shadow-sm dark:bg-background border md:p-8">
+        <FormStepper currentStep={currentStep} totalSteps={TOTAL_STEPS} />
 
-          <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-8">
-            {renderStep()}
-
-            <div className="sticky bottom-0 z-10 -mx-5 -mb-5 mt-8 flex flex-col-reverse gap-3 border-t border-border/70 bg-background/90 px-5 py-4 backdrop-blur-md supports-[backdrop-filter]:bg-background/75 sm:-mx-7 sm:px-7 md:static md:mx-0 md:mb-0 md:bg-transparent md:px-0 md:py-0 md:backdrop-blur-none">
-              <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handlePrevious}
-                  disabled={currentStep === 1 || busy}
-                  className="w-full rounded-lg gap-2 sm:w-auto"
-                >
-                  <ChevronLeft className="size-4" />
-                  Back
-                </Button>
-                {currentStep < TOTAL_STEPS ? (
-                  <Button
-                    type="button"
-                    onClick={handleNext}
-                    disabled={busy}
-                    className="w-full rounded-lg gap-2 sm:w-auto"
-                  >
-                    {busy ? (
-                      <UploadingSequence />
-                    ) : (
-                      <>
-                        Continue
-                        <ChevronRight className="size-4" />
-                      </>
-                    )}
-                  </Button>
+        <form onSubmit={methods.handleSubmit(onSubmit)} className="mt-6 space-y-8">
+          {renderStep()}
+          <div className="flex justify-between pt-6">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handlePrevious}
+              disabled={currentStep === 1 || isSubmitting || uploading}
+            >
+              Previous
+            </Button>
+            {currentStep < TOTAL_STEPS ? (
+              <Button
+                type="button"
+                onClick={handleNext}
+                disabled={isSubmitting || uploading}
+              >
+                {(isSubmitting || uploading) ? (
+                  <UploadingSequence />
                 ) : (
-                  <Button type="submit" disabled={busy} className="w-full rounded-lg gap-2 sm:w-auto">
-                    {busy ? (
-                      <UploadingSequence />
-                    ) : (
-                      <>
-                        Submit project
-                        <Send className="size-4" />
-                      </>
-                    )}
-                  </Button>
+                  "Next"
                 )}
-              </div>
-            </div>
-          </form>
-        </div>
+              </Button>
+            ) : (
+              <Button
+                type="submit"
+                disabled={isSubmitting || uploading}
+              >
+                {(isSubmitting || uploading) ? (
+                  <UploadingSequence />
+                ) : (
+                  "Submit Project"
+                )}
+              </Button>
+            )}
+          </div>
+        </form>
       </div>
     </FormProvider>
   );

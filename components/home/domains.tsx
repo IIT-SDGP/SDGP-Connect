@@ -4,7 +4,6 @@
 // See <https://www.gnu.org/licenses/agpl-3.0.html> for details.
 "use client";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import AutoScroll from "embla-carousel-auto-scroll";
 import { ArrowRight, Layers3 } from "lucide-react";
@@ -18,73 +17,76 @@ import { projectDomainsOptions } from "@/lib/types/mapping";
 import Link from "next/link";
 import React from "react";
 import { useLanguage } from "@/hooks/LanguageProvider";
+import { CornerBrackets } from "@/components/home/corner-brackets";
 
-function getNested(obj: Record<string, unknown>, path: string[], fallback: unknown = undefined) {
-  return path.reduce(
-    (acc, key) =>
-      acc && typeof acc === "object" && (acc as Record<string, unknown>)[key] !== undefined
-        ? (acc as Record<string, unknown>)[key]
-        : fallback,
-    obj as unknown
-  );
+function getNested(obj: any, path: string[], fallback: any = undefined) {
+  return path.reduce((acc, key) => (acc && acc[key] !== undefined ? acc[key] : fallback), obj);
 }
 
 export default function Domains() {
   const { t } = useLanguage();
-  const domains = (getNested(t as Record<string, unknown>, ["home", "domains"], {}) ||
-    {}) as Record<string, string>;
+  const domains = getNested(t, ['home', 'domains'], {});
 
   return (
-    <section className="relative overflow-hidden py-24 md:py-32">
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-muted/30 via-background to-background dark:from-muted/15" />
+    <section className="w-full py-12 md:py-14 lg:py-[5.5rem] text-white">
+      <div className="container mx-auto px-4 md:px-6 max-w-7xl">
+        <div className="flex flex-col items-center text-center space-y-4">
 
-      <div className="container relative mx-auto max-w-6xl px-5 md:px-8">
-        <div className="mx-auto max-w-3xl text-center">
-          <Badge className="mb-6 inline-flex items-center gap-2 border border-primary/25 bg-primary/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-primary">
-            <Layers3 className="h-3.5 w-3.5" aria-hidden />
-            {domains.badge || "Project domains"}
-          </Badge>
-          <h2 className="text-balance text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
-            {domains.heading || "Explore key innovation domains"}
+          {/* Badge */}
+          <div className="flex items-center justify-center mb-2">
+            <span className="inline-flex items-center gap-2 rounded-full border border-[#2a5298]/50 bg-[#2a5298]/25 px-4 py-1 text-xs font-semibold uppercase tracking-[0.15em] text-blue-100">
+              <Layers3 className="h-3.5 w-3.5" />
+              {domains.badge || "Project domains"}
+            </span>
+          </div>
+
+          {/* Heading */}
+          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter max-w-4xl mx-auto leading-tight">
+            {domains.heading || "Explore key Innovation domains"}
           </h2>
-          <p className="mt-6 text-pretty text-lg leading-relaxed text-muted-foreground md:text-xl">
-            {domains.description ||
-              "Discover a wide range of technology domains driving the future — from AI and Blockchain to Sustainability and Gaming. These categories represent where impactful ideas and projects come to life."}
+
+          {/* Subtitle */}
+          <p className="text-zinc-500 text-base sm:text-lg md:text-xl max-w-[700px] mx-auto mt-4 mb-8 leading-relaxed">
+            {domains.description || "Discover a wide range of technology domains driving the future from AI and Blockchain to Sustainability and Gaming. These categories represent where impactful ideas and projects come to life."}
           </p>
+
         </div>
 
-        <div className="relative mt-14 overflow-hidden rounded-3xl border border-border/50 bg-gradient-to-br from-card/80 via-card/40 to-muted/20 p-5 shadow-xl backdrop-blur-xl dark:from-card/40 dark:via-card/25 dark:to-muted/10 md:p-8">
-          <div className="pointer-events-none absolute inset-0 rounded-3xl bg-foreground/[0.02] dark:bg-foreground/[0.04]" />
-          <div className="relative">
+        {/* Carousel */}
+        <div className="pt-8">
+          <div className="relative mx-auto flex items-center justify-center overflow-hidden">
             <Carousel
-              opts={{ loop: true, align: "start" }}
+              opts={{
+                loop: true,
+                align: "start",
+              }}
               plugins={[
                 AutoScroll({
                   playOnInit: true,
                   stopOnInteraction: false,
-                  speed: 0.65,
+                  speed: 0.7,
                 }),
               ]}
               className="w-full"
             >
-              <CarouselContent className="-ml-3 md:-ml-4">
+              <CarouselContent className="-ml-4">
                 {projectDomainsOptions.map((domain) => (
                   <CarouselItem
                     key={domain.value}
-                    className="basis-1/2 pl-3 sm:basis-1/3 md:basis-1/4 md:pl-4 lg:basis-1/5 xl:basis-1/6"
+                    className="basis-1/2 pl-4 sm:basis-1/3 md:basis-1/4 lg:basis-1/5 xl:basis-1/6"
                   >
                     <Link
-                      href={`/project?domains=${domain.value}`}
-                      className="group flex flex-col items-center gap-4 rounded-2xl border border-border/50 bg-background/70 p-5 shadow-sm backdrop-blur-sm transition duration-300 hover:-translate-y-0.5 hover:border-primary/35 hover:bg-primary/[0.06] hover:shadow-lg dark:bg-background/40"
+                      href={"project?domains=" + domain.value}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group relative flex flex-col items-center justify-center gap-3 rounded-xl border border-zinc-800 bg-[#0c0c0e] p-6 transition-colors duration-300 hover:border-zinc-700 overflow-hidden"
                     >
-                      <div className="flex h-14 w-full items-center justify-center rounded-xl bg-gradient-to-br from-muted/80 to-muted/40 transition group-hover:from-primary/15 group-hover:to-primary/5">
-                        {domain.icon &&
-                          React.createElement(domain.icon, {
-                            className:
-                              "h-8 w-8 text-foreground transition group-hover:scale-110 group-hover:text-primary",
-                          })}
+                      <CornerBrackets />
+                      <span className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-zinc-700 to-transparent opacity-60" />
+                      <div className="relative flex h-16 w-full items-center justify-center">
+                        {domain.icon && React.createElement(domain.icon, { className: "h-8 w-8 text-zinc-300 group-hover:text-white transition-colors duration-300" })}
                       </div>
-                      <p className="text-center text-sm font-medium leading-snug text-foreground">
+                      <p className="font-medium text-zinc-400 group-hover:text-zinc-200 transition-colors duration-300 text-sm text-center">
                         {domain.label}
                       </p>
                     </Link>
@@ -92,24 +94,25 @@ export default function Domains() {
                 ))}
               </CarouselContent>
             </Carousel>
-            <div className="pointer-events-none absolute inset-y-0 left-0 w-14 bg-gradient-to-r from-background/95 to-transparent md:w-24" />
-            <div className="pointer-events-none absolute inset-y-0 right-0 w-14 bg-gradient-to-l from-background/95 to-transparent md:w-24" />
+            <div className="absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-black to-transparent" />
+            <div className="absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-black to-transparent" />
           </div>
         </div>
 
+        {/* CTA Button */}
         <div className="mt-12 flex justify-center">
-          <Button
-            asChild
-            variant="outline"
-            size="lg"
-            className="group h-12 rounded-full border-primary/30 bg-background/60 px-8 text-base font-medium backdrop-blur-sm hover:bg-primary/10"
-          >
-            <Link href="/project">
+          <Link href="/project">
+            <Button
+              variant="outline"
+              size="lg"
+              className="group border-zinc-700 bg-transparent text-zinc-300 hover:border-zinc-500 hover:text-white hover:bg-zinc-800/50 transition-all duration-300 rounded-full"
+            >
               {domains.button || "View projects of all domains"}
               <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-            </Link>
-          </Button>
+            </Button>
+          </Link>
         </div>
+
       </div>
     </section>
   );

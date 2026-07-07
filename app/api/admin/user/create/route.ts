@@ -3,11 +3,12 @@ import { prisma } from '@/prisma/prismaClient';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import * as z from 'zod';
-import { hash } from 'bcrypt';
+import bcrypt from 'bcryptjs';
 
 // Schema for validating user creation
 const userCreateSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
+  email: z.string().email('Enter a valid email address'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
   role: z.enum(['ADMIN', 'MODERATOR', 'DEVELOPER']),
 });
@@ -40,24 +41,27 @@ export async function POST(req: Request) {
         { error: validationResult.error.errors },
         { status: 400 }
       );
-    }    const { name, password, role } = validationResult.data;
+    }
+    
+    const { name, email, password, role } = validationResult.data;
 
-    // Check if user with the same name already exists
-    const existingUser = await prisma.user.findFirst({ where: { name } });
+    // Check if user with the same email already exists
+    const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
       return NextResponse.json(
-        { error: "User with this name already exists" },
+        { error: "User with this email already exists" },
         { status: 400 }
       );
     }
 
     // Hash password
-    const hashedPassword = await hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     // Create user
     const newUser = await prisma.user.create({
       data: {
         name,
+        email,
         password: hashedPassword,
         role,
       },
@@ -65,8 +69,9 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       user: {
-        user_id: newUser.user_id,
+        id: newUser.id,
         name: newUser.name,
+        email: newUser.email,
         role: newUser.role,
         createdAt: newUser.createdAt,
       },
@@ -75,10 +80,10 @@ export async function POST(req: Request) {
     console.error("Error creating user:", error);
     const errorMessage =
       (error as any)?.message && (error as any)?.message.includes("Unique constraint failed")
-        ? "User with this name already exists"
+        ? "User with this email already exists"
         : "Failed to create user";
 
-    const statusCode = errorMessage === "User with this name already exists" ? 400 : 500;
+    const statusCode = errorMessage === "User with this email already exists" ? 400 : 500;
 
     return NextResponse.json(
       { error: errorMessage },

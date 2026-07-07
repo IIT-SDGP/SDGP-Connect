@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 
 export interface User {
-  user_id: string;
+  id: string;
   name: string;
+  email: string;
   role: 'ADMIN' | 'MODERATOR' | 'DEVELOPER';
   createdAt: string;
 }

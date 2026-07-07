@@ -12,11 +12,12 @@ export interface Activity {
   projectTitle: string;
   groupNumber: string;
   lastUpdated: string;
-  actionType: 'Approved' | 'Rejected' | 'Featured' | 'Submitted';
+  actionType: 'Approved' | 'Rejected' | 'Featured' | 'Submitted' | 'Resubmitted' | 'Edit Submitted' | 'Edit Updated' | 'Edit Approved' | 'Edit Rejected';
   actionBy: string;
+  note?: string | null;
 }
 
-export default function useGetActivity() {
+export default function useGetActivity(endpoint = '/api/admin/dashboard/activity') {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -24,7 +25,7 @@ export default function useGetActivity() {
     const fetchActivities = async () => {
       try {
         setIsLoading(true);
-        const response = await fetch('/api/admin/dashboard/activity');
+        const response = await fetch(endpoint);
         
         if (!response.ok) {
           throw new Error('Failed to fetch activity data');
@@ -41,7 +42,7 @@ export default function useGetActivity() {
     };
 
     fetchActivities();
-  }, []);
+  }, [endpoint]);
 
   return { activities, isLoading, error };
 }

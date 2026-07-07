@@ -53,10 +53,34 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  env: {
-    AZURE_STORAGE_ACCOUNT_NAME: process.env.AZURE_STORAGE_ACCOUNT_NAME,
-    AZURE_STORAGE_ACCOUNT_KEY: process.env.AZURE_STORAGE_ACCOUNT_KEY,
-    AZURE_STORAGE_CONTAINER_NAME: process.env.AZURE_STORAGE_CONTAINER_NAME,
+  async redirects() {
+    return [
+      {
+        source: '/vote',
+        destination: 'https://rate.bestweb.lk/voting-categories/voting-websites/26/213',
+        permanent: false,
+      },
+      {
+        source: '/student',
+        destination: '/dashboard',
+        permanent: false,
+      },
+      {
+        source: '/student/:path*',
+        destination: '/dashboard/:path*',
+        permanent: false,
+      },
+      {
+        source: '/submit',
+        destination: '/dashboard/submit',
+        permanent: false,
+      },
+      {
+        source: '/submit/:path*',
+        destination: '/dashboard/submit/:path*',
+        permanent: false,
+      },
+    ];
   },
   async headers() {
     return [

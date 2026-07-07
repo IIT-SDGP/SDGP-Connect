@@ -1,4 +1,3 @@
-
 // © 2026 SDGP.lk
 // Licensed under the GNU Affero General Public License v3.0 or later,
 // with an additional restriction: Non-commercial use only.
@@ -11,6 +10,7 @@ export enum Role {
   ADMIN = "ADMIN",
   MODERATOR = "MODERATOR",
   DEVELOPER = "DEVELOPER",
+  STUDENT = "STUDENT",       // Default role assigned to all OIDC sign-ins
 }
 
 export enum AssociationType {

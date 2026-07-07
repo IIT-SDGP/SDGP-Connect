@@ -2,67 +2,98 @@
 // Licensed under the GNU Affero General Public License v3.0 or later,
 // with an additional restriction: Non-commercial use only.
 // See <https://www.gnu.org/licenses/agpl-3.0.html> for details.
-"use client";
-import { Award, Rocket, TrendingUp, Users } from "lucide-react";
-import { useLanguage } from "@/hooks/LanguageProvider";
+'use client'
 
-function getNested(obj: Record<string, unknown>, path: string[], fallback: unknown = undefined) {
-  return path.reduce(
-    (acc, key) =>
-      acc && typeof acc === "object" && (acc as Record<string, unknown>)[key] !== undefined
-        ? (acc as Record<string, unknown>)[key]
-        : fallback,
-    obj as unknown
-  );
+import { Award, BarChart2, Rocket, TrendingUp, Users } from "lucide-react"
+import { useLanguage } from "@/hooks/LanguageProvider";
+import { CornerBrackets } from "@/components/home/corner-brackets";
+
+function getNested(obj: any, path: string[], fallback: any = undefined) {
+  return path.reduce((acc, key) => (acc && acc[key] !== undefined ? acc[key] : fallback), obj);
 }
 
 export default function ImpactStats() {
   const { t } = useLanguage();
-  const impact = (getNested(t as Record<string, unknown>, ["home", "impact_stats"], {}) ||
-    {}) as Record<string, unknown>;
-  const s1 = (impact.stat_1 || {}) as Record<string, string>;
-  const s2 = (impact.stat_2 || {}) as Record<string, string>;
-  const s3 = (impact.stat_3 || {}) as Record<string, string>;
-  const s4 = (impact.stat_4 || {}) as Record<string, string>;
+  const impact = getNested(t, ['home', 'impact_stats'], {});
 
   const stats = [
-    { title: s1.title || "1000+", description: s1.description || "Student Projects", icon: Users },
-    { title: s2.title || "100+", description: s2.description || "Industry Partners", icon: Award },
-    { title: s3.title || "15+", description: s3.description || "SDGs Addressed", icon: TrendingUp },
-    { title: s4.title || "50+", description: s4.description || "Startups Invested", icon: Rocket },
+    {
+      title: impact.stat_1?.title || "1000+",
+      description: impact.stat_1?.description || "Student Projects",
+      icon: Users,
+    },
+    {
+      title: impact.stat_2?.title || "100+",
+      description: impact.stat_2?.description || "Industry Partners",
+      icon: Award,
+    },
+    {
+      title: impact.stat_3?.title || "15+",
+      description: impact.stat_3?.description || "SDGs Addressed",
+      icon: TrendingUp,
+    },
+    {
+      title: impact.stat_4?.title || "75+",
+      description: impact.stat_4?.description || "Startups Invested",
+      icon: Rocket,
+    },
   ];
 
   return (
-    <section className="relative border-t border-border/40 py-24 md:py-32">
-      <div className="absolute inset-0 bg-muted/25 dark:bg-muted/10" />
-      <div className="container relative mx-auto max-w-6xl px-5 md:px-8">
-        <div className="mx-auto max-w-2xl text-center">
-          <h2 className="text-balance text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
-            {String(impact.title || "Our Impact")}
+    <section className="w-full py-12 md:py-14 lg:py-[5.5rem] text-white">
+      <div className="container mx-auto px-4 md:px-6 max-w-7xl">
+        <div className="flex flex-col items-center text-center space-y-4">
+
+          {/* Badge */}
+          <div className="flex items-center justify-center mb-2">
+            <span className="inline-flex items-center gap-2 rounded-full border border-[#2a5298]/50 bg-[#2a5298]/25 px-4 py-1 text-xs font-semibold uppercase tracking-[0.15em] text-blue-100">
+              <BarChart2 className="h-3.5 w-3.5" />
+              {impact.badge || "Impact Stats"}
+            </span>
+          </div>
+
+          {/* Heading */}
+          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter max-w-4xl mx-auto leading-tight">
+            {impact.title || "Our Impact"}
           </h2>
-          <p className="mt-5 text-pretty text-lg text-muted-foreground">
-            The SDGP ecosystem in numbers — compounding projects, partners, and outcomes every year.
+
+          {/* Subtitle */}
+          <p className="text-zinc-500 text-base sm:text-lg md:text-xl max-w-[700px] mx-auto mt-4 mb-8 leading-relaxed">
+            {impact.description || "Driving real-world change through student innovation, industry collaboration, and sustainable development across Sri Lanka and beyond."}
           </p>
+
         </div>
 
-        <div className="mt-16 grid gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:gap-0 lg:divide-x lg:divide-border/60">
+        {/* Stats Grid */}
+        <div className="pt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {stats.map((stat, i) => (
             <div
               key={i}
-              className="group relative flex flex-col items-center px-4 py-10 text-center lg:px-6"
+              className="group relative flex flex-col items-center text-center gap-4 rounded-xl border border-zinc-800 bg-[#0c0c0e] p-8 transition-colors duration-300 hover:border-zinc-700 overflow-hidden"
             >
-              <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/12 text-primary shadow-inner transition group-hover:scale-105 group-hover:bg-primary/18">
-                <stat.icon className="h-7 w-7" aria-hidden />
+              <CornerBrackets />
+
+              {/* Top shimmer line */}
+              <span className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-zinc-700 to-transparent opacity-60" />
+
+              {/* Icon */}
+              <div className="relative flex h-16 w-16 items-center justify-center rounded-full bg-[#2a5298]/15 border border-[#2a5298]/30">
+                <stat.icon className="h-7 w-7 text-blue-300 group-hover:text-white transition-colors duration-300" />
               </div>
-              <p className="font-semibold tabular-nums tracking-tight text-foreground text-4xl sm:text-5xl">
+
+              {/* Number */}
+              <h3 className="text-4xl font-bold tracking-tighter text-white">
                 {stat.title}
-              </p>
-              <p className="mt-3 max-w-[12rem] text-sm font-medium leading-snug text-muted-foreground">
+              </h3>
+
+              {/* Label */}
+              <p className="text-zinc-400 group-hover:text-zinc-200 transition-colors duration-300 text-sm font-medium">
                 {stat.description}
               </p>
             </div>
           ))}
         </div>
+
       </div>
     </section>
   );

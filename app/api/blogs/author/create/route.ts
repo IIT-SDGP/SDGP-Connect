@@ -6,11 +6,20 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/prisma/prismaClient';
 import { blogAuthorSchema } from '@/validations/blog';
+import { requireRole, STUDENT_ROLES } from '@/lib/auth/permissions';
 
 export async function POST(request: Request) {
   try {
+    const auth = await requireRole(STUDENT_ROLES);
+    if (auth.error) return auth.error;
+
     const body = await request.json();
     const validatedData = blogAuthorSchema.parse(body);
+    const sessionEmail = auth.session?.user.email;
+
+    if (!sessionEmail || validatedData.email !== sessionEmail) {
+      return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
+    }
 
     // Check if author with this email already exists
     const existingAuthor = await prisma.blogAuthor.findUnique({
