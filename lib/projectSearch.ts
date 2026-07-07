@@ -55,8 +55,8 @@ export async function searchProjects(params: ProjectSearchParams | null | undefi
       ...(keyword
         ? {
             OR: [
-              { title: { contains: keyword, mode: "insensitive" } },
-              { subtitle: { contains: keyword, mode: "insensitive" } },
+              { title: { contains: keyword } },
+              { subtitle: { contains: keyword } },
             ],
           }
         : {}),
