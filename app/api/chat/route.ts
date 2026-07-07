@@ -33,7 +33,7 @@ const tools: Groq.Chat.Completions.ChatCompletionTool[] = [
       parameters: {
         type: "object",
         properties: {
-          keyword: { type: "string", description: "Free-text search on project title/subtitle" },
+          keyword: { type: "string", description: "Free-text search on project title, subtitle, and description" },
           domain: {
             type: "string",
             enum: [
