@@ -31,8 +31,10 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
       ? "mx-3 md:mx-5 lg:mx-8"
       : "md:mx-6 lg:mx-12 xl:mx-24";
 
-  /* Project page: light padding on tablet; room for sidebar + nav from lg */
-  const projectNavClearance = isProjectPage ? "md:px-3 lg:px-[5.5rem] xl:px-24" : "";
+  /* Project page: left clearance for dock nav + hover labels */
+  const projectNavClearance = isProjectPage
+    ? "md:pl-[5.75rem] md:pr-1.5 lg:pl-[6.25rem] lg:pr-2"
+    : "";
 
   /* Left dock on desktop — no top inset. Mobile: bottom dock clearance. */
   const navBottomPad =

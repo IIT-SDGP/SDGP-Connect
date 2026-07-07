@@ -5,9 +5,10 @@
 "use client"
 
 import Image from "next/image"
-import { Calendar, ArrowUpRight } from "lucide-react"
+import { Calendar, ArrowUpRight, Trophy } from "lucide-react"
 import { format } from "date-fns"
 import { useRouter } from "next/navigation"
+import { cn } from "@/lib/utils"
 
 interface CompetitionCardProps {
   id: string
@@ -23,7 +24,6 @@ interface CompetitionCardProps {
 }
 
 export default function CompetitionCard({
-  id,
   title,
   cover,
   type,
@@ -32,95 +32,102 @@ export default function CompetitionCard({
   logo,
   viewLink,
   description,
-  winnersCount
+  winnersCount,
 }: CompetitionCardProps) {
   const router = useRouter()
-  
-  // Format dates
-  const formattedStart = startDate ? format(new Date(startDate), "MMM d yyyy") : ""
-  const formattedEnd = endDate ? format(new Date(endDate), "MMM d yyyy") : ""
-  
+
+  const formattedStart = startDate ? format(new Date(startDate), "MMM d, yyyy") : ""
+  const formattedEnd = endDate ? format(new Date(endDate), "MMM d, yyyy") : ""
+  const dateRange =
+    formattedStart && formattedEnd
+      ? `${formattedStart} – ${formattedEnd}`
+      : formattedStart || formattedEnd
+
   const handleCardClick = () => {
     router.push(viewLink)
   }
-  
-  const handleArrowClick = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    router.push(viewLink)
-  }
-  
+
   return (
-    <div 
-      className="group block h-full cursor-pointer"
+    <article
+      className="group flex h-full cursor-pointer flex-col"
       onClick={handleCardClick}
-      role="button"
+      role="link"
       tabIndex={0}
       onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
+        if (e.key === "Enter" || e.key === " ") {
           e.preventDefault()
           handleCardClick()
         }
       }}
       aria-label={`View competition: ${title}`}
     >
-      <div className="relative bg-secondary rounded-2xl overflow-hidden border border-black hover:border-gray-700 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-blue-950/20 min-h-[450px] flex flex-col">
-        {/* Subtle Blue Glow on Hover */}
-        <div className=" bg-blue-950 absolute inset-0  opacity-0 group-hover:opacity-10 transition-opacity duration-500 rounded-2xl"></div>
-
-        {/* Competition Image */}
-        <div className="relative h-48 w-full overflow-hidden flex-shrink-0">
+      <div
+        className={cn(
+          "relative flex h-full flex-col overflow-hidden rounded-2xl border border-border/60 bg-card/80",
+          "transition-all duration-300 hover:border-border hover:bg-card hover:shadow-lg hover:shadow-primary/5",
+        )}
+      >
+        {/* Cover */}
+        <div className="relative aspect-[16/10] w-full shrink-0 overflow-hidden">
           <Image
             src={cover}
             alt={title}
             fill
-            className="object-cover group-hover:scale-110 transition-transform duration-700"
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
+            className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+            sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
 
-          {/* Type Badge */}
-          <div className="absolute top-3 left-3">
-            <span className="bg-black/80 backdrop-blur-sm border border-gray-800 px-2.5 py-1.5 rounded-full text-xs font-medium text-white">
+          {type && (
+            <span className="absolute left-3 top-3 rounded-full border border-white/10 bg-black/60 px-2.5 py-1 text-[11px] font-medium text-white backdrop-blur-sm">
               {type}
             </span>
-          </div>
+          )}
 
-          {/* Winners Count */}
-          <div className="absolute bottom-3 right-3">
-            <div className="bg-secondary text-white px-2.5 py-1.5 rounded-full text-xs font-bold shadow-lg border border-gray-700">
-              {winnersCount} Winners
-            </div>
-          </div>
+          <span className="absolute bottom-3 right-3 inline-flex items-center gap-1 rounded-full border border-white/10 bg-black/60 px-2.5 py-1 text-[11px] font-medium text-white backdrop-blur-sm">
+            <Trophy className="h-3 w-3" />
+            {winnersCount} {winnersCount === 1 ? "winner" : "winners"}
+          </span>
         </div>
-        {/* Competition Details */}
-        <div className="p-4 pb-6 flex flex-col flex-grow justify-between">
-          <div className="space-y-2.5">
-            <h3 className="text-lg font-bold text-white group-hover:text-gray-200 transition-colors duration-300 line-clamp-2 min-h-[3.5rem]">
+
+        {/* Body */}
+        <div className="flex flex-1 flex-col p-4 sm:p-5">
+          <div className="flex items-start gap-3">
+            <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg border border-border/60 bg-background">
+              <Image
+                src={logo}
+                alt=""
+                fill
+                className="object-contain p-1"
+                sizes="40px"
+              />
+            </div>
+            <h3 className="min-w-0 flex-1 text-base font-semibold leading-snug tracking-tight line-clamp-2 group-hover:text-primary transition-colors duration-200 sm:text-[1.05rem]">
               {title}
             </h3>
-            <p className="text-gray-200 leading-relaxed text-sm line-clamp-3 min-h-[3.75rem]">
-              {description}
-            </p>
           </div>
-          <div className="space-y-2.5 mt-3">
-            <div className="flex items-center justify-between text-xs text-gray-200">
-              <div className="flex items-center gap-1.5">
-                <Calendar className="w-3 h-3" />
-                <span className="truncate">{formattedStart} - {formattedEnd}</span>
-              </div>
+
+          <p className="mt-3 flex-1 text-sm leading-relaxed text-muted-foreground line-clamp-3">
+            {description}
+          </p>
+
+          <div className="mt-4 flex items-center justify-between gap-3 border-t border-border/50 pt-4">
+            <div className="flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
+              <Calendar className="h-3.5 w-3.5 shrink-0" aria-hidden />
+              <span className="truncate">{dateRange}</span>
             </div>
+            <span
+              className={cn(
+                "inline-flex shrink-0 items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-medium",
+                "bg-primary/10 text-primary transition-colors duration-200 group-hover:bg-primary group-hover:text-primary-foreground",
+              )}
+            >
+              View
+              <ArrowUpRight className="h-3.5 w-3.5" />
+            </span>
           </div>
         </div>
-        {/* Bottom-right Arrow Button - Using button instead of nested anchor */}
-        <button
-          onClick={handleArrowClick}
-          className="absolute bottom-4 right-4 z-20 border border-white rounded-full w-10 h-10 flex items-center justify-center group-hover:bg-gray-800 transition-colors duration-300 shadow-lg cursor-pointer"
-          title="View Competition"
-          aria-label="View competition details"
-        >
-          <ArrowUpRight className="w-5 h-5 text-white" />
-        </button>
       </div>
-    </div>
+    </article>
   )
 }

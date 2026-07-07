@@ -153,7 +153,7 @@ export default function UserManagement() {
     }
 
     const updateData = {
-      user_id: currentUser.user_id,
+      id: currentUser.id,
       ...data
     };
 
@@ -220,7 +220,7 @@ export default function UserManagement() {
     // Update user roles one by one
     for (const userId of selectedUsers) {
       const userData = {
-        user_id: userId,
+        id: userId,
         role: role as 'ADMIN' | 'MODERATOR' | 'DEVELOPER'
       };
 
@@ -256,7 +256,7 @@ export default function UserManagement() {
 
   const allFilteredSelected =
     filteredUsers.length > 0 &&
-    filteredUsers.every((u) => selectedUsers.includes(u.user_id));
+    filteredUsers.every((u) => selectedUsers.includes(u.id));
 
   const toggleUserSelected = useCallback((userId: string) => {
     setSelectedUsers((prev) =>
@@ -268,7 +268,7 @@ export default function UserManagement() {
     if (allFilteredSelected) {
       setSelectedUsers([]);
     } else {
-      setSelectedUsers(filteredUsers.map((u) => u.user_id));
+      setSelectedUsers(filteredUsers.map((u) => u.id));
     }
   };
 
@@ -416,12 +416,12 @@ password: ${newUserCredentials.password}`;
             </TableRow>
           ) : (
             filteredUsers.map((user) => (
-              <TableRow key={user.user_id} className="transition-colors hover:bg-muted/25">
+              <TableRow key={user.id} className="transition-colors hover:bg-muted/25">
                 {isAdmin ? (
                   <TableCell>
                     <Checkbox
-                      checked={selectedUsers.includes(user.user_id)}
-                      onCheckedChange={() => toggleUserSelected(user.user_id)}
+                      checked={selectedUsers.includes(user.id)}
+                      onCheckedChange={() => toggleUserSelected(user.id)}
                       aria-label={`Select ${user.name}`}
                     />
                   </TableCell>
@@ -461,7 +461,7 @@ password: ${newUserCredentials.password}`;
                       variant="destructive"
                       disabled={!isAdmin}
                       onClick={() => {
-                        setPendingDeleteUserId(user.user_id);
+                        setPendingDeleteUserId(user.id);
                         setDeleteUserDialog(true);
                       }}
                     >

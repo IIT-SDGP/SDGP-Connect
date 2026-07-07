@@ -24,7 +24,7 @@ export function StudentDashboardLayout({ children }: { children: React.ReactNode
   if (isMobile) {
     return (
       <div className="min-h-full bg-background">
-        <Navbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
+        <Navbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} isSidebarCollapsed={!sidebarOpen} />
         <div className="flex flex-col min-h-screen items-center justify-center  px-4 text-center pt-16">
           <Laptop className="h-16 w-16 mb-4 text-primary" />
           <h2 className="text-2xl font-bold tracking-tight mb-2">Desktop View Required</h2>
@@ -43,7 +43,7 @@ export function StudentDashboardLayout({ children }: { children: React.ReactNode
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
+      <Navbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} isSidebarCollapsed={!sidebarOpen} />
       <div className="flex  pt-16">
         <StudentSidebar isOpen={sidebarOpen} />
         <main

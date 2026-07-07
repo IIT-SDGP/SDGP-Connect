@@ -271,6 +271,53 @@ html.public-site *::-webkit-scrollbar {
   scrollbar-width: none;
 }
 
+/* Thin visible scrollbar — overrides public-site global hide */
+html.public-site .scrollbar-visible {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--muted-foreground) / 0.5) hsl(var(--muted) / 0.4);
+}
+html.public-site .scrollbar-visible::-webkit-scrollbar {
+  display: block;
+  width: 6px;
+  height: 6px;
+}
+html.public-site .scrollbar-visible::-webkit-scrollbar-track {
+  background: hsl(var(--muted) / 0.4);
+  border-radius: 999px;
+  margin: 2px 0;
+}
+html.public-site .scrollbar-visible::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.5);
+  border-radius: 999px;
+}
+html.public-site .scrollbar-visible::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.7);
+}
+
+/* Filter panel: scrollbar flush on the right card edge */
+html.public-site .scrollbar-edge {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--muted-foreground) / 0.55) hsl(var(--muted) / 0.3);
+}
+html.public-site .scrollbar-edge::-webkit-scrollbar {
+  display: block;
+  width: 8px;
+  height: 8px;
+}
+html.public-site .scrollbar-edge::-webkit-scrollbar-track {
+  background: hsl(var(--muted) / 0.28);
+  border-left: 1px solid hsl(var(--border) / 0.65);
+  border-radius: 0;
+  margin: 0;
+}
+html.public-site .scrollbar-edge::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.5);
+  border-radius: 0;
+}
+html.public-site .scrollbar-edge::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.72);
+}
+
 /* Line Animation Styles */
 .line-background {
   stroke: rgba(255, 255, 255, 0.1);

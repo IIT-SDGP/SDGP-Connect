@@ -5,7 +5,7 @@
 "use client"
 
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { Check, ChevronDown, X as ClearIcon, Star } from "lucide-react";
+import { Check, ChevronDown, X as ClearIcon, Star, SlidersHorizontal } from "lucide-react";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "../ui/collapsible";
@@ -283,16 +283,17 @@ function TechStackSection({
 
 // --- FilterSidebar Props Interface ---
 interface FilterSidebarProps {
-  // Callback function when filters change
   onFilterChange: (filters: FilterState) => void;
-  // Initial filter state, derived from URL params in the parent
   initialFilters: FilterState;
+  /** Strip outer card chrome when nested inside mobile sheet */
+  embedded?: boolean;
 }
 
 // --- FilterSidebar Component ---
 export default function FilterSidebar({
   onFilterChange,
-  initialFilters
+  initialFilters,
+  embedded = false,
 }: FilterSidebarProps) {
   // Internal state for each filter category, initialized from props
   const [featuredOnly, setFeaturedOnly] = useState<boolean>(() => initialFilters.featured || false);
@@ -453,26 +454,53 @@ export default function FilterSidebar({
   }, []);
 
   // --- JSX Rendering ---
+  const shellClass = embedded
+    ? "relative flex h-full min-w-0 flex-col"
+    : "relative flex h-full max-h-[calc(100dvh-2rem)] min-w-0 flex-col overflow-hidden rounded-2xl border border-border/50 bg-card/90 pl-3 pr-0 pt-3 pb-3 shadow-sm ring-1 ring-border/50 sm:pl-4 sm:pt-4 sm:pb-4";
+
   return (
-    <div className="relative flex w-full min-w-0 flex-col overflow-hidden rounded-2xl border bg-card/90 p-4 shadow-sm ring-1 ring-border/45 md:max-h-[calc(100dvh-4rem)]">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_100%_0%,rgba(99,102,241,0.1),transparent_45%)]" />
-      <div className="relative flex min-h-0 flex-1 flex-col">
-      {/* Header with Title and Clear Button */}
-      <div className="mb-3 flex min-w-0 items-center justify-between gap-2 border-b border-border/60 pb-3">
-        <div className="min-w-0">
-          <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-muted-foreground">Refine</p>
-          <h3 className="text-base font-semibold tracking-tight">Filters</h3>
+    <div className={shellClass}>
+      {!embedded && (
+        <>
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_12%_20%,rgba(99,102,241,0.12),transparent_42%)]" />
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_88%_80%,rgba(34,197,246,0.08),transparent_38%)]" />
+        </>
+      )}
+      <div className="relative flex h-full min-h-0 flex-1 flex-col">
+      {!embedded && (
+        <div className="mb-3 flex min-w-0 items-start justify-between gap-2 border-b border-border/60 pb-3 pr-3 sm:pr-3.5">
+          <div className="flex min-w-0 gap-2.5">
+            <span
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/12 ring-1 ring-primary/25"
+              aria-hidden
+            >
+              <SlidersHorizontal className="h-4 w-4 text-primary" />
+            </span>
+            <div className="min-w-0">
+              <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-muted-foreground sm:text-[11px]">
+                Refine results
+              </p>
+              <h3 className="mt-0.5 text-base font-bold tracking-tight sm:text-lg">Filters</h3>
+            </div>
+          </div>
+          {hasActiveFilters ? (
+            <Button variant="ghost" size="sm" onClick={clearFilters} className="h-8 shrink-0 text-xs text-muted-foreground hover:text-foreground">
+              Clear all
+            </Button>
+          ) : null}
         </div>
-        {hasActiveFilters ? (
+      )}
+      {embedded && hasActiveFilters ? (
+        <div className="mb-3 flex justify-end">
           <Button variant="ghost" size="sm" onClick={clearFilters} className="h-8 shrink-0 text-xs text-muted-foreground hover:text-foreground">
             Clear all
           </Button>
-        ) : null}
-      </div>
+        </div>
+      ) : null}
 
       {/* Active Filters Badges */}
       {hasActiveFilters && (
-        <div className="mb-3 flex flex-shrink-0 flex-wrap gap-1">
+        <div className="mb-3 flex flex-shrink-0 flex-wrap gap-1 pr-3 sm:pr-3.5">
           {activeFiltersList.map((filter) => (
             <Badge key={`${filter.type}-${filter.value}`} variant="secondary" className="flex items-center gap-1 pr-0.5">
               <span className="text-xs">{filter.label}</span>
@@ -490,8 +518,16 @@ export default function FilterSidebar({
         </div>
       )}
 
-      {/* Scrollable Filter Sections */}
-      <div className="min-h-0 flex-1 space-y-1 divide-y divide-border/50 overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch] max-md:overflow-visible md:min-h-0">
+      {/* Filter sections — page scroll won't move panel; long lists scroll inside only */}
+      <div
+        className={cn(
+          "min-h-0 flex-1 divide-y divide-border/50",
+          embedded
+            ? "scrollbar-visible space-y-1 overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch]"
+            : "scrollbar-edge overflow-y-auto overscroll-contain",
+        )}
+      >
+        <div className="space-y-1 divide-y divide-border/50 pr-3 sm:pr-3.5">
         <FeaturedFilterSection
           selection={featuredOnly}
           setSelection={setFeaturedOnly}
@@ -533,6 +569,7 @@ export default function FilterSidebar({
           selection={selectedTechStack}
           setSelection={setSelectedTechStack}
         />
+        </div>
       </div>
       </div>
     </div>

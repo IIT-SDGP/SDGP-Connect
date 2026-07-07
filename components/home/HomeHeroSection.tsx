@@ -13,7 +13,7 @@ import { HeroDomains } from "@/components/home/HeroDomains";
 import { useLanguage } from "@/hooks/LanguageProvider";
 
 const Logo = () => (
-  <div className="m-0 p-0 leading-none flex justify-center items-center -mb-3 sm:-mb-4 md:-mb-5">
+  <div className="m-0 p-0 leading-none flex justify-center items-center -mb-4 sm:-mb-5 md:-mb-6">
     <div className="relative">
       <Image
         src="/test.svg"
@@ -75,7 +75,7 @@ export default function HomeHeroSection() {
   return (
     <section
       id="home"
-      className="relative min-h-svh md:min-h-screen flex items-center bg-black transition-all duration-300 pt-24 md:pt-20 overflow-x-hidden"
+      className="relative min-h-svh md:min-h-screen flex items-center bg-black transition-all duration-300 pt-16 md:pt-14 overflow-x-hidden -mx-3 md:-mx-5 lg:-mx-8 w-[calc(100%+1.5rem)] md:w-[calc(100%+2.5rem)] lg:w-[calc(100%+4rem)]"
       style={{ overflowY: scrollProgress > 0 ? "visible" : "hidden" }}
     >
       <div
@@ -83,7 +83,6 @@ export default function HomeHeroSection() {
         style={{
           transform: `scale(${1 - scrollProgress * 0.15})`,
           borderRadius: `${scrollProgress * 40}px`,
-          margin: `${scrollProgress * 20}px`,
         }}
       >
         {heroImages.map((image, index) => {
@@ -100,7 +99,7 @@ export default function HomeHeroSection() {
                 alt="Hero"
                 loading={index === 0 ? "eager" : "lazy"}
                 fetchPriority={index === 0 ? "high" : "auto"}
-                className="w-full h-full object-cover object-center"
+                className="absolute inset-0 min-h-full min-w-full w-full h-full object-cover object-center scale-[1.02]"
               />
             </div>
           );
@@ -125,7 +124,7 @@ export default function HomeHeroSection() {
         }}
       >
         <div
-          className="w-full animate-slideTextUp mt-32 sm:mt-40 md:mt-48 flex flex-col items-center gap-0"
+          className="w-full animate-slideTextUp mt-20 sm:mt-28 md:mt-36 flex flex-col items-center gap-0"
           style={{ animationDelay: "0.1s" }}
         >
           <Logo />
@@ -136,12 +135,12 @@ export default function HomeHeroSection() {
               homeHero.morphing_text3 || "Building Tomorrow's Solutions",
               homeHero.morphing_text4 || "Creating Innovative Designs",
             ]}
-            className="w-full max-w-5xl mx-auto text-center mt-[-48px] mb-4 text-xl sm:text-2xl md:text-3xl text-white font-semibold"
+            className="w-full max-w-5xl mx-auto text-center mt-[-52px] mb-2 text-xl sm:text-2xl md:text-3xl text-white font-semibold"
           />
         </div>
 
         <div
-          className="w-full max-w-md sm:max-w-none sm:w-auto flex flex-row gap-2 sm:gap-4 animate-slideTextUp justify-center mt-[2px]"
+          className="w-full max-w-md sm:max-w-none sm:w-auto flex flex-row gap-2 sm:gap-4 animate-slideTextUp justify-center"
           style={{ animationDelay: "0.2s" }}
         >
           <Button
@@ -159,7 +158,7 @@ export default function HomeHeroSection() {
         </div>
 
         <div
-          className="flex gap-2 mt-6 sm:mt-8 mb-24 sm:mb-28 justify-center transition-opacity duration-300 relative z-30"
+          className="flex gap-2 mt-5 sm:mt-6 mb-20 sm:mb-24 justify-center transition-opacity duration-300 relative z-30"
           style={{ opacity: 1 - scrollProgress }}
         >
           {heroImages.map((_, index) => (

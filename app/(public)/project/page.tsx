@@ -6,14 +6,15 @@
 
 import FilterSidebar from "@/components/projects/filter-sidebar";
 import ProjectExplorer from "@/components/projects/project-explorer";
-import SearchHeader from "@/components/projects/search-header";
+import SearchHeader, { type ViewMode } from "@/components/projects/search-header";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ProjectQueryParams, useProjects } from "@/hooks/project/useGetProjects";
-import { X } from "lucide-react";
+import { SlidersHorizontal, X } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { cn } from "@/lib/utils";
 
 const ThreeScene = dynamic(() => import("@/components/home/three-scene"), {
   ssr: false,
@@ -38,6 +39,7 @@ function ProjectsPageContent() {
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [isFilterLoading, setIsFilterLoading] = useState(false);
+  const [viewMode, setViewMode] = useState<ViewMode>("grid");
 
   const currentParams = useMemo(
     (): ProjectQueryParams => ({
@@ -189,30 +191,34 @@ function ProjectsPageContent() {
     return <LoadingSkeleton />;
   }
 
+  const pageShell = "w-full min-w-0 px-2 sm:px-3 md:px-3 lg:px-4";
+
   return (
-    <div className="relative min-h-screen overflow-x-hidden">
+    <div className="relative min-h-screen">
       <ThreeScene />
 
       <div className="relative z-10 bg-gradient-to-b from-background/80 via-background/90 to-muted/25">
-        <div className="w-full px-0 pt-2 sm:pt-3 md:pt-4">
+        <div className={cn(pageShell, "pt-2 sm:pt-3 md:pt-4")}>
           <SearchHeader
             toggleFilters={toggleFilters}
             defaultTitle={currentParams.title ?? ""}
             onSearch={handleSearch}
             resultsSummary={resultsSummary}
             isLoading={isLoading && !resultsSummary}
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
           />
         </div>
 
-        <div className="mx-auto w-full min-w-0 max-w-7xl px-3 pb-8 pt-5 sm:px-4 sm:pt-6 md:px-6 md:pb-12 md:pt-7 lg:px-8 xl:px-10">
-          <div className="flex min-w-0 flex-col gap-6 sm:gap-8 lg:flex-row lg:gap-8 xl:gap-10">
-            <div className="hidden w-[17.5rem] shrink-0 lg:block xl:w-72">
-              <div className="sticky top-6">
+        <div className={cn(pageShell, "pb-8 pt-5 sm:pt-6 md:pb-12 md:pt-7")}>
+          <div className="grid min-w-0 grid-cols-1 gap-4 sm:gap-5 lg:grid-cols-[14rem_minmax(0,1fr)] xl:grid-cols-[15rem_minmax(0,1fr)] xl:gap-5">
+            <aside className="hidden min-w-0 self-stretch lg:block">
+              <div className="sticky top-4 z-20 w-full max-h-[calc(100dvh-2rem)] [contain:layout]">
                 <FilterSidebar onFilterChange={handleFilterChange} initialFilters={initialFilters} />
               </div>
-            </div>
+            </aside>
 
-            <div className="min-w-0 flex-1">
+            <div className="min-w-0">
               <ProjectExplorer
                 currentParams={currentParams}
                 projects={projects || []}
@@ -220,6 +226,7 @@ function ProjectsPageContent() {
                 isFilterLoading={isFilterLoading}
                 error={error}
                 meta={meta}
+                viewMode={viewMode}
                 onPageChange={(page) => {
                   const params = new URLSearchParams(searchParams.toString());
                   params.set("page", String(page));
@@ -232,50 +239,66 @@ function ProjectsPageContent() {
             </div>
           </div>
         </div>
+      </div>
 
-        {showMobileFilters ? (
-          <div
-            className="fixed inset-0 z-[200] flex max-h-[100dvh] flex-col bg-background lg:hidden"
-            role="dialog"
-            aria-modal="true"
-            aria-label="Filter projects"
-          >
-            <div className="flex shrink-0 items-center justify-between border-b border-border/70 bg-card/50 px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top,0px))] backdrop-blur-md">
-              <div>
-                <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+      {showMobileFilters ? (
+        <div
+          className="fixed inset-0 z-[60] flex max-h-[100dvh] flex-col bg-background lg:hidden"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Filter projects"
+        >
+          <div className="relative shrink-0 overflow-hidden border-b border-border/70 bg-card/90 px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top,0px))] shadow-sm ring-1 ring-border/50 backdrop-blur-md">
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_12%_20%,rgba(99,102,241,0.12),transparent_42%)]" />
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_88%_80%,rgba(34,197,246,0.08),transparent_38%)]" />
+            <div className="relative flex items-center justify-between gap-2">
+            <div className="flex min-w-0 gap-2.5">
+              <span
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/12 ring-1 ring-primary/25"
+                aria-hidden
+              >
+                <SlidersHorizontal className="h-4 w-4 text-primary" />
+              </span>
+              <div className="min-w-0">
+                <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
                   Refine results
                 </p>
-                <h2 className="text-lg font-semibold">Filters</h2>
+                <h2 className="mt-0.5 text-base font-bold tracking-tight">Filters</h2>
               </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setShowMobileFilters(false)}
-                type="button"
-                className="h-10 w-10 shrink-0 rounded-full"
-                aria-label="Close filters"
-              >
-                <X className="h-5 w-5" />
-              </Button>
             </div>
-
-            <div className="min-h-0 flex-1 overflow-y-auto px-3 py-4 pb-[env(safe-area-inset-bottom,0px)]">
-              <FilterSidebar onFilterChange={handleFilterChange} initialFilters={initialFilters} />
-            </div>
-
-            <div className="flex shrink-0 gap-2 border-t border-border/70 bg-card/80 px-3 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] backdrop-blur-md">
-              <Button
-                variant="outline"
-                className="flex-1 rounded-xl"
-                onClick={() => setShowMobileFilters(false)}
-                type="button"
-              >
-                Done
-              </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowMobileFilters(false)}
+              type="button"
+              className="h-10 w-10 shrink-0 rounded-full"
+              aria-label="Close filters"
+            >
+              <X className="h-5 w-5" />
+            </Button>
             </div>
           </div>
-        ) : null}
-      </div>
+
+          <div className="scrollbar-visible min-h-0 flex-1 overflow-y-auto px-3 py-4">
+            <FilterSidebar
+              embedded
+              onFilterChange={handleFilterChange}
+              initialFilters={initialFilters}
+            />
+          </div>
+
+          <div className="flex shrink-0 gap-2 border-t border-border/70 bg-card/80 px-3 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] backdrop-blur-md">
+            <Button
+              variant="outline"
+              className="flex-1 rounded-xl"
+              onClick={() => setShowMobileFilters(false)}
+              type="button"
+            >
+              Done
+            </Button>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -288,34 +311,55 @@ const Page = () => {
   );
 };
 
-const LoadingSkeleton = () => (
+const LoadingSkeleton = () => {
+  const pageShell = "w-full min-w-0 px-2 sm:px-3 md:px-3 lg:px-4";
+
+  return (
   <div className="min-h-screen overflow-x-hidden bg-gradient-to-b from-background via-background to-muted/25">
-    <div className="w-full px-0 pt-2 sm:pt-3 md:pt-4">
-      <div className="overflow-hidden rounded-2xl border bg-card/90 p-5 shadow-sm ring-1 ring-border/50 sm:p-6 md:p-8">
-        <div className="flex gap-3 sm:gap-4">
-          <Skeleton className="h-11 w-11 shrink-0 rounded-xl sm:h-12 sm:w-12" />
-          <div className="flex-1 space-y-3">
-            <Skeleton className="h-3 w-24" />
-            <Skeleton className="h-8 w-48 max-w-full sm:h-10" />
-            <Skeleton className="h-4 w-full max-w-xl" />
-            <Skeleton className="mt-4 h-11 w-full rounded-xl sm:h-12" />
+    <div className={cn(pageShell, "pt-2 sm:pt-3 md:pt-4")}>
+      <div className="overflow-hidden rounded-2xl border bg-card/90 p-4 shadow-sm ring-1 ring-border/50 sm:p-5">
+        <div className="flex gap-2.5 sm:gap-3">
+          <Skeleton className="h-9 w-9 shrink-0 rounded-lg sm:h-10 sm:w-10" />
+          <div className="flex-1 space-y-2">
+            <Skeleton className="h-2.5 w-20" />
+            <Skeleton className="h-6 w-36 max-w-full sm:h-7" />
+            <Skeleton className="h-3.5 w-full max-w-lg" />
+            <div className="mt-2 flex gap-2">
+              <Skeleton className="h-10 flex-1 rounded-xl" />
+              <Skeleton className="h-10 w-24 shrink-0 rounded-xl" />
+            </div>
           </div>
         </div>
       </div>
     </div>
-    <div className="mx-auto w-full min-w-0 max-w-7xl px-3 pb-8 pt-5 sm:px-4 sm:pt-6 md:px-6 md:pb-12 md:pt-7 lg:px-8 xl:px-10">
-      <div className="flex min-w-0 flex-col gap-6 sm:gap-8 lg:flex-row lg:gap-8">
-        <div className="hidden w-[17.5rem] shrink-0 lg:block xl:w-72">
+    <div className={cn(pageShell, "pb-8 pt-5 sm:pt-6 md:pb-12 md:pt-7")}>
+      <div className="flex min-w-0 flex-col gap-4 sm:gap-5 lg:flex-row lg:gap-4 xl:gap-5">
+        <div className="hidden shrink-0 lg:block lg:w-56 xl:w-60">
           <Skeleton className="h-[min(28rem,70vh)] w-full rounded-2xl" />
         </div>
-        <div className="grid min-w-0 flex-1 grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-2 xl:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <Skeleton key={i} className="h-[320px] rounded-2xl sm:h-[340px]" />
-          ))}
+        <div className="min-w-0 flex-1">
+          <div className="grid grid-cols-1 gap-2.5 min-[480px]:grid-cols-2 sm:gap-3 lg:grid-cols-4">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="overflow-hidden rounded-2xl border border-border/40 bg-card/50">
+                <Skeleton className="aspect-video w-full rounded-none" />
+                <div className="space-y-2.5 p-3">
+                  <Skeleton className="h-4 w-[80%]" />
+                  <Skeleton className="h-3 w-full" />
+                  <div className="flex items-center justify-between border-t border-border/40 pt-2.5">
+                    <div className="flex gap-1.5">
+                      <Skeleton className="h-5 w-14 rounded-md" />
+                      <Skeleton className="h-5 w-16 rounded-md" />
+                    </div>
+                    <Skeleton className="h-3 w-8" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
   </div>
-);
-
+  );
+};
 export default Page;

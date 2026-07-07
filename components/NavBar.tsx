@@ -28,12 +28,24 @@ const dockSurfaceActive =
 
 /** iPad-style frosted bar — horizontal on mobile, vertical stack on desktop left */
 const appleGlassNav = cn(
-  'isolate flex flex-nowrap items-center justify-center gap-1 rounded-2xl p-2 sm:gap-1.5 sm:p-2.5 md:flex-col md:gap-1.5 md:rounded-[1.35rem] md:p-3 md:py-3.5',
+  'isolate flex w-full flex-nowrap items-center justify-center gap-0.5 rounded-2xl p-1.5 md:w-auto md:flex-col md:gap-1.5 md:rounded-[1.35rem] md:p-3 md:py-3.5',
   'border border-black/[0.06] dark:border-white/[0.12]',
   'bg-white/65 shadow-[0_8px_32px_rgba(0,0,0,0.08),0_2px_8px_rgba(0,0,0,0.04)]',
   'dark:bg-neutral-900/55 dark:shadow-[0_12px_40px_rgba(0,0,0,0.45),0_2px_8px_rgba(0,0,0,0.2)]',
   'backdrop-blur-2xl backdrop-saturate-[1.6] [-webkit-backdrop-filter:blur(24px)_saturate(1.6)]',
   'ring-1 ring-black/[0.04] dark:ring-white/[0.06]'
+);
+
+const mobileDockItem = cn(
+  'group relative flex h-10 min-w-0 flex-1 basis-0 items-center justify-center rounded-xl',
+  'transition-[transform,background-color,box-shadow] duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1)]',
+  'active:scale-95',
+  'md:h-auto md:min-h-[3.25rem] md:min-w-[3.25rem] md:flex-none md:basis-auto md:rounded-2xl'
+);
+
+const mobileDockIcon = cn(
+  'h-[18px] w-[18px] transition-[transform,color,opacity] duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1)]',
+  'group-hover:scale-[1.06] md:h-6 md:w-6'
 );
 
 export function NavBar() {
@@ -63,19 +75,16 @@ export function NavBar() {
     <aside
       className={cn(
         'pointer-events-none fixed z-50',
-        /* mobile: bottom dock, centered */
-        'bottom-[max(1rem,env(safe-area-inset-bottom,0px))] left-1/2 flex w-full max-w-none -translate-x-1/2 justify-center px-3',
+        /* mobile: bottom dock, full width with safe inset */
+        'inset-x-3 bottom-[max(1rem,env(safe-area-inset-bottom,0px))] flex justify-center md:inset-x-auto',
         /* desktop: left rail, vertically centered */
-        'md:left-[max(1rem,env(safe-area-inset-left,0px))] md:top-1/2 md:w-auto md:-translate-y-1/2 md:translate-x-0 md:justify-start md:px-0',
+        'md:left-[max(1rem,env(safe-area-inset-left,0px))] md:top-1/2 md:w-auto md:-translate-y-1/2 md:justify-start',
         'md:bottom-auto md:right-auto'
       )}
     >
       <nav
         aria-label="Main navigation"
-        className={cn(
-          'pointer-events-auto max-w-[min(100%,32rem)] sm:max-w-none md:max-w-none',
-          appleGlassNav
-        )}
+        className={cn('pointer-events-auto w-full min-w-0 md:w-auto', appleGlassNav)}
       >
         {sidebarItems.map((item) => {
           const Icon = item.icon;
@@ -85,8 +94,7 @@ export function NavBar() {
               key={item.href}
               href={item.href}
               className={cn(
-                'group relative flex min-h-12 min-w-12 flex-shrink-0 items-center justify-center rounded-xl transition-[transform,background-color,box-shadow] duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1)] sm:min-h-[3.25rem] sm:min-w-[3.25rem] md:min-h-[3.25rem] md:min-w-[3.25rem] md:rounded-2xl',
-                'active:scale-95',
+                mobileDockItem,
                 isActive ? dockSurfaceActive : dockSurfaceIdle
               )}
               aria-current={isActive ? 'page' : undefined}
@@ -97,8 +105,7 @@ export function NavBar() {
                 aria-hidden
                 strokeWidth={isActive ? 2.25 : 2}
                 className={cn(
-                  'h-5 w-5 transition-[transform,color,opacity] duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1)] sm:h-6 sm:w-6',
-                  'group-hover:scale-[1.06]',
+                  mobileDockIcon,
                   isActive ? dockIconActive : dockIconIdle
                 )}
               />
@@ -120,23 +127,14 @@ export function NavBar() {
         })}
         <button
           type="button"
-          className={cn(
-            'md:hidden',
-            'group relative flex min-h-12 min-w-12 flex-shrink-0 items-center justify-center rounded-xl transition-[transform,background-color,box-shadow] duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1)] sm:min-h-[3.25rem] sm:min-w-[3.25rem]',
-            'active:scale-95',
-            dockSurfaceIdle
-          )}
+          className={cn('md:hidden', mobileDockItem, dockSurfaceIdle)}
           onClick={() => openPsycodeChat()}
           aria-label="Open chat assistant"
         >
           <MessageCircle
             aria-hidden
             strokeWidth={2}
-            className={cn(
-              'h-5 w-5 transition-[transform,color,opacity] duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1)] sm:h-6 sm:w-6',
-              'group-hover:scale-[1.06]',
-              dockIconIdle
-            )}
+            className={cn(mobileDockIcon, dockIconIdle)}
           />
         </button>
       </nav>
