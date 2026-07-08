@@ -82,6 +82,33 @@ export default function RootLayout({
           as="image"
           type="image/svg+xml"
         />
+        <script
+          defer
+          src="https://api.psycodelabs.lk/widget.js"
+          data-key="pk_b3a99bccdb1c43c3d49599b7f2ad4fa3857306cd7cce0b2f"
+          data-api="https://api.psycodelabs.lk"
+        ></script>
+
+<<<<<<< HEAD
+=======
+        <link
+          rel="preload"
+          href="https://fonts.googleapis.com/css2?family=Geist:wght@400;700&display=swap"
+          as="style"
+        />
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Geist:wght@400;700&display=swap"
+        />
+        {/* temporarily removing third-party AI chatbot
+        <script
+          defer
+          src="https://api.psycodelabs.lk/widget.js"
+          data-key="pk_b3a99bccdb1c43c3d49599b7f2ad4fa3857306cd7cce0b2f"
+          data-api="https://api.psycodelabs.lk"
+        ></script>  */}
+
+>>>>>>> 5f65dc015bbb178f5e4cf717025d092cc713a257
       </head>
       <body
         className={`public-site ${notoSansLatin.variable} ${notoSansTamil.variable} ${notoSansSinhala.variable} ${geistMono.variable} font-sans antialiased`}

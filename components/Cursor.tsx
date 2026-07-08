@@ -122,7 +122,7 @@ export function CustomCursor() {
       {/* Main cursor */}
       {/* Above fullscreen overlays (gallery z-[100], filters z-[9999], etc.); pointer-events-none */}
       <div
-        className={`pointer-events-none fixed z-[10050] transition-opacity duration-300 ${
+        className={`fixed pointer-events-none z-[10050] transition-opacity duration-300 ${
           hidden ? "opacity-0" : "opacity-100"
         }`}
         style={{
@@ -157,7 +157,7 @@ export function CustomCursor() {
 
       {/* Trailing circle with delay */}
       <div
-        className="pointer-events-none fixed z-[10049] rounded-full opacity-30"
+        className="fixed pointer-events-none z-[10040] opacity-30 rounded-full"
         style={{
           left: `${trailPosition.x}px`,
           top: `${trailPosition.y}px`,
