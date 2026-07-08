@@ -12,7 +12,7 @@ CREATE TABLE `BlogAuthor` (
   `website` VARCHAR(191),
   `createdAt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updatedAt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-);
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 
 -- Create the BlogPost table
@@ -48,4 +48,4 @@ CREATE TABLE `BlogPost` (
     FOREIGN KEY (`approvedById`) REFERENCES `User`(`user_id`) ON DELETE SET NULL,
   CONSTRAINT `fk_blog_rejected_by`
     FOREIGN KEY (`rejectedById`) REFERENCES `User`(`user_id`) ON DELETE SET NULL
-);
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;

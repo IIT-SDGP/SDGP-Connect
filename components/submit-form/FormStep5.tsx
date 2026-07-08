@@ -11,12 +11,13 @@ import { AnimatePresence, motion } from "framer-motion";
 import { validateImageFile } from "./utils/validateImageFile";
 import { compressImageFile } from "./utils/compressImageFile";
 import { toast } from "sonner";
+import { FormStepIntro } from "./FormStepIntro";
 
 interface FormStep5Props {
   teamProfileFiles: (File|null)[];
-  setTeamProfileFiles: React.Dispatch<React.SetStateAction<(File|null)[]>>;
+  setTeamProfileFiles: Dispatch<SetStateAction<(File|null)[]>>;
   teamProfilePreviews: (string|null)[];
-  setTeamProfilePreviews: React.Dispatch<React.SetStateAction<(string|null)[]>>;
+  setTeamProfilePreviews: Dispatch<SetStateAction<(string|null)[]>>;
 }
 
 const FormStep5 = ({
@@ -126,9 +127,11 @@ const FormStep5 = ({
 
   return (
     <div className="space-y-8">
-      <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-        Team & Resources
-      </h2>
+      <FormStepIntro
+        step="Step 5 — Team"
+        title="Who shipped it"
+        description="Add everyone who should appear on the project—names, optional LinkedIn, and profile photos."
+      />
 
       {/* Team Members */}
       <div className="space-y-4">
@@ -151,9 +154,12 @@ const FormStep5 = ({
           const linkedInValidation = cleanLinkedInUrl(currentLinkedInUrl);
 
           return (
-            <div key={field.id} className="p-4 border rounded-lg space-y-4">
+            <div
+              key={field.id}
+              className="space-y-4 rounded-xl border border-border/80 bg-muted/15 p-4 sm:p-5"
+            >
               <div className="flex justify-between items-start">
-                <h3 className="font-medium">Team Member {index + 1}</h3>
+                <h3 className="text-sm font-semibold text-foreground">Member {index + 1}</h3>
                 <Button
                   type="button"
                   variant="ghost"
@@ -263,9 +269,9 @@ const FormStep5 = ({
                               initial={{ opacity: 0 }}
                               animate={{ opacity: 1 }}
                               exit={{ opacity: 0 }}
-                              className="flex flex-col items-center justify-center border-2 border-dashed border-zinc-300 rounded-full h-32 w-32 cursor-pointer dark:border-zinc-600"
+                              className="flex flex-col items-center justify-center border-2 border-dashed border-border rounded-full h-32 w-32 cursor-pointer bg-muted/30 transition-colors hover:border-primary/40"
                             >
-                              <Upload className="h-8 w-8 text-zinc-400 mb-2" />
+                              <Upload className="h-8 w-8 text-muted-foreground mb-2" />
                               <Input
                                 type="file"
                                 accept="image/*"

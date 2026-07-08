@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "../ui/input";
 import { validateImageFile } from "./utils/validateImageFile";
 import { compressImageFile } from "./utils/compressImageFile";
+import { FormStepIntro } from "./FormStepIntro";
 
 const MAX_SLIDES = 10;
 const MIN_SLIDES = 3;
@@ -115,7 +116,11 @@ const FormStep2 = ({ slideFiles, setSlideFiles, slidePreviews, setSlidePreviews 
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Project Details</h2>
+      <FormStepIntro
+        step="Step 2 — Story"
+        title="Details & gallery"
+        description="Explain the problem and solution, describe features with Markdown, and upload at least three showcase images."
+      />
 
       {/* Problem Statement */}
       <FormField
@@ -174,7 +179,7 @@ const FormStep2 = ({ slideFiles, setSlideFiles, slidePreviews, setSlidePreviews 
                   />
                 </FormControl>
               </div>
-              <div className="border rounded-md p-4 min-h-[300px] prose prose-zinc dark:prose-invert bg-zinc-50 dark:bg-zinc-900 overflow-auto">
+              <div className="rounded-xl border border-border bg-muted/30 p-4 min-h-[300px] prose prose-sm dark:prose-invert max-w-none overflow-auto">
                 <Markdown options={{
                   overrides: {
                     h1: { props: { className: 'text-2xl font-bold mb-4' } },
@@ -204,14 +209,14 @@ const FormStep2 = ({ slideFiles, setSlideFiles, slidePreviews, setSlidePreviews 
           <FormItem>
             <FormLabel>Featured Images<span className="text-red-500">*</span></FormLabel>
             {canUploadMore && (
-              <div className="relative mt-4 p-6 border-2 border-dashed border-gray-300 rounded-xl w-full cursor-pointer hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-800 transition-all duration-200">
+              <div className="relative mt-4 w-full cursor-pointer rounded-xl border-2 border-dashed border-border bg-muted/25 p-6 transition-all hover:border-primary/35 hover:bg-muted/40">
                 <div className="flex flex-col items-center justify-center space-y-2 text-center">
-                  <Upload className="h-10 w-10 text-primary mb-2" />
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
-                    Drag and drop your Featured Images here or click to browse
+                  <Upload className="mb-2 h-10 w-10 text-primary" />
+                  <p className="mb-1 text-sm text-foreground">
+                    Drop images here or click to browse
                   </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-500">
-                    PNG, JPG, GIF - {slidePreviews.length}/{MAX_SLIDES} images ({MAX_SLIDES - slidePreviews.length} remaining)
+                  <p className="text-xs text-muted-foreground">
+                    PNG, JPG, GIF — {slidePreviews.length}/{MAX_SLIDES} ({MAX_SLIDES - slidePreviews.length} left)
                   </p>
                   <Input 
                     type="file" 
@@ -238,9 +243,12 @@ const FormStep2 = ({ slideFiles, setSlideFiles, slidePreviews, setSlidePreviews 
                 Maximum number of images reached. Remove an image to upload a new one.
               </div>
             )}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mt-6">
+            <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5">
               {slidePreviews.map((previewUrl, index) => (
-                <div key={index} className="relative group overflow-hidden rounded-lg shadow-md border dark:border-gray-700 transition-all hover:shadow-xl">
+                <div
+                  key={index}
+                  className="group relative overflow-hidden rounded-xl border border-border shadow-sm transition-shadow hover:shadow-md"
+                >
                   <AspectRatio ratio={16 / 9}>
                     <img src={previewUrl} alt={`Slide ${index + 1}`} className="object-cover w-full h-full rounded-lg" />
                   </AspectRatio>

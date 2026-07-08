@@ -30,8 +30,8 @@ const RejectedProjectsTableSkeleton: React.FC = () => {
             <TableHead>
               <Skeleton className="h-5 w-16" />
             </TableHead>
-            <TableHead>
-              <Skeleton className="h-5 w-24" />
+            <TableHead className="admin-table-actions-head">
+              <Skeleton className="mx-auto h-5 w-24" />
             </TableHead>
           </TableRow>
         </TableHeader>
@@ -57,8 +57,8 @@ const RejectedProjectsTableSkeleton: React.FC = () => {
                   <Skeleton className="h-4 w-16" />
                 </div>
               </TableCell>
-              <TableCell>
-                <div className="flex gap-2">
+              <TableCell className="admin-table-actions-cell">
+                <div className="admin-table-actions-inner">
                   <Skeleton className="h-8 w-16 rounded-md" />
                 </div>
               </TableCell>

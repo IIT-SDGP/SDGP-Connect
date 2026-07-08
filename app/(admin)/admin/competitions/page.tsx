@@ -7,7 +7,6 @@
 
 import { useEffect, useState } from "react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { RefreshCcw } from "lucide-react";
 
@@ -22,6 +21,9 @@ import ApprovedCompetitionsTable from "@/components/tables/ApprovedCompetitionsT
 import RejectedCompetitionsTableSkeleton from "@/components/tables/skeletons/RejectedCompetitionsTableSkeleton";
 import RejectedCompetitionsTable from "@/components/tables/RejectedCompetitionsTable";
 import  { ApprovalStatus } from "@/types/prisma-types";
+import { AdminPageShell } from "@/components/layout/admin-page-shell";
+import { AdminManagementBar } from "@/components/layout/admin-management-bar";
+import { AdminSearchField } from "@/components/layout/admin-search-field";
 
 
 // Type definitions
@@ -197,47 +199,47 @@ export default function CompetitionManagement() {
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Competition Management</h1>
-        <p className="text-muted-foreground">Review and manage competition submissions</p>
-      </div>
+    <AdminPageShell
+      title="Competition Management"
+      description="Review and manage competition submissions."
+    >
       <Tabs defaultValue="pending" onValueChange={handleTabChange} value={currentTab}>
-        <TabsList>
-          <TabsTrigger value="pending">Pending</TabsTrigger>
-          <TabsTrigger value="approved">Approved</TabsTrigger>
-          <TabsTrigger value="rejected">Rejected</TabsTrigger>
-        </TabsList>
-        <div className="my-4 flex flex-wrap gap-4 justify-between">
-          <div className="flex items-center gap-2">
-            <Input
-              placeholder="Search competitions..."
-              className="max-w-xs"
+        <AdminManagementBar
+          tabs={
+            <TabsList className="admin-tab-list">
+              <TabsTrigger value="pending" className="admin-tab-trigger">
+                Pending
+              </TabsTrigger>
+              <TabsTrigger value="approved" className="admin-tab-trigger">
+                Approved
+              </TabsTrigger>
+              <TabsTrigger value="rejected" className="admin-tab-trigger">
+                Rejected
+              </TabsTrigger>
+            </TabsList>
+          }
+          center={
+            <AdminSearchField
+              placeholder="Search competitions…"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              showClear
+              onClear={() => {
+                setSearchQuery("");
+                setDebouncedSearchQuery("");
+              }}
+              aria-label="Search competitions"
             />
-            {searchQuery && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setSearchQuery("");
-                  setDebouncedSearchQuery("");
-                }}
-              >
-                Clear
-              </Button>
-            )}
-          </div>
-          <div className="flex items-center gap-4">
-            <Button variant="outline" onClick={handleRefresh}>
+          }
+          end={
+            <Button variant="outline" onClick={handleRefresh} className="h-10">
               Last Fetched: {lastFetchedTime}
-              <RefreshCcw />
+              <RefreshCcw className="ml-2 h-4 w-4" />
             </Button>
-          </div>
-        </div>
-        {renderContent()}
+          }
+        />
+        <div className="admin-table-wrap">{renderContent()}</div>
       </Tabs>
-    </div>
+    </AdminPageShell>
   );
 }

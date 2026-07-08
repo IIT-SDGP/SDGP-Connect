@@ -83,23 +83,23 @@ export default function RejectedCompetitionsTable({ competitions, currentPage, t
   };
 
   return (
-    <div>
+    <div className="admin-table-inner">
       <Table>
-        <TableHeader>
+        <TableHeader className="admin-table-thead">
           <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Start Date</TableHead>
-            <TableHead>End Date</TableHead>
-            <TableHead>Type</TableHead>
-            <TableHead>Description</TableHead>
-            <TableHead>Rejected By</TableHead>
-            <TableHead>Reason</TableHead>
-            <TableHead>Actions</TableHead>
+            <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Name</TableHead>
+            <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Start Date</TableHead>
+            <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">End Date</TableHead>
+            <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Type</TableHead>
+            <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Description</TableHead>
+            <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Rejected By</TableHead>
+            <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Reason</TableHead>
+            <TableHead className="admin-table-actions-head">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {competitions.map((comp) => (
-            <TableRow key={comp.id}>
+            <TableRow key={comp.id} className="hover:bg-muted/25">
               <TableCell className="font-medium">{comp.name}</TableCell>
               <TableCell>{format(new Date(comp.start_date), "MMM d yyyy")}</TableCell>
               <TableCell>{format(new Date(comp.end_date), "MMM d yyyy")}</TableCell>
@@ -120,12 +120,12 @@ export default function RejectedCompetitionsTable({ competitions, currentPage, t
                   <TooltipContent>{comp.rejected_reason || "No reason provided"}</TooltipContent>
                 </Tooltip>
               </TableCell>
-              <TableCell>
-                <div className="flex gap-2">
-                  <Button size="sm" onClick={() => handleViewDetails(comp.id)}>
+              <TableCell className="admin-table-actions-cell">
+                <div className="admin-table-actions-inner">
+                  <Button size="sm" variant="outline" className="rounded-lg" onClick={() => handleViewDetails(comp.id)}>
                     View Details
                   </Button>
-                  <Button size="sm" variant="destructive" onClick={() => handleDeleteClick(comp.id)} disabled={deleteDialogOpen && deleteId === comp.id && (!deleteName || deleteAwardCount === undefined)}>
+                  <Button size="sm" variant="destructive" className="rounded-lg" onClick={() => handleDeleteClick(comp.id)} disabled={deleteDialogOpen && deleteId === comp.id && (!deleteName || deleteAwardCount === undefined)}>
                     Delete
                   </Button>
                 </div>
@@ -134,9 +134,9 @@ export default function RejectedCompetitionsTable({ competitions, currentPage, t
           ))}
         </TableBody>
       </Table>
-      <Pagination className="mt-4 flex justify-center items-center">
+      <Pagination className="border-t border-border/70 px-4 py-3 flex justify-center items-center">
         {currentPage > 1 && <PaginationPrevious href="#" onClick={onPreviousPage} />}
-        <span className="mx-2">Page {currentPage} of {totalPages}</span>
+        <span className="mx-2 text-sm text-muted-foreground">Page {currentPage} of {totalPages}</span>
         {currentPage < totalPages && <PaginationNext href="#" onClick={onNextPage} />}
       </Pagination>
       <CompetitionDetailsDialog open={detailsOpen} onOpenChange={setDetailsOpen} competitionId={selectedId} />

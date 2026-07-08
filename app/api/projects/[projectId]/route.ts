@@ -37,16 +37,7 @@ export async function GET(
       },
       include: {
         projectDetails: true,
-        status: {
-          include: {
-            approved_by: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-          },
-        },
+        status: true,
         associations: true,
         slides: true,
         team: true,

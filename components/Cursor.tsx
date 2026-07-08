@@ -120,6 +120,7 @@ export function CustomCursor() {
   return (
     <>
       {/* Main cursor */}
+      {/* Above fullscreen overlays (gallery z-[100], filters z-[9999], etc.); pointer-events-none */}
       <div
         className={`fixed pointer-events-none z-[10050] transition-opacity duration-300 ${
           hidden ? "opacity-0" : "opacity-100"

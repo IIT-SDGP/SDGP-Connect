@@ -49,9 +49,9 @@ export function PendingProjectsTable({
   };
 
   return (
-    <div>
+    <div className="admin-table-inner">
       <Table>
-        <TableHeader>
+        <TableHeader className="admin-table-thead">
           <TableRow>
             <TableHead className="w-12">
               <Checkbox
@@ -60,31 +60,31 @@ export function PendingProjectsTable({
               />
             </TableHead>
             <TableHead>
-              <Button variant="ghost" size="sm" className="h-8 px-2" onClick={() => onSortChange('title')}>
+              <Button variant="ghost" size="sm" className="h-8 px-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground" onClick={() => onSortChange('title')}>
                 Title <SortIcon column="title" />
               </Button>
             </TableHead>
             <TableHead>
-              <Button variant="ghost" size="sm" className="h-8 px-2" onClick={() => onSortChange('groupNumber')}>
+              <Button variant="ghost" size="sm" className="h-8 px-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground" onClick={() => onSortChange('groupNumber')}>
                 Group <SortIcon column="groupNumber" />
               </Button>
             </TableHead>
             <TableHead>
-              <Button variant="ghost" size="sm" className="h-8 px-2" onClick={() => onSortChange('submissionDate')}>
+              <Button variant="ghost" size="sm" className="h-8 px-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground" onClick={() => onSortChange('submissionDate')}>
                 Created <SortIcon column="submissionDate" />
               </Button>
             </TableHead>
             <TableHead>
-              <Button variant="ghost" size="sm" className="h-8 px-2" onClick={() => onSortChange('status')}>
+              <Button variant="ghost" size="sm" className="h-8 px-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground" onClick={() => onSortChange('status')}>
                 Status <SortIcon column="status" />
               </Button>
             </TableHead>
-            <TableHead>Actions</TableHead>
+            <TableHead className="admin-table-actions-head">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {projects.map((project) => (
-            <TableRow key={project.id}>
+            <TableRow key={project.id} className="hover:bg-muted/25">
               <TableCell>
                 <Checkbox
                   checked={selectedProjects.includes(project.id)}
@@ -97,8 +97,10 @@ export function PendingProjectsTable({
                   }}
                 />
               </TableCell>
-              <TableCell>{project.title}</TableCell>
-              <TableCell>{project.groupNumber}</TableCell>
+              <TableCell className="max-w-[260px] truncate font-medium">{project.title}</TableCell>
+              <TableCell>
+                <Badge variant="secondary" className="rounded-lg px-2 py-0.5">#{project.groupNumber}</Badge>
+              </TableCell>
               <TableCell>
                 {new Date(project.submissionDate).toLocaleString('en-GB', {
                   day: 'numeric',
@@ -109,19 +111,20 @@ export function PendingProjectsTable({
                 })}
               </TableCell>
               <TableCell>
-                <Badge>{project.status}</Badge>
+                <Badge className="rounded-lg">{project.status}</Badge>
               </TableCell>
-              <TableCell>
-                <div className="flex gap-2">
-                  <Button size="sm" onClick={() => onViewDetails(project)}>
+              <TableCell className="admin-table-actions-cell">
+                <div className="admin-table-actions-inner">
+                  <Button size="sm" variant="outline" className="rounded-lg" onClick={() => onViewDetails(project)}>
                     View
                   </Button>
-                  <Button size="sm" onClick={() => onApprove(project)}>
+                  <Button size="sm" className="rounded-lg" onClick={() => onApprove(project)}>
                     Approve
                   </Button>
                   <Button
                     size="sm"
                     variant="destructive"
+                    className="rounded-lg"
                     onClick={() => onReject(project)}
                   >
                     Reject
@@ -132,9 +135,9 @@ export function PendingProjectsTable({
           ))}
         </TableBody>
       </Table>
-      <Pagination className="mt-4 flex justify-center items-center">
+      <Pagination className="border-t border-border/70 px-4 py-3 flex justify-center items-center">
         {currentPage > 1 && <PaginationPrevious href="#"onClick={onPreviousPage} />}
-        <span className="mx-2">Page {currentPage} of {totalPages}</span>
+        <span className="mx-2 text-sm text-muted-foreground">Page {currentPage} of {totalPages}</span>
         {currentPage < totalPages && <PaginationNext href="#" onClick={onNextPage} />}
       </Pagination>
     </div>

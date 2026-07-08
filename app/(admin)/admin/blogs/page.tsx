@@ -15,7 +15,6 @@ import { RejectedBlogsTable } from '@/components/tables/RejectedBlogsTable';
 import PendingBlogsTableSkeleton from '@/components/tables/skeletons/PendingBlogsTableSkeleton';
 import ApprovedBlogsTableSkeleton from '@/components/tables/skeletons/ApprovedBlogsTableSkeleton';
 import RejectedBlogsTableSkeleton from '@/components/tables/skeletons/RejectedBlogsTableSkeleton';
-import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useGetBlogsByStatus } from '@/hooks/blogs/useGetBlogsByStatus';
 import { useGetBlogStats } from '@/hooks/blogs/useGetBlogStats';
@@ -31,6 +30,9 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useDebounce } from '@/hooks/use-debounce';
 import { toast } from 'sonner';
+import { AdminPageShell } from '@/components/layout/admin-page-shell';
+import { AdminManagementBar } from '@/components/layout/admin-management-bar';
+import { AdminSearchField } from '@/components/layout/admin-search-field';
 
 export default function BlogManagement() {
   const router = useRouter();
@@ -110,7 +112,9 @@ export default function BlogManagement() {
   const handleBulkApprove = () => {
     if (selectedBlogs.length === 0) return;
     setBulkApproveDialog(true);
-  };  const handleToggleFeature = async (blog: ApprovedBlogPost) => {
+  };
+
+  const handleToggleFeature = async (blog: ApprovedBlogPost) => {
     try {
       if (blog.featured) {
         await unfeatureBlog(blog.id);
@@ -285,25 +289,20 @@ export default function BlogManagement() {
   };
 
   return (
-    <div className="space-y-6 p-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Blog Management</h1>
-          <p className="text-muted-foreground">
-            Manage and moderate blog posts submitted by authors
-          </p>
-        </div>
+    <AdminPageShell
+      title="Blog Management"
+      description="Manage and moderate blog posts submitted by authors."
+      actions={
         <Button variant="outline" onClick={() => { refetchBlogs(); refetchStats(); }}>
           <RefreshCcw className="mr-2 h-4 w-4" />
           Refresh
         </Button>
-      </div>
+      }
+    >
 
-      {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {statsCards.map((stat, index) => (
-          <Card key={index}>
+          <Card key={index} className="admin-surface rounded-2xl">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 {stat.title}
@@ -319,7 +318,6 @@ export default function BlogManagement() {
         ))}
       </div>
 
-      {/* Error Alerts */}
       {(blogsError || statsError) && (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
@@ -330,44 +328,42 @@ export default function BlogManagement() {
         </Alert>
       )}
 
-      {/* Controls */}
-      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-        <div className="flex gap-4 items-center">
-          <Tabs value={currentTab} onValueChange={(value) => setCurrentTab(value as BlogStatus)}>
-            <TabsList>
-              <TabsTrigger value="pending">
+      <Tabs value={currentTab} onValueChange={(value) => setCurrentTab(value as BlogStatus)}>
+        <AdminManagementBar
+          tabs={
+            <TabsList className="admin-tab-list">
+              <TabsTrigger value="pending" className="admin-tab-trigger">
                 Pending {stats?.pending ? `(${stats.pending})` : ''}
               </TabsTrigger>
-              <TabsTrigger value="approved">
+              <TabsTrigger value="approved" className="admin-tab-trigger">
                 Approved {stats?.approved ? `(${stats.approved})` : ''}
               </TabsTrigger>
-              <TabsTrigger value="rejected">
+              <TabsTrigger value="rejected" className="admin-tab-trigger">
                 Rejected {stats?.rejected ? `(${stats.rejected})` : ''}
               </TabsTrigger>
             </TabsList>
-          </Tabs>
+          }
+          center={
+            <AdminSearchField
+              placeholder="Search blogs…"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              showClear
+              onClear={() => setSearchQuery('')}
+              aria-label="Search blogs"
+            />
+          }
+          end={
+            currentTab === 'pending' && selectedBlogs.length > 0 ? (
+              <Button onClick={handleBulkApprove} className="h-10">
+                Approve Selected ({selectedBlogs.length})
+              </Button>
+            ) : null
+          }
+        />
+        <div className="admin-table-wrap min-h-[500px]">{renderTable()}</div>
+      </Tabs>
 
-          {currentTab === 'pending' && selectedBlogs.length > 0 && (
-            <Button onClick={handleBulkApprove} size="sm">
-              Approve Selected ({selectedBlogs.length})
-            </Button>
-          )}
-        </div>
-
-        <div className="flex gap-2 items-center">
-          <Input
-            placeholder="Search blogs..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-64"
-          />
-        </div>
-      </div>      {/* Table */}
-      <Card>
-        <CardContent className="p-0 min-h-[500px]">
-          {renderTable()}
-        </CardContent>
-      </Card>{/* Dialogs */}
       <ApproveBlogDialog
         open={approveDialog}
         onOpenChange={setApproveDialog}
@@ -387,7 +383,9 @@ export default function BlogManagement() {
         onOpenChange={setBulkApproveDialog}
         blogIds={selectedBlogs}
         onApproved={handleSuccess}
-      />      <BlogDetailsDialog
+      />
+
+      <BlogDetailsDialog
         open={detailsDialog}
         onOpenChange={setDetailsDialog}
         blog={currentBlog}
@@ -395,6 +393,6 @@ export default function BlogManagement() {
         onReject={handleReject}
         onToggleFeature={handleToggleFeatureFromDetails}
       />
-    </div>
+    </AdminPageShell>
   );
 }

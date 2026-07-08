@@ -13,63 +13,70 @@ import { useLanguage } from "@/hooks/LanguageProvider";
 import dynamic from "next/dynamic";
 import { Banner3 } from "@/components/blog/Banner";
 
-// Lazy-load motion components with better loading
 const MotionDiv = dynamic(
   () => import("framer-motion").then((mod) => mod.motion.div),
-  {
-    ssr: false,
-    loading: () => <div className="min-h-[50px]" /> // Prevent layout shift
-  }
+  { ssr: false, loading: () => <div className="min-h-[40px]" /> }
 );
 
-const MotionH1 = dynamic(
-  () => import("framer-motion").then((mod) => mod.motion.h1),
-  {
-    ssr: false,
-    loading: () => <h1 className="min-h-[40px]" /> // Prevent layout shift
-  }
-);
-
-// Optimize Three.js scene loading
-const ThreeScene = dynamic(() => import("./three-scene"), { 
+const ThreeScene = dynamic(() => import("./three-scene"), {
   ssr: false,
-  loading: () => <div className="min-h-[300px] bg-gradient-to-b from-transparent to-background/50" />
+  loading: () => <div className="min-h-[280px] w-full bg-muted/30" />,
 });
 
-const Logo: React.FC = () => (
-  <MotionDiv
-    initial={{ scale: 1.8, opacity: 0 }}
-    animate={{ scale: 2, opacity: 1 }}
-    transition={{ duration: 0.5 }}
-    className="mb-6 md:mb-10 flex justify-center items-center"
-  >
-    <div className="relative">
-      <Image
-        src="/test.svg"
-        alt="SDGP Logo"
-        className="lg:pl-2 pl-1 h-24 w-24 sm:h-52 sm:w-42 md:h-48 md:w-48 -mb-6 sm:-mb-8 md:-mb-17 -mt-4 sm:-mt-6 md:-mt-12"
-        width={48}
-        height={48}
-        priority
-      />
-    </div>
-  </MotionDiv>
-);
-
-function getNested(obj: any, path: string[], fallback: any = undefined) {
+function getNested(obj: Record<string, unknown>, path: string[], fallback: unknown = undefined) {
   return path.reduce(
-    (acc, key) => (acc && acc[key] !== undefined ? acc[key] : fallback),
-    obj
+    (acc, key) =>
+      acc && typeof acc === "object" && (acc as Record<string, unknown>)[key] !== undefined
+        ? (acc as Record<string, unknown>)[key]
+        : fallback,
+    obj as unknown
+  );
+}
+
+function HeroBadge({ text }: { text: string }) {
+  const parts = text
+    .split(/\s*[·•|]\s*/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+  if (parts.length < 2) {
+    return (
+      <p className="mb-2 text-center text-xs font-medium leading-none tracking-wide text-muted-foreground sm:mb-2.5">
+        {text}
+      </p>
+    );
+  }
+  return (
+    <div
+      className="mb-2 flex flex-wrap items-center justify-center gap-x-1 gap-y-2 sm:mb-2.5 sm:gap-x-1.5"
+      role="group"
+      aria-label={text}
+    >
+      {parts.map((part, i) => (
+        <span key={`${part}-${i}`} className="inline-flex items-center">
+          {i > 0 ? (
+            <span
+              className="mx-1.5 inline-block h-px w-6 bg-gradient-to-r from-transparent via-primary/45 to-transparent sm:w-8 sm:via-primary/55"
+              aria-hidden
+            />
+          ) : null}
+          <span className="relative rounded-full border border-primary/20 bg-gradient-to-b from-background/80 to-muted/40 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-foreground/90 shadow-sm shadow-primary/5 backdrop-blur-sm sm:px-3.5 sm:py-1.5 sm:text-[11px] sm:tracking-[0.22em] dark:border-primary/25 dark:from-background/50 dark:to-muted/25 dark:text-foreground">
+            <span className="absolute inset-x-3 -top-px h-px bg-gradient-to-r from-transparent via-primary/35 to-transparent opacity-80 dark:via-primary/45" aria-hidden />
+            {part}
+          </span>
+        </span>
+      ))}
+    </div>
   );
 }
 
 export default function Hero() {
   const { t } = useLanguage();
-  const homeHero = getNested(t, ["home", "hero"], {});
+  const homeHero = (getNested(t as Record<string, unknown>, ["home", "hero"], {}) ||
+    {}) as Record<string, string>;
+
   return (
-    <section className="min-h-screen w-full flex flex-col overflow-hidden perspective-1000">
-      {/* Banner at the top */}
-      <div className="w-full z-20 px-4 sm:px-6 pt-4 pb-2 flex-shrink-0 flex justify-center">
+    <section className="relative flex min-h-screen w-full flex-col overflow-hidden">
+      <div className="relative z-20 flex shrink-0 justify-center px-3 pb-1 pt-2 sm:px-4">
         <Banner3
           badgeText="New"
           message="Introducing blogs from your fellow IITians — explore now!"
@@ -78,39 +85,43 @@ export default function Hero() {
         />
       </div>
 
-      <div className="flex-1 flex flex-col items-center justify-center relative">
-        <ThreeScene />
+      <div className="relative flex min-h-0 flex-1 flex-col items-center justify-start pt-6 md:pt-10">
+        <div className="absolute inset-0 z-0">
+          <ThreeScene />
+        </div>
+
+        {/* Single soft scrim — content readable, stars still visible above */}
+        <div
+          className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-b from-background/25 via-background/70 to-background dark:from-background/40 dark:via-background/75 dark:to-background"
+          aria-hidden
+        />
 
         <MotionDiv
-          className="relative z-10 text-center max-w-7xl px-6 flex flex-col gap-3 sm:gap-5 items-center justify-center"
-          initial={{ opacity: 0, y: 20 }}
+          className="relative z-10 flex w-full max-w-4xl flex-col items-center px-3 pb-14 pt-0 text-center sm:max-w-5xl md:max-w-6xl md:pb-16"
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
+          transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
         >
+          <h1 className="sr-only">SDGP Connect</h1>
+          <HeroBadge text={homeHero.badge || "Innovative · Creative · Impactful"} />
+
           <MotionDiv
-            className="inline-block px-4 sm:px-6 py-2 mb-2 text-xs sm:text-sm font-medium tracking-wider text-white bg-[#2a5298]/20 rounded-full border border-[#2a5298]/30"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
+            initial={{ scale: 0.96, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.08, duration: 0.45 }}
+            className="my-1 sm:my-1.5 md:my-2"
           >
-            {homeHero.badge || "Innovative • Creative • Impactful"}
+            <Image
+              src="/test.svg"
+              alt="SDGP Connect"
+              width={1500}
+              height={720}
+              priority
+              className="mx-auto block h-20 w-auto max-w-[min(95vw,60rem)] leading-none sm:h-28 md:h-36 lg:h-44"
+            />
           </MotionDiv>
 
-          <MotionH1
-            className="text-6xl md:text-7xl font-bold  bg-gradient-to-r from-[#2a5298] via-[#9bb9ec] to-[#2a5298] bg-clip-text text-transparent "
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-          >
-            <Logo />
-          </MotionH1>
-
-          <MotionDiv
-            className=""
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6 }}
-          >
+          <div className="mt-2 w-full max-w-xl text-muted-foreground sm:mt-2.5">
             <MorphingText
               texts={[
                 homeHero.morphing_text1 || "Transforming Ideas Into Brands",
@@ -118,44 +129,27 @@ export default function Hero() {
                 homeHero.morphing_text3 || "Building Tomorrow's Solutions",
                 homeHero.morphing_text4 || "Creating Innovative Designs",
               ]}
-              className="text-xl md:text-2xl text-foreground/80  w-140 "
+              className="[&_p]:!text-xl [&_p]:!font-normal [&_p]:!text-muted-foreground md:[&_p]:!text-2xl"
             />
-          </MotionDiv>
+          </div>
 
-          <MotionDiv
-            className="flex flex-col sm:flex-row justify-center gap-5 -mt-1"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.8 }}
-          >
-            <div className="flex-1 z-10">
-              <Link href="/project">
-                <Button className="w-full px-8 py-3 rounded-full text-sm font-medium transition-all duration-200 bg-primary text-primary-foreground hover:bg-primary/90">
-                  {homeHero.explore_button || "Explore projects"}
-                </Button>
-              </Link>
-            </div>
-            <div className="flex-1 z-10">
-              <Link href="/about">
-                <Button className="w-full px-8 py-3 rounded-full text-sm font-medium transition-all duration-200 bg-secondary text-secondary-foreground hover:bg-secondary/80 border border-primary/30">
-                  {homeHero.learn_more_button || "About Us"}
-                </Button>
-              </Link>
-            </div>
-            <div className="flex-1 -10">
-              <a
-                href="https://www.iit.ac.lk/"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <Button className="w-full px-8 py-3 rounded-full text-sm font-medium transition-all duration-200 bg-primary text-primary-foreground hover:bg-primary/90">
-                  {homeHero.campus_button || "Visit IIT"}
-                </Button>
+          <div className="mt-10 flex w-full max-w-lg flex-col gap-3 sm:flex-row sm:justify-center">
+            <Button asChild size="lg" className="rounded-md px-6">
+              <Link href="/project">{homeHero.explore_button || "Explore projects"}</Link>
+            </Button>
+            <Button asChild size="lg" variant="outline" className="rounded-md px-6">
+              <Link href="/about">{homeHero.learn_more_button || "About Us"}</Link>
+            </Button>
+            <Button asChild size="lg" variant="secondary" className="rounded-md px-6">
+              <a href="https://www.iit.ac.lk/" target="_blank" rel="noopener noreferrer">
+                {homeHero.campus_button || "Visit IIT"}
               </a>
-            </div>
-          </MotionDiv>
+            </Button>
+          </div>
 
-          <Carousel />
+          <div className="mt-12 w-full max-w-[min(100vw-0.75rem,85rem)] sm:mt-14">
+            <Carousel embedded />
+          </div>
         </MotionDiv>
       </div>
     </section>

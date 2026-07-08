@@ -34,9 +34,9 @@ export function PendingBlogsTable({
   onPreviousPage,
 }: PendingBlogsTableProps) {
   return (
-    <div>
+    <div className="admin-table-inner">
       <Table>
-        <TableHeader>
+        <TableHeader className="admin-table-thead">
           <TableRow>
             <TableHead className="w-12">
               <Checkbox
@@ -44,16 +44,16 @@ export function PendingBlogsTable({
                 onCheckedChange={(checked) => onSelectAll(checked as boolean)}
               />
             </TableHead>
-            <TableHead>Title</TableHead>
-            <TableHead>Author</TableHead>
-            <TableHead>Category</TableHead>
-            <TableHead>Submitted</TableHead>
-            <TableHead>Actions</TableHead>
+            <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Title</TableHead>
+            <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Author</TableHead>
+            <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Category</TableHead>
+            <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Submitted</TableHead>
+            <TableHead className="admin-table-actions-head">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {blogs.map((blog) => (
-            <TableRow key={blog.id}>
+            <TableRow key={blog.id} className="hover:bg-muted/25">
               <TableCell>
                 <Checkbox
                   checked={selectedBlogs.includes(blog.id)}
@@ -89,11 +89,12 @@ export function PendingBlogsTable({
               <TableCell className="text-sm text-muted-foreground">
                 {formatDistanceToNow(new Date(blog.createdAt), { addSuffix: true })}
               </TableCell>
-              <TableCell>
-                <div className="flex space-x-2">
+              <TableCell className="admin-table-actions-cell">
+                <div className="admin-table-actions-inner">
                   <Button
                     variant="outline"
                     size="sm"
+                    className="rounded-lg"
                     onClick={() => onViewDetails(blog)}
                   >
                     <Eye className="h-4 w-4" />
@@ -101,16 +102,16 @@ export function PendingBlogsTable({
                   <Button
                     variant="outline"
                     size="sm"
+                    className="rounded-lg text-green-600 hover:text-green-700"
                     onClick={() => onApprove(blog)}
-                    className="text-green-600 hover:text-green-700"
                   >
                     <Check className="h-4 w-4" />
                   </Button>
                   <Button
                     variant="outline"
                     size="sm"
+                    className="rounded-lg text-red-600 hover:text-red-700"
                     onClick={() => onReject(blog)}
-                    className="text-red-600 hover:text-red-700"
                   >
                     <X className="h-4 w-4" />
                   </Button>
@@ -121,7 +122,7 @@ export function PendingBlogsTable({
         </TableBody>
       </Table>
         {totalPages > 1 && (
-        <div className="flex justify-center mt-4">
+        <div className="flex justify-center border-t border-border/70 px-4 py-3">
           <div className="flex items-center space-x-2">
             <Button
               variant="outline"

@@ -50,17 +50,47 @@ const getRoleFromAsgardeoProfile = (profile: Record<string, unknown>): Role | nu
   return null;
 };
 
-const getRequiredEnv = (key: string) => {
-  const value = process.env[key]?.trim().replace(/^['"]|['"]$/g, "");
+const getEnv = (key: string) =>
+  process.env[key]?.trim().replace(/^['"]|['"]$/g, "") ?? "";
 
-  if (!value) {
-    throw new Error(`Missing required environment variable: ${key}`);
-  }
+const asgardeoIssuer = getEnv("ASGARDEO_ISSUER_URL").replace(/\/+$/, "");
+const asgardeoClientId = getEnv("ASGARDEO_CLIENT_ID");
+const asgardeoClientSecret = getEnv("ASGARDEO_CLIENT_SECRET");
+const asgardeoEnabled =
+  Boolean(asgardeoIssuer) && Boolean(asgardeoClientId) && Boolean(asgardeoClientSecret);
 
-  return value;
+const asgardeoProvider = {
+  id: "asgardeo",
+  name: "Asgardeo",
+  type: "oauth" as const,
+  clientId: asgardeoClientId,
+  clientSecret: asgardeoClientSecret,
+  issuer: asgardeoIssuer,
+  wellKnown: `${asgardeoIssuer}/.well-known/openid-configuration`,
+  authorization: {
+    params: {
+      scope: "openid email profile",
+      prompt: "login",
+    },
+  },
+  idToken: true,
+  checks: ["pkce", "state"] as ("pkce" | "state")[],
+  allowDangerousEmailAccountLinking: true,
+  profile(profile: Record<string, unknown>) {
+    const givenName = profile.given_name ?? "";
+    const familyName = profile.family_name ?? "";
+    const name = `${givenName} ${familyName}`.trim();
+    const role = getRoleFromAsgardeoProfile(profile);
+
+    return {
+      id: profile.sub as string,
+      name,
+      email: profile.email as string,
+      image: (profile.picture as string | null) ?? null,
+      role: role ?? Role.STUDENT,
+    };
+  },
 };
-
-const asgardeoIssuer = getRequiredEnv("ASGARDEO_ISSUER_URL").replace(/\/+$/, "");
 
 export const authOptions: AuthOptions = {
   adapter: PrismaAdapter(prisma),
@@ -70,38 +100,7 @@ export const authOptions: AuthOptions = {
   },
 
   providers: [
-    {
-      id: "asgardeo",
-      name: "Asgardeo",
-      type: "oauth",
-      clientId: getRequiredEnv("ASGARDEO_CLIENT_ID"),
-      clientSecret: getRequiredEnv("ASGARDEO_CLIENT_SECRET"),
-      issuer: asgardeoIssuer,
-      wellKnown: `${asgardeoIssuer}/.well-known/openid-configuration`,
-      authorization: {
-        params: {
-          scope: "openid email profile",
-          prompt: "login",
-        },
-      },
-      idToken: true,
-      checks: ["pkce", "state"],
-      allowDangerousEmailAccountLinking: true,
-      profile(profile) {
-        const givenName = profile.given_name ?? "";
-        const familyName = profile.family_name ?? "";
-        const name = `${givenName} ${familyName}`.trim();
-        const role = getRoleFromAsgardeoProfile(profile as Record<string, unknown>);
-
-        return {
-          id: profile.sub,
-          name,
-          email: profile.email,
-          image: profile.picture ?? null,
-          role: role ?? Role.STUDENT,
-        };
-      },
-    },
+    ...(asgardeoEnabled ? [asgardeoProvider] : []),
 
     CredentialsProvider({
       name: "Credentials",
@@ -115,14 +114,6 @@ export const authOptions: AuthOptions = {
         try {
           const user = await prisma.user.findUnique({
             where: { email: credentials.email },
-            select: {
-              id: true,
-              name: true,
-              email: true,
-              image: true,
-              password: true,
-              role: true,
-            },
           });
 
           if (!user || !user.password) return null;
@@ -130,8 +121,14 @@ export const authOptions: AuthOptions = {
           const isValid = await bcrypt.compare(credentials.password, user.password);
           if (!isValid) return null;
 
+          const userId =
+            (user as { id?: string; user_id?: string }).id ??
+            (user as { user_id?: string }).user_id;
+
+          if (!userId) return null;
+
           return {
-            id: user.id,
+            id: userId,
             name: user.name,
             email: user.email,
             image: user.image,
@@ -156,18 +153,21 @@ export const authOptions: AuthOptions = {
             : null;
         const dbUser = await prisma.user.findUnique({
           where: { email },
-          select: { id: true, role: true },
         });
+        const dbUserId =
+          dbUser &&
+          ((dbUser as { id?: string; user_id?: string }).id ??
+            (dbUser as { user_id?: string }).user_id);
         const role = asgardeoRole ?? (dbUser?.role as Role | undefined) ?? (user as AppUser).role ?? Role.STUDENT;
 
-        if (asgardeoRole && dbUser && dbUser.role !== asgardeoRole) {
+        if (asgardeoRole && dbUser && dbUserId && dbUser.role !== asgardeoRole) {
           await prisma.user.update({
-            where: { id: dbUser.id },
+            where: { email },
             data: { role: asgardeoRole },
           });
         }
 
-        token.id = dbUser?.id ?? user.id;
+        token.id = dbUserId ?? user.id;
         token.role = role;
       }
       return token;

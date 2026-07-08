@@ -5,12 +5,15 @@
 
 "use client"
 
+import { useState } from "react"
 import AddMemberDialog from "@/components/team/add-member-dialog"
-import { TeamFilter } from "@/components/team/team-filter"
 import TeamMemberCard from "@/components/team/team-member-card"
 import TeamMemberRow from "@/components/team/team-member-row"
 import { Button } from "@/components/ui/button"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { PlusIcon, GridIcon, ListIcon } from "lucide-react"
+import { AdminPageShell } from "@/components/layout/admin-page-shell"
+import { cn } from "@/lib/utils"
 
 interface TeamMember {
   id: string
@@ -67,90 +70,59 @@ const teamMembers: TeamMember[] = [
 ]
 
 export default function TeamPage() {
+  const [view, setView] = useState<"grid" | "list">("grid")
+
   return (
-    <div className="container  space-y-8">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Team Management</h1>
+    <AdminPageShell
+      title="Team Management"
+      description="Manage your module team members and profile cards."
+      actions={
         <AddMemberDialog>
-          <Button className="gap-2 rounded-full">
+          <Button className="gap-2">
             <PlusIcon className="h-5 w-5" />
             Add Member
           </Button>
         </AddMemberDialog>
-      </div>
+      }
+    >
+      <Tabs value={view} onValueChange={(v) => setView(v as "grid" | "list")} className="space-y-6">
+        <TabsList className="admin-tab-list h-11 w-fit">
+          <TabsTrigger value="grid" className="admin-tab-trigger gap-2 px-4">
+            <GridIcon className="h-4 w-4" />
+            Grid
+          </TabsTrigger>
+          <TabsTrigger value="list" className="admin-tab-trigger gap-2 px-4">
+            <ListIcon className="h-4 w-4" />
+            List
+          </TabsTrigger>
+        </TabsList>
+      </Tabs>
 
-      <ViewToggle />
-
-      <div id="grid-view">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <div className={cn("admin-content-card", view !== "grid" && "hidden")}>
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {teamMembers.map((member) => (
             <TeamMemberCard key={member.id} member={member} />
           ))}
         </div>
       </div>
 
-      <div id="list-view" className="hidden">
-        <div className="rounded-lg border bg-card overflow-hidden">
-          <div className="grid grid-cols-[1fr_1fr_1fr_auto] p-4 bg-muted/50 font-medium">
+      <div className={cn(view !== "list" && "hidden")}>
+        <div className="admin-table-wrap">
+          <div className="grid grid-cols-[1fr_1fr_1fr_auto] border-b border-border/60 bg-muted/35 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             <div>Name</div>
             <div>Designation</div>
             <div>LinkedIn</div>
-            <div></div>
+            <div className="text-center">
+              <span className="sr-only">Actions</span>
+            </div>
           </div>
-          <div className="divide-y">
+          <div className="divide-y divide-border/60">
             {teamMembers.map((member) => (
               <TeamMemberRow key={member.id} member={member} />
             ))}
           </div>
         </div>
       </div>
-    </div>
-  )
-}
-
-function ViewToggle() {
-  return (
-    <div className="flex items-center justify-between">
-   
-
-      <div className="flex items-center space-x-2">
-        <div className="bg-muted rounded-full p-1 flex">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="rounded-full view-toggle data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-            data-state="active"
-            onClick={() => {
-              document.getElementById("grid-view")?.classList.remove("hidden")
-              document.getElementById("list-view")?.classList.add("hidden")
-              // Toggle active state
-              document.querySelectorAll(".view-toggle").forEach((btn) => btn.setAttribute("data-state", "inactive"))
-              document.getElementById("grid-btn")?.setAttribute("data-state", "active")
-            }}
-            id="grid-btn"
-          >
-            <GridIcon className="h-4 w-4" />
-            <span className="sr-only">Grid view</span>
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="rounded-full view-toggle data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-            data-state="inactive"
-            onClick={() => {
-              document.getElementById("list-view")?.classList.remove("hidden")
-              document.getElementById("grid-view")?.classList.add("hidden")
-              // Toggle active state
-              document.querySelectorAll(".view-toggle").forEach((btn) => btn.setAttribute("data-state", "inactive"))
-              document.getElementById("list-btn")?.setAttribute("data-state", "active")
-            }}
-            id="list-btn"
-          >
-            <ListIcon className="h-4 w-4" />
-            <span className="sr-only">List view</span>
-          </Button>
-        </div>
-      </div>
-    </div>
+    </AdminPageShell>
   )
 }

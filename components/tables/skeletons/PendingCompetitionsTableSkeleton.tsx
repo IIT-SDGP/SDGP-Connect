@@ -33,8 +33,8 @@ const PendingCompetitionsTableSkeleton: React.FC = () => {
             <TableHead>
               <Skeleton className="h-5 w-16" />
             </TableHead>
-            <TableHead>
-              <Skeleton className="h-5 w-20" />
+            <TableHead className="admin-table-actions-head">
+              <Skeleton className="mx-auto h-5 w-20" />
             </TableHead>
           </TableRow>
         </TableHeader>
@@ -63,8 +63,8 @@ const PendingCompetitionsTableSkeleton: React.FC = () => {
                   <Skeleton className="h-4 w-12" />
                 </div>
               </TableCell>
-              <TableCell>
-                <div className="flex gap-2">
+              <TableCell className="admin-table-actions-cell">
+                <div className="admin-table-actions-inner">
                   <Skeleton className="h-8 w-20 rounded-md" />
                   <Skeleton className="h-8 w-16 rounded-md" />
                   <Skeleton className="h-8 w-16 rounded-md" />

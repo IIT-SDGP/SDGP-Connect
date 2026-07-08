@@ -1,7 +1,4 @@
 import { Dispatch, SetStateAction, useState } from "react";
-import useUploadImageToBlob from "@/hooks/azure/useUploadImageToBlob";
-import { LoadingSpinner } from "@/components/ui/loading-spinner";
-import Image from "next/image";
 import { toast } from "sonner";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -11,10 +8,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue , SelectL
 import { Upload, X } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Textarea } from "@/components/ui/textarea";
 import { validateImageFile } from "./utils/validateImageFile";
 import { compressImageFile } from "./utils/compressImageFile";
 import { yearOptions } from "@/lib/types/mapping";
+import { FormStepIntro } from "./FormStepIntro";
 
 interface FormStep1Props {
   logoFile: File | null;
@@ -41,9 +38,7 @@ const FormStep1 = ({
 }: FormStep1Props) => {
   const { control, setValue } = useFormContext<ProjectSubmissionSchema>();
   const [coverError, setCoverError] = useState<string | null>(null);
-  const [submitted, setSubmitted] = useState(false);
   const [logoError, setLogoError] = useState<string | null>(null);
-  const { uploadImage } = useUploadImageToBlob();
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: "cover_image" | "logo") => {
     const file = e.target.files?.[0];
@@ -99,7 +94,11 @@ const FormStep1 = ({
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Project Basics</h2>
+      <FormStepIntro
+        step="Step 1 — Basics"
+        title="Project identity"
+        description="Official group details, public-facing title, and hero imagery. Files are compressed before upload."
+      />
 
       {/* Row 1: Group Number & SDGP Year */}
       <div className="grid grid-cols-2 gap-4">
@@ -221,7 +220,7 @@ const FormStep1 = ({
                       onClick={clearLogo}
                       className="relative flex justify-center cursor-pointer group"
                     >
-                      <Avatar className="h-36 w-36 border-2 border-primary rounded-full">
+                      <Avatar className="h-36 w-36 border-2 border-primary/40 shadow-sm rounded-full">
                         <AvatarImage src={logoPreviewUrl!} alt="App logo" />
                         <AvatarFallback>LOGO</AvatarFallback>
                       </Avatar>
@@ -234,9 +233,9 @@ const FormStep1 = ({
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="flex flex-col items-center justify-center border-2 border-dashed border-zinc-300 rounded-full h-36 w-36 mx-auto cursor-pointer dark:border-zinc-600"
+                      className="flex flex-col items-center justify-center border-2 border-dashed border-border rounded-full h-36 w-36 mx-auto cursor-pointer bg-muted/30 transition-colors hover:border-primary/40 hover:bg-muted/50"
                     >
-                      <Upload className="h-10 w-10 text-zinc-400 mb-2" />
+                      <Upload className="h-10 w-10 text-muted-foreground mb-2" />
                       <Input
                         type="file"
                         accept="image/*"
@@ -290,9 +289,9 @@ const FormStep1 = ({
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="flex flex-col items-center justify-center border-2 border-dashed border-zinc-300 rounded-lg p-6 cursor-pointer dark:border-zinc-600"
+                      className="flex flex-col items-center justify-center border-2 border-dashed border-border rounded-xl min-h-[200px] p-6 cursor-pointer bg-muted/30 transition-colors hover:border-primary/40 hover:bg-muted/50"
                     >
-                      <Upload className="h-10 w-10 text-zinc-400 mb-2" />
+                      <Upload className="h-10 w-10 text-muted-foreground mb-2" />
                       <Input
                         type="file"
                         accept="image/*"

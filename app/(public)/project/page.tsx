@@ -2,302 +2,364 @@
 // Licensed under the GNU Affero General Public License v3.0 or later,
 // with an additional restriction: Non-commercial use only.
 // See <https://www.gnu.org/licenses/agpl-3.0.html> for details.
-"use client"
+"use client";
 
 import FilterSidebar from "@/components/projects/filter-sidebar";
 import ProjectExplorer from "@/components/projects/project-explorer";
-import SearchHeader from "@/components/projects/search-header";
+import SearchHeader, { type ViewMode } from "@/components/projects/search-header";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ProjectQueryParams, useProjects } from "@/hooks/project/useGetProjects";
-import { X } from "lucide-react";
-import { useRouter, useSearchParams } from 'next/navigation';
-import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { SlidersHorizontal, X } from "lucide-react";
 import dynamic from "next/dynamic";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { cn } from "@/lib/utils";
 
-// Lazy-load Three.js scene to avoid SSR issues and improve initial load
 const ThreeScene = dynamic(() => import("@/components/home/three-scene"), {
-    ssr: false,
-    loading: () => <div className="absolute inset-0 bg-gradient-to-b from-transparent to-background/50" />
+  ssr: false,
+  loading: () => (
+    <div className="absolute inset-0 bg-gradient-to-b from-transparent to-background/50" />
+  ),
 });
 
 interface FilterState {
-    featured: boolean;
-    status: string[];
-    years: string[];
-    projectTypes: string[];
-    domains: string[];
-    sdgGoals: string[];
-    techStack: string[];
+  featured: boolean;
+  status: string[];
+  years: string[];
+  projectTypes: string[];
+  domains: string[];
+  sdgGoals: string[];
+  techStack: string[];
 }
 
 function ProjectsPageContent() {
-    const router = useRouter();
-    const searchParams = useSearchParams();
-    const [showMobileFilters, setShowMobileFilters] = useState(false);
-    const [isInitialLoad, setIsInitialLoad] = useState(true);
-    const [isFilterLoading, setIsFilterLoading] = useState(false);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [isFilterLoading, setIsFilterLoading] = useState(false);
+  const [viewMode, setViewMode] = useState<ViewMode>("grid");
 
-    const currentParams = useMemo((): ProjectQueryParams => ({
-        page: parseInt(searchParams.get('page') || '1', 10),
-        limit: parseInt(searchParams.get('limit') || '9', 10),
-        title: searchParams.get('title') || undefined,
-        featured: searchParams.get('featured') === 'true',
-        status: searchParams.getAll('status'),
-        years: searchParams.getAll('years'),
-        projectTypes: searchParams.getAll('projectTypes'),
-        domains: searchParams.getAll('domains'),
-        sdgGoals: searchParams.getAll('sdgGoals'),
-        techStack: searchParams.getAll('techStack'),
-    }), [searchParams]);
+  const currentParams = useMemo(
+    (): ProjectQueryParams => ({
+      page: parseInt(searchParams.get("page") || "1", 10),
+      limit: parseInt(searchParams.get("limit") || "9", 10),
+      title: searchParams.get("title") || undefined,
+      featured: searchParams.get("featured") === "true",
+      status: searchParams.getAll("status"),
+      years: searchParams.getAll("years"),
+      projectTypes: searchParams.getAll("projectTypes"),
+      domains: searchParams.getAll("domains"),
+      sdgGoals: searchParams.getAll("sdgGoals"),
+      techStack: searchParams.getAll("techStack"),
+    }),
+    [searchParams],
+  );
 
-    // Use the hook with pagination capabilities
-    const { projects, isLoading, error, meta, resetToFirstPage } = useProjects(currentParams);
+  const { projects, isLoading, error, meta, resetToFirstPage } = useProjects(currentParams);
 
-    // Clear isFilterLoading and isInitialLoad once loading finishes
-    useEffect(() => {
-        if (!isLoading) {
-            setIsFilterLoading(false);
-            if (projects && isInitialLoad) {
-                setIsInitialLoad(false);
-            }
+  useEffect(() => {
+    if (!isLoading) {
+      setIsFilterLoading(false);
+      if (projects && isInitialLoad) {
+        setIsInitialLoad(false);
+      }
+    }
+  }, [isLoading, projects, isInitialLoad]);
+
+  const initialFilters = useMemo(
+    (): FilterState => ({
+      featured: currentParams.featured || false,
+      status: currentParams.status || [],
+      years: currentParams.years || [],
+      projectTypes: currentParams.projectTypes || [],
+      domains: currentParams.domains || [],
+      sdgGoals: currentParams.sdgGoals || [],
+      techStack: currentParams.techStack || [],
+    }),
+    [currentParams],
+  );
+
+  const resultsSummary = useMemo(() => {
+    if (!meta) return undefined;
+    const n = meta.totalItems;
+    const noun = n === 1 ? "project" : "projects";
+    if (currentParams.featured) {
+      return `${n} featured ${noun}`;
+    }
+    return `${n} ${noun} · Page ${meta.currentPage} of ${meta.totalPages}`;
+  }, [meta, currentParams.featured]);
+
+  const toggleFilters = useCallback(() => {
+    setShowMobileFilters((prev) => !prev);
+  }, []);
+
+  const prevFiltersRef = useRef(initialFilters);
+
+  useEffect(() => {
+    prevFiltersRef.current = initialFilters;
+  }, [initialFilters]);
+
+  const handleFilterChange = useCallback(
+    (newFilters: FilterState) => {
+      const prev = prevFiltersRef.current;
+      const isSame =
+        prev.featured === newFilters.featured &&
+        JSON.stringify([...prev.status].sort()) ===
+          JSON.stringify([...newFilters.status].sort()) &&
+        JSON.stringify([...prev.years].sort()) ===
+          JSON.stringify([...newFilters.years].sort()) &&
+        JSON.stringify([...prev.projectTypes].sort()) ===
+          JSON.stringify([...newFilters.projectTypes].sort()) &&
+        JSON.stringify([...prev.domains].sort()) ===
+          JSON.stringify([...newFilters.domains].sort()) &&
+        JSON.stringify([...prev.sdgGoals].sort()) ===
+          JSON.stringify([...newFilters.sdgGoals].sort()) &&
+        JSON.stringify([...prev.techStack].sort()) ===
+          JSON.stringify([...newFilters.techStack].sort());
+
+      if (isSame) return;
+
+      prevFiltersRef.current = newFilters;
+      setIsFilterLoading(true);
+
+      const params = new URLSearchParams();
+      params.append("page", "1");
+      params.append("limit", String(currentParams.limit || 15));
+      if (currentParams.title) params.append("title", currentParams.title);
+
+      if (newFilters.featured) {
+        params.append("featured", "true");
+      }
+
+      Object.entries(newFilters).forEach(([key, values]) => {
+        if (key === "featured") return;
+        if (Array.isArray(values) && values.length > 0) {
+          values.forEach((value: string) => {
+            params.append(key, value);
+          });
         }
-    }, [isLoading, projects, isInitialLoad]);
+      });
 
-    const initialFilters = useMemo((): FilterState => ({
-        featured: currentParams.featured || false,
-        status: currentParams.status || [],
-        years: currentParams.years || [],
-        projectTypes: currentParams.projectTypes || [],
-        domains: currentParams.domains || [],
-        sdgGoals: currentParams.sdgGoals || [],
-        techStack: currentParams.techStack || [],
-    }), [currentParams]);
+      const newUrl = `${window.location.pathname}?${params.toString()}`;
+      router.push(newUrl, { scroll: false });
+    },
+    [router, currentParams.limit, currentParams.title],
+  );
 
-    const toggleFilters = useCallback(() => {
-        setShowMobileFilters((prev) => !prev);
-    }, []);
+  const handleSearch = useCallback(
+    (value: string) => {
+      const normalizedValue = value.trim();
+      const currentTitle = (searchParams.get("title") || "").trim();
 
-    // Track previous filters so unchanged selections do not reset page/push URL
-    const prevFiltersRef = useRef(initialFilters);
+      if (normalizedValue === currentTitle) return;
 
-    useEffect(() => {
-        prevFiltersRef.current = initialFilters;
-    }, [initialFilters]);
+      const params = new URLSearchParams(searchParams.toString());
+      if (normalizedValue) {
+        params.set("title", normalizedValue);
+      } else {
+        params.delete("title");
+      }
+      params.set("page", "1");
+      router.push(`${window.location.pathname}?${params.toString()}`, { scroll: false });
+    },
+    [router, searchParams],
+  );
 
-    const handleFilterChange = useCallback((newFilters: FilterState) => {
-        const prev = prevFiltersRef.current;
-        const isSame =
-            prev.featured === newFilters.featured &&
-            JSON.stringify([...prev.status].sort()) === JSON.stringify([...newFilters.status].sort()) &&
-            JSON.stringify([...prev.years].sort()) === JSON.stringify([...newFilters.years].sort()) &&
-            JSON.stringify([...prev.projectTypes].sort()) === JSON.stringify([...newFilters.projectTypes].sort()) &&
-            JSON.stringify([...prev.domains].sort()) === JSON.stringify([...newFilters.domains].sort()) &&
-            JSON.stringify([...prev.sdgGoals].sort()) === JSON.stringify([...newFilters.sdgGoals].sort()) &&
-            JSON.stringify([...prev.techStack].sort()) === JSON.stringify([...newFilters.techStack].sort());
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && showMobileFilters) {
+        setShowMobileFilters(false);
+      }
+    };
 
-        if (isSame) {
-            return;
-        }
-
-        prevFiltersRef.current = newFilters;
-        setIsFilterLoading(true);
-
-        const params = new URLSearchParams();
-        params.append('page', '1');
-        params.append('limit', String(currentParams.limit || 15));
-        if (currentParams.title) params.append('title', currentParams.title);
-
-        // Handle featured filter
-        if (newFilters.featured) {
-            params.append('featured', 'true');
-        }
-
-        // Handle array filters
-        Object.entries(newFilters).forEach(([key, values]) => {
-            // Skip featured as it's already handled above
-            if (key === 'featured') return;
-
-            if (Array.isArray(values) && values.length > 0) {
-                values.forEach((value: string) => {
-                    params.append(key, value);
-                });
-            }
-        });
-
-        const newUrl = `${window.location.pathname}?${params.toString()}`;
-        router.push(newUrl, { scroll: false });
-    }, [router, currentParams.limit, currentParams.title]);
-
-    const handleSearch = useCallback((value: string) => {
-        const normalizedValue = value.trim();
-        const currentTitle = (searchParams.get('title') || '').trim();
-
-        if (normalizedValue === currentTitle) {
-            return;
-        }
-
-        const params = new URLSearchParams(searchParams.toString());
-        if (normalizedValue) {
-            params.set('title', normalizedValue);
-        } else {
-            params.delete('title');
-        }
-        params.set('page', '1');
-        router.push(`${window.location.pathname}?${params.toString()}`, { scroll: false });
-    }, [router, searchParams]);
-
-    // Handle mobile filter close with escape key
-    useEffect(() => {
-        const handleEscape = (e: KeyboardEvent) => {
-            if (e.key === 'Escape' && showMobileFilters) {
-                setShowMobileFilters(false);
-            }
-        };
-
-        if (showMobileFilters) {
-            document.addEventListener('keydown', handleEscape);
-            document.body.style.overflow = 'hidden';
-        } else {
-            document.body.style.overflow = 'unset';
-        }
-
-        return () => {
-            document.removeEventListener('keydown', handleEscape);
-            document.body.style.overflow = 'unset';
-        };
-    }, [showMobileFilters]);
-
-    // Show full page skeleton only on initial load
-    if (isInitialLoad && isLoading && (!projects || projects.length === 0)) {
-        return <LoadingSkeleton />;
+    if (showMobileFilters) {
+      document.addEventListener("keydown", handleEscape);
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
     }
 
-    return (
-        <div className="relative min-h-screen">
-            {/* Three.js starfield background — sits behind all content */}
-            <ThreeScene />
+    return () => {
+      document.removeEventListener("keydown", handleEscape);
+      document.body.style.overflow = "";
+    };
+  }, [showMobileFilters]);
 
-            <div className="relative z-10">
-                <div className="container mx-auto py-8 px-4">
-                    <SearchHeader
-                        toggleFilters={toggleFilters}
-                        defaultTitle={currentParams.title ?? ""}
-                        onSearch={handleSearch}
-                    />
-                    <div className="flex flex-col md:flex-row gap-6 mt-8">
-                        {/* Desktop Filter Sidebar — FIX: removed overflow-y-auto overscroll-contain */}
-                        <div className="hidden md:block w-64 lg:w-72 flex-shrink-0 self-start sticky top-8">
-                            <FilterSidebar onFilterChange={handleFilterChange} initialFilters={initialFilters} />
-                        </div>
+  if (isInitialLoad && isLoading && (!projects || projects.length === 0)) {
+    return <LoadingSkeleton />;
+  }
 
-                        {/* Right panel — FIX: removed ref, overflow-y-auto, overscroll-contain */}
-                        <div className="flex-1">
-                            <ProjectExplorer
-                                currentParams={currentParams}
-                                projects={projects || []}
-                                isLoading={isLoading}
-                                isFilterLoading={isFilterLoading}
-                                error={error}
-                                meta={meta}
-                                onPageChange={(page) => {
-                                    const params = new URLSearchParams(searchParams.toString());
-                                    params.set('page', String(page));
-                                    router.push(`${window.location.pathname}?${params.toString()}`, {
-                                        scroll: false,
-                                    });
-                                }}
-                                onReset={resetToFirstPage}
-                            />
-                        </div>
-                    </div>
-                </div>
+  const pageShell = "w-full min-w-0 px-2 sm:px-3 md:px-3 lg:px-4";
 
-                {/* Mobile Filter Overlay */}
-                {showMobileFilters && (
-                    <div
-                        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9999] md:hidden"
-                        style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
-                    >
-                        <div className="fixed inset-0 bg-background flex flex-col">
-                            {/* Header */}
-                            <div className="flex justify-between items-center p-4 border-b bg-background shrink-0">
-                                <h2 className="font-bold text-lg">Filters</h2>
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => {
-                                        setShowMobileFilters(false);
-                                    }}
-                                    className="h-8 w-8 z-[10000]"
-                                    type="button"
-                                >
-                                    <X className="h-5 w-5" />
-                                </Button>
-                            </div>
+  return (
+    <div className="relative min-h-screen">
+      <ThreeScene />
 
-                            {/* Filter Content - Scrollable */}
-                            <div className="flex-1 overflow-y-auto p-4">
-                                <FilterSidebar
-                                    onFilterChange={handleFilterChange}
-                                    initialFilters={initialFilters}
-                                />
-                            </div>
-
-                            {/* Action buttons */}
-                            <div className="p-4 border-t bg-background shrink-0 flex gap-2">
-                                <Button
-                                    variant="outline"
-                                    className="flex-1"
-                                    onClick={() => setShowMobileFilters(false)}
-                                    type="button"
-                                >
-                                    Cancel
-                                </Button>
-                                <Button
-                                    className="flex-1"
-                                    onClick={() => setShowMobileFilters(false)}
-                                    type="button"
-                                >
-                                    Apply Filters
-                                </Button>
-                            </div>
-                        </div>
-                    </div>
-                )}
-            </div>
+      <div className="relative z-10 bg-gradient-to-b from-background/80 via-background/90 to-muted/25">
+        <div className={cn(pageShell, "pt-2 sm:pt-3 md:pt-4")}>
+          <SearchHeader
+            toggleFilters={toggleFilters}
+            defaultTitle={currentParams.title ?? ""}
+            onSearch={handleSearch}
+            resultsSummary={resultsSummary}
+            isLoading={isLoading && !resultsSummary}
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
+          />
         </div>
-    )
+
+        <div className={cn(pageShell, "pb-8 pt-5 sm:pt-6 md:pb-12 md:pt-7")}>
+          <div className="grid min-w-0 grid-cols-1 gap-4 sm:gap-5 lg:grid-cols-[14rem_minmax(0,1fr)] xl:grid-cols-[15rem_minmax(0,1fr)] xl:gap-5">
+            <aside className="hidden min-w-0 self-stretch lg:block">
+              <div className="sticky top-4 z-20 w-full max-h-[calc(100dvh-2rem)] [contain:layout]">
+                <FilterSidebar onFilterChange={handleFilterChange} initialFilters={initialFilters} />
+              </div>
+            </aside>
+
+            <div className="min-w-0">
+              <ProjectExplorer
+                currentParams={currentParams}
+                projects={projects || []}
+                isLoading={isLoading}
+                isFilterLoading={isFilterLoading}
+                error={error}
+                meta={meta}
+                viewMode={viewMode}
+                onPageChange={(page) => {
+                  const params = new URLSearchParams(searchParams.toString());
+                  params.set("page", String(page));
+                  router.push(`${window.location.pathname}?${params.toString()}`, {
+                    scroll: false,
+                  });
+                }}
+                onReset={resetToFirstPage}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {showMobileFilters ? (
+        <div
+          className="fixed inset-0 z-[60] flex max-h-[100dvh] flex-col bg-background lg:hidden"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Filter projects"
+        >
+          <div className="relative shrink-0 overflow-hidden border-b border-border/70 bg-card/90 px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top,0px))] shadow-sm ring-1 ring-border/50 backdrop-blur-md">
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_12%_20%,rgba(99,102,241,0.12),transparent_42%)]" />
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_88%_80%,rgba(34,197,246,0.08),transparent_38%)]" />
+            <div className="relative flex items-center justify-between gap-2">
+            <div className="flex min-w-0 gap-2.5">
+              <span
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/12 ring-1 ring-primary/25"
+                aria-hidden
+              >
+                <SlidersHorizontal className="h-4 w-4 text-primary" />
+              </span>
+              <div className="min-w-0">
+                <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-muted-foreground">
+                  Refine results
+                </p>
+                <h2 className="mt-0.5 text-base font-bold tracking-tight">Filters</h2>
+              </div>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowMobileFilters(false)}
+              type="button"
+              className="h-10 w-10 shrink-0 rounded-full"
+              aria-label="Close filters"
+            >
+              <X className="h-5 w-5" />
+            </Button>
+            </div>
+          </div>
+
+          <div className="scrollbar-visible min-h-0 flex-1 overflow-y-auto px-3 py-4">
+            <FilterSidebar
+              embedded
+              onFilterChange={handleFilterChange}
+              initialFilters={initialFilters}
+            />
+          </div>
+
+          <div className="flex shrink-0 gap-2 border-t border-border/70 bg-card/80 px-3 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] backdrop-blur-md">
+            <Button
+              variant="outline"
+              className="flex-1 rounded-xl"
+              onClick={() => setShowMobileFilters(false)}
+              type="button"
+            >
+              Done
+            </Button>
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
 }
 
-// Wrap the client component in Suspense for loading fallback
 const Page = () => {
-    return (
-        <Suspense fallback={<LoadingSkeleton />}>
-            <ProjectsPageContent />
-        </Suspense>
-    );
+  return (
+    <Suspense fallback={<LoadingSkeleton />}>
+      <ProjectsPageContent />
+    </Suspense>
+  );
 };
 
-// Define a skeleton component for the fallback
-const LoadingSkeleton = () => (
-    <div className="container mx-auto py-8 px-4">
-        <Skeleton className="h-12 w-full mb-8" />
-        <div className="flex flex-col md:flex-row gap-6 mt-8">
-            <div className="hidden md:block w-64 lg:w-72 flex-shrink-0">
-                <Skeleton className="h-64 w-full" />
-            </div>
-            <div className="flex-1">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {Array(6)
-                        .fill(0)
-                        .map((_, i) => (
-                            <Skeleton key={i} className="h-[350px] rounded-xl" />
-                        ))}
-                </div>
-            </div>
-        </div>
-    </div>
-);
+const LoadingSkeleton = () => {
+  const pageShell = "w-full min-w-0 px-2 sm:px-3 md:px-3 lg:px-4";
 
+  return (
+  <div className="min-h-screen overflow-x-hidden bg-gradient-to-b from-background via-background to-muted/25">
+    <div className={cn(pageShell, "pt-2 sm:pt-3 md:pt-4")}>
+      <div className="overflow-hidden rounded-2xl border bg-card/90 p-4 shadow-sm ring-1 ring-border/50 sm:p-5">
+        <div className="flex gap-2.5 sm:gap-3">
+          <Skeleton className="h-9 w-9 shrink-0 rounded-lg sm:h-10 sm:w-10" />
+          <div className="flex-1 space-y-2">
+            <Skeleton className="h-2.5 w-20" />
+            <Skeleton className="h-6 w-36 max-w-full sm:h-7" />
+            <Skeleton className="h-3.5 w-full max-w-lg" />
+            <div className="mt-2 flex gap-2">
+              <Skeleton className="h-10 flex-1 rounded-xl" />
+              <Skeleton className="h-10 w-24 shrink-0 rounded-xl" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div className={cn(pageShell, "pb-8 pt-5 sm:pt-6 md:pb-12 md:pt-7")}>
+      <div className="flex min-w-0 flex-col gap-4 sm:gap-5 lg:flex-row lg:gap-4 xl:gap-5">
+        <div className="hidden shrink-0 lg:block lg:w-56 xl:w-60">
+          <Skeleton className="h-[min(28rem,70vh)] w-full rounded-2xl" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="grid grid-cols-1 gap-2.5 min-[480px]:grid-cols-2 sm:gap-3 lg:grid-cols-4">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="overflow-hidden rounded-2xl border border-border/40 bg-card/50">
+                <Skeleton className="aspect-video w-full rounded-none" />
+                <div className="space-y-2.5 p-3">
+                  <Skeleton className="h-4 w-[80%]" />
+                  <Skeleton className="h-3 w-full" />
+                  <div className="flex items-center justify-between border-t border-border/40 pt-2.5">
+                    <div className="flex gap-1.5">
+                      <Skeleton className="h-5 w-14 rounded-md" />
+                      <Skeleton className="h-5 w-16 rounded-md" />
+                    </div>
+                    <Skeleton className="h-3 w-8" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  );
+};
 export default Page;

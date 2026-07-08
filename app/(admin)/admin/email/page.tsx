@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AdminPageShell } from "@/components/layout/admin-page-shell";
 
 type OutboxItem = {
   id: string;
@@ -94,20 +95,22 @@ export default function EmailOutboxPage() {
 
   if (!isAdmin) {
     return (
-      <div className="p-6">
-        <h1 className="text-2xl font-bold">Email Outbox</h1>
-        <p className="text-muted-foreground mt-2">Only admins can access this page.</p>
-      </div>
+      <AdminPageShell
+        title="Email Outbox"
+        description="Only admins can access this page."
+      >
+        <div className="admin-content-card">
+          <p className="text-sm text-muted-foreground">Your account does not have permission to view this page.</p>
+        </div>
+      </AdminPageShell>
     );
   }
 
   return (
-    <div className="space-y-6 p-6">
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold">Email Outbox</h1>
-          <p className="text-muted-foreground">See failed emails and retry delivery.</p>
-        </div>
+    <AdminPageShell
+      title="Email Outbox"
+      description="See failed emails and retry delivery."
+      actions={
         <div className="flex items-center gap-2">
           <Button variant="outline" onClick={() => load()} disabled={isLoading}>
             Refresh
@@ -123,21 +126,22 @@ export default function EmailOutboxPage() {
             </Button>
           )}
         </div>
-      </div>
+      }
+    >
 
       <Tabs value={tab} onValueChange={(v) => setTab(v as any)}>
-        <TabsList>
+        <TabsList className="admin-tab-list">
           {statusTabs.map((t) => (
-            <TabsTrigger key={t} value={t}>
+            <TabsTrigger key={t} value={t} className="admin-tab-trigger">
               {t}
             </TabsTrigger>
           ))}
         </TabsList>
       </Tabs>
 
-      <div className="rounded-md border">
+      <div className="admin-table-wrap">
         <Table>
-          <TableHeader>
+          <TableHeader className="admin-table-thead">
             <TableRow>
               <TableHead>Status</TableHead>
               <TableHead>Type</TableHead>
@@ -146,7 +150,7 @@ export default function EmailOutboxPage() {
               <TableHead>Attempts</TableHead>
               <TableHead>Last Error</TableHead>
               <TableHead>Next Attempt</TableHead>
-              <TableHead>Actions</TableHead>
+              <TableHead className="admin-table-actions-head">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -170,8 +174,8 @@ export default function EmailOutboxPage() {
                     {i.lastError ?? "-"}
                   </TableCell>
                   <TableCell>{renderNextAttempt(i)}</TableCell>
-                  <TableCell>
-                    <div className="flex gap-2">
+                  <TableCell className="admin-table-actions-cell">
+                    <div className="admin-table-actions-inner">
                       <Button
                         variant="outline"
                         size="sm"
@@ -215,6 +219,6 @@ export default function EmailOutboxPage() {
           </TableBody>
         </Table>
       </div>
-    </div>
+    </AdminPageShell>
   );
 }

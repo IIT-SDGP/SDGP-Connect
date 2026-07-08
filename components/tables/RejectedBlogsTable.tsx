@@ -32,9 +32,9 @@ export function RejectedBlogsTable({
   onPreviousPage,
 }: RejectedBlogsTableProps) {
   return (
-    <div>
+    <div className="admin-table-inner">
       <Table>
-        <TableHeader>
+        <TableHeader className="admin-table-thead">
           <TableRow>
             <TableHead className="w-12">
               <Checkbox
@@ -42,17 +42,17 @@ export function RejectedBlogsTable({
                 onCheckedChange={(checked) => onSelectAll(checked as boolean)}
               />
             </TableHead>
-            <TableHead>Title</TableHead>
-            <TableHead>Author</TableHead>
-            <TableHead>Category</TableHead>
-            <TableHead>Rejected By</TableHead>
-            <TableHead>Reason</TableHead>
-            <TableHead>Actions</TableHead>
+            <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Title</TableHead>
+            <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Author</TableHead>
+            <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Category</TableHead>
+            <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Rejected By</TableHead>
+            <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Reason</TableHead>
+            <TableHead className="admin-table-actions-head">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {blogs.map((blog) => (
-            <TableRow key={blog.id}>
+            <TableRow key={blog.id} className="hover:bg-muted/25">
               <TableCell>
                 <Checkbox
                   checked={selectedBlogs.includes(blog.id)}
@@ -97,11 +97,12 @@ export function RejectedBlogsTable({
                   {blog.rejectedReason}
                 </div>
               </TableCell>
-              <TableCell>
-                <div className="flex space-x-2">
+              <TableCell className="admin-table-actions-cell">
+                <div className="admin-table-actions-inner">
                   <Button
                     variant="outline"
                     size="sm"
+                    className="rounded-lg"
                     onClick={() => onViewDetails(blog)}
                   >
                     <Eye className="h-4 w-4" />
@@ -109,8 +110,8 @@ export function RejectedBlogsTable({
                   <Button
                     variant="outline"
                     size="sm"
+                    className="rounded-lg text-green-600 hover:text-green-700"
                     onClick={() => onReapprove(blog)}
-                    className="text-green-600 hover:text-green-700"
                   >
                     <RotateCcw className="h-4 w-4" />
                   </Button>
@@ -122,7 +123,7 @@ export function RejectedBlogsTable({
       </Table>
       
       {totalPages > 1 && (
-        <div className="flex justify-center mt-4">
+        <div className="flex justify-center border-t border-border/70 px-4 py-3">
           <div className="flex items-center space-x-2">
             <Button
               variant="outline"
