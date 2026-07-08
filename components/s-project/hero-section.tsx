@@ -8,12 +8,14 @@
 import Image from "next/image";
 import React, { useRef } from "react";
 import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
+import { cn } from "@/lib/utils";
 
 interface HeroSectionProps {
   coverImage: string | undefined;
+  className?: string;
 }
 
-export const HeroSection: React.FC<HeroSectionProps> = ({ coverImage }) => {
+export const HeroSection: React.FC<HeroSectionProps> = ({ coverImage, className }) => {
   const sectionRef = useRef<HTMLElement>(null);
   const prefersReducedMotion = useReducedMotion();
   const { scrollYProgress } = useScroll({
@@ -34,7 +36,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ coverImage }) => {
   );
 
   return (
-    <section ref={sectionRef} className="relative bg-black">
+    <section ref={sectionRef} className={cn("relative bg-black", className)}>
       <div className="relative aspect-video w-full min-h-[min(52vw,280px)] max-h-[78vh] overflow-hidden sm:min-h-[320px] md:min-h-[400px] lg:min-h-[460px] xl:min-h-[520px]">
         <motion.div
           className="absolute -inset-[12%] will-change-transform"

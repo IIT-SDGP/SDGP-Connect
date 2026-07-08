@@ -14,7 +14,7 @@ import { SlidersHorizontal, X } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { cn } from "@/lib/utils";
+import { cn, dualGlowBg, heroGlowBg, projectContentShell } from "@/lib/utils";
 
 const ThreeScene = dynamic(() => import("@/components/home/three-scene"), {
   ssr: false,
@@ -191,14 +191,17 @@ function ProjectsPageContent() {
     return <LoadingSkeleton />;
   }
 
-  const pageShell = "w-full min-w-0 px-2 sm:px-3 md:px-3 lg:px-4";
+  const pageShell = projectContentShell;
 
   return (
-    <div className="relative min-h-screen">
-      <ThreeScene />
+    <div className="relative min-h-screen overflow-x-clip">
+      <div className="pointer-events-none absolute inset-0 z-0">
+        <ThreeScene />
+        <div className={cn("absolute inset-0", heroGlowBg)} />
+      </div>
 
       <div className="relative z-10 bg-gradient-to-b from-background/80 via-background/90 to-muted/25">
-        <div className={cn(pageShell, "pt-2 sm:pt-3 md:pt-4")}>
+        <div className={cn(pageShell, "pb-8 pt-2 sm:pb-12 sm:pt-3 md:pt-4")}>
           <SearchHeader
             toggleFilters={toggleFilters}
             defaultTitle={currentParams.title ?? ""}
@@ -208,10 +211,8 @@ function ProjectsPageContent() {
             viewMode={viewMode}
             onViewModeChange={setViewMode}
           />
-        </div>
 
-        <div className={cn(pageShell, "pb-8 pt-5 sm:pt-6 md:pb-12 md:pt-7")}>
-          <div className="grid min-w-0 grid-cols-1 gap-4 sm:gap-5 lg:grid-cols-[14rem_minmax(0,1fr)] xl:grid-cols-[15rem_minmax(0,1fr)] xl:gap-5">
+          <div className="grid min-w-0 grid-cols-1 gap-4 pt-5 sm:gap-5 sm:pt-6 md:pt-7 lg:grid-cols-[14rem_minmax(0,1fr)] xl:grid-cols-[15rem_minmax(0,1fr)] xl:gap-5">
             <aside className="hidden min-w-0 self-stretch lg:block">
               <div className="sticky top-4 z-20 w-full max-h-[calc(100dvh-2rem)] [contain:layout]">
                 <FilterSidebar onFilterChange={handleFilterChange} initialFilters={initialFilters} />
@@ -249,8 +250,7 @@ function ProjectsPageContent() {
           aria-label="Filter projects"
         >
           <div className="relative shrink-0 overflow-hidden border-b border-border/70 bg-card/90 px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top,0px))] shadow-sm ring-1 ring-border/50 backdrop-blur-md">
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_12%_20%,rgba(99,102,241,0.12),transparent_42%)]" />
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_88%_80%,rgba(34,197,246,0.08),transparent_38%)]" />
+            <div className={cn("pointer-events-none absolute inset-0", dualGlowBg)} />
             <div className="relative flex items-center justify-between gap-2">
             <div className="flex min-w-0 gap-2.5">
               <span
@@ -312,11 +312,9 @@ const Page = () => {
 };
 
 const LoadingSkeleton = () => {
-  const pageShell = "w-full min-w-0 px-2 sm:px-3 md:px-3 lg:px-4";
-
   return (
   <div className="min-h-screen overflow-x-hidden bg-gradient-to-b from-background via-background to-muted/25">
-    <div className={cn(pageShell, "pt-2 sm:pt-3 md:pt-4")}>
+    <div className={cn(projectContentShell, "pb-8 pt-2 sm:pb-12 sm:pt-3 md:pt-4")}>
       <div className="overflow-hidden rounded-2xl border bg-card/90 p-4 shadow-sm ring-1 ring-border/50 sm:p-5">
         <div className="flex gap-2.5 sm:gap-3">
           <Skeleton className="h-9 w-9 shrink-0 rounded-lg sm:h-10 sm:w-10" />
@@ -331,9 +329,7 @@ const LoadingSkeleton = () => {
           </div>
         </div>
       </div>
-    </div>
-    <div className={cn(pageShell, "pb-8 pt-5 sm:pt-6 md:pb-12 md:pt-7")}>
-      <div className="flex min-w-0 flex-col gap-4 sm:gap-5 lg:flex-row lg:gap-4 xl:gap-5">
+      <div className="flex min-w-0 flex-col gap-4 pt-5 sm:gap-5 sm:pt-6 md:pt-7 lg:flex-row lg:gap-4 xl:gap-5">
         <div className="hidden shrink-0 lg:block lg:w-56 xl:w-60">
           <Skeleton className="h-[min(28rem,70vh)] w-full rounded-2xl" />
         </div>

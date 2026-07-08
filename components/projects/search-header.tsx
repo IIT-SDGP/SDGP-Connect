@@ -8,7 +8,7 @@ import React, { useState, useEffect } from "react";
 import { LayoutGrid, List, Search, SlidersHorizontal } from "lucide-react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
-import { cn } from "@/lib/utils";
+import { cn, dualGlowBg } from "@/lib/utils";
 
 export type ViewMode = "grid" | "list";
 
@@ -92,8 +92,7 @@ export default function SearchHeader({
         "relative min-w-0 overflow-hidden rounded-2xl border border-border/50 bg-card/90 p-3.5 shadow-sm ring-1 ring-border/50",
         "sm:p-4",
       )}
-    >      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_12%_20%,rgba(99,102,241,0.12),transparent_42%)]" />
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_88%_80%,rgba(34,197,246,0.08),transparent_38%)]" />
+    >      <div className={cn("pointer-events-none absolute inset-0", dualGlowBg)} />
 
       <div className="relative flex flex-col gap-3 sm:gap-4">
         <div className="flex min-w-0 flex-col gap-2 lg:flex-row lg:items-end lg:justify-between lg:gap-3">

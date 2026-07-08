@@ -5,9 +5,11 @@
 'use client';
 
 import { sidebarItems } from '@/data/NavBarItems';
+import { useChatBot } from '@/hooks/ChatBotContext';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { Bot } from 'lucide-react';
 import { useHomeScrollChromeVisible } from '@/hooks/HomeScrollChromeContext';
 
 const dockIconIdle =
@@ -52,6 +54,7 @@ export function NavBar({ autoHideOnHomeMobile = false }: { autoHideOnHomeMobile?
   const pathname = usePathname();
   const chromeVisible = useHomeScrollChromeVisible();
   const hideChrome = autoHideOnHomeMobile && !chromeVisible;
+  const { open, openChat } = useChatBot();
 
   return (
     <aside
@@ -114,6 +117,26 @@ export function NavBar({ autoHideOnHomeMobile = false }: { autoHideOnHomeMobile?
             </Link>
           );
         })}
+        <button
+          type="button"
+          className={cn(
+            'md:hidden',
+            mobileDockItem,
+            open ? dockSurfaceActive : dockSurfaceIdle
+          )}
+          onClick={openChat}
+          aria-label="Open chat assistant"
+          aria-pressed={open}
+        >
+          <Bot
+            aria-hidden
+            strokeWidth={open ? 2.25 : 2}
+            className={cn(
+              mobileDockIcon,
+              open ? dockIconActive : dockIconIdle
+            )}
+          />
+        </button>
       </nav>
     </aside>
   );

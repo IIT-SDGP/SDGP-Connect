@@ -9,7 +9,7 @@ import { Check, ChevronDown, X as ClearIcon, Star, SlidersHorizontal } from "luc
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "../ui/collapsible";
-import { cn } from "@/lib/utils";
+import { cn, dualGlowBg } from "@/lib/utils";
 
 import {
   projectStatusOptions,
@@ -461,10 +461,7 @@ export default function FilterSidebar({
   return (
     <div className={shellClass}>
       {!embedded && (
-        <>
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_12%_20%,rgba(99,102,241,0.12),transparent_42%)]" />
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_88%_80%,rgba(34,197,246,0.08),transparent_38%)]" />
-        </>
+        <div className={cn("pointer-events-none absolute inset-0", dualGlowBg)} />
       )}
       <div className="relative flex h-full min-h-0 flex-1 flex-col">
       {!embedded && (

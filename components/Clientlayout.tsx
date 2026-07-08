@@ -15,6 +15,8 @@ import { SpeedInsights } from "@vercel/speed-insights/next"
 import CookieBanner from "@/components/CookieBanner"
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import ChatBot from "@/components/ChatBot";
+import { ChatBotProvider } from "@/hooks/ChatBotContext";
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const isMobile = useIsMobile();
@@ -23,17 +25,16 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
   // Pages that should not have global horizontal margins
   const fullWidthPages = ['/contribute'];
   const isProjectPage = pathname.startsWith('/project');
-  const shouldHaveMargins = !fullWidthPages.includes(pathname) && !isProjectPage;
+  const isCompetitionsPage =
+    pathname === '/competitions' || pathname.startsWith('/competitions/');
   const isHome = pathname === "/";
-  const horizontalMarginClass = !shouldHaveMargins
-    ? ""
-    : isHome
-      ? "mx-3 md:mx-5 lg:mx-8"
-      : "md:mx-6 lg:mx-12 xl:mx-24";
-
-  /* Project page: left clearance for dock nav + hover labels */
-  const projectNavClearance = isProjectPage
-    ? "md:pl-[5.75rem] md:pr-1.5 lg:pl-[6.25rem] lg:pr-2"
+  const shouldHaveMargins =
+    !fullWidthPages.includes(pathname) &&
+    !isProjectPage &&
+    !isCompetitionsPage &&
+    !isHome;
+  const horizontalMarginClass = shouldHaveMargins
+    ? "md:mx-6 lg:mx-12 xl:mx-24"
     : "";
 
   /* Left dock on desktop — no top inset. Mobile: bottom dock clearance. */
@@ -42,23 +43,25 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
 
   return (
     <ThemeProvider>
-      <NavBar />
-      <div
-        className={cn(
-          "min-w-0",
-          horizontalMarginClass,
-          projectNavClearance,
-          navBottomPad
-        )}
-      >
-        {children}
-      </div>
-      {!isMobile && <CustomCursor />}
-      <Footer />
-      <CookieBanner />
-      <Analytics />
-      <SpeedInsights />
-      <Toaster />
+      <ChatBotProvider>
+        <NavBar />
+        <div
+          className={cn(
+            "min-w-0",
+            horizontalMarginClass,
+            navBottomPad
+          )}
+        >
+          {children}
+        </div>
+        {!isMobile && <CustomCursor />}
+        <Footer />
+        <CookieBanner />
+        <Analytics />
+        <SpeedInsights />
+        <Toaster />
+        <ChatBot />
+      </ChatBotProvider>
     </ThemeProvider>
   );
 }

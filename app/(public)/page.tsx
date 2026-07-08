@@ -17,9 +17,9 @@ import HomeHeroSection from "@/components/home/HomeHeroSection";
 export default function Home() {
   return (
     <LanguageProvider>
-      <div className="flex min-w-0 max-w-full flex-col overflow-x-clip pb-12">
+      <div className="flex min-w-0 w-full max-w-full flex-col pb-12">
         <HomeHeroSection />
-        <div className="mx-3 md:mx-5 lg:mx-8 flex flex-col gap-12">
+        <div className="mx-3 flex flex-col gap-12 md:mx-5 lg:mx-8">
           <HomeAboutSection />
           <GlobeSection />
           <AboutSection/>

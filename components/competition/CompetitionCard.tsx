@@ -63,67 +63,66 @@ export default function CompetitionCard({
     >
       <div
         className={cn(
-          "relative flex h-full flex-col overflow-hidden rounded-2xl border border-border/60 bg-card/80",
-          "transition-all duration-300 hover:border-border hover:bg-card hover:shadow-lg hover:shadow-primary/5",
+          "relative flex h-full min-w-0 flex-col overflow-hidden rounded-2xl border border-border/50 bg-card/90 shadow-sm ring-1 ring-border/45",
+          "transition-all duration-300 hover:-translate-y-1 hover:border-primary/20 hover:shadow-lg hover:ring-primary/15",
         )}
       >
-        {/* Cover */}
-        <div className="relative aspect-[16/10] w-full shrink-0 overflow-hidden">
+        <div className="pointer-events-none absolute inset-0 z-[1] bg-[radial-gradient(circle_at_100%_0%,rgba(99,102,241,0.1),transparent_50%)] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+
+        <div className="relative aspect-video overflow-hidden bg-muted/60">
           <Image
             src={cover}
             alt={title}
             fill
-            className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+            className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]"
             sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-transparent" />
 
           {type && (
-            <span className="absolute left-3 top-3 rounded-full border border-white/10 bg-black/60 px-2.5 py-1 text-[11px] font-medium text-white backdrop-blur-sm">
+            <span className="absolute left-2.5 top-2.5 z-10 rounded-md border border-white/15 bg-black/55 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-white backdrop-blur-sm">
               {type}
             </span>
           )}
 
-          <span className="absolute bottom-3 right-3 inline-flex items-center gap-1 rounded-full border border-white/10 bg-black/60 px-2.5 py-1 text-[11px] font-medium text-white backdrop-blur-sm">
-            <Trophy className="h-3 w-3" />
+          <span className="absolute bottom-2.5 right-2.5 z-10 inline-flex items-center gap-1 rounded-md border border-white/15 bg-black/55 px-2 py-0.5 text-[10px] font-medium text-white backdrop-blur-sm">
+            <Trophy className="h-3 w-3" aria-hidden />
             {winnersCount} {winnersCount === 1 ? "winner" : "winners"}
           </span>
+
+          <div className="absolute -bottom-5 left-4 z-10 h-11 w-11 overflow-hidden rounded-xl border-2 border-background bg-background shadow-md ring-1 ring-border/50">
+            <Image
+              src={logo}
+              alt=""
+              fill
+              className="object-contain p-1"
+              sizes="44px"
+            />
+          </div>
         </div>
 
-        {/* Body */}
-        <div className="flex flex-1 flex-col p-4 sm:p-5">
-          <div className="flex items-start gap-3">
-            <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg border border-border/60 bg-background">
-              <Image
-                src={logo}
-                alt=""
-                fill
-                className="object-contain p-1"
-                sizes="40px"
-              />
-            </div>
-            <h3 className="min-w-0 flex-1 text-base font-semibold leading-snug tracking-tight line-clamp-2 group-hover:text-primary transition-colors duration-200 sm:text-[1.05rem]">
-              {title}
-            </h3>
-          </div>
+        <div className="relative z-[2] flex flex-1 flex-col gap-2.5 p-3.5 pt-7 sm:p-4 sm:pt-8">
+          <h3 className="line-clamp-2 text-sm font-semibold leading-snug tracking-tight text-foreground transition-colors group-hover:text-primary sm:text-[0.95rem]">
+            {title}
+          </h3>
 
-          <p className="mt-3 flex-1 text-sm leading-relaxed text-muted-foreground line-clamp-3">
+          <p className="line-clamp-2 flex-1 text-[11px] leading-relaxed text-muted-foreground sm:text-xs">
             {description}
           </p>
 
-          <div className="mt-4 flex items-center justify-between gap-3 border-t border-border/50 pt-4">
-            <div className="flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
+          <div className="mt-auto flex items-center justify-between gap-2 border-t border-border/50 pt-2.5">
+            <div className="flex min-w-0 items-center gap-1.5 text-[10px] text-muted-foreground sm:text-[11px]">
               <Calendar className="h-3.5 w-3.5 shrink-0" aria-hidden />
               <span className="truncate">{dateRange}</span>
             </div>
             <span
               className={cn(
-                "inline-flex shrink-0 items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-medium",
+                "inline-flex shrink-0 items-center gap-1 rounded-lg px-2 py-1 text-[10px] font-medium sm:text-[11px]",
                 "bg-primary/10 text-primary transition-colors duration-200 group-hover:bg-primary group-hover:text-primary-foreground",
               )}
             >
               View
-              <ArrowUpRight className="h-3.5 w-3.5" />
+              <ArrowUpRight className="h-3 w-3" aria-hidden />
             </span>
           </div>
         </div>

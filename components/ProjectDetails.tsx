@@ -26,6 +26,7 @@ import { Spinner } from "./ui/spinner";
 import { Card } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { IconType } from "react-icons";
+import { projectContentInset, cn } from "@/lib/utils";
 
 function SnapshotSection({
   title,
@@ -96,8 +97,11 @@ const ProjectDetails = ({ projectID }: { projectID: string }) => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/30">
-      <HeroSection coverImage={project.metadata.cover_image} />
-      <div className="mx-auto w-full max-w-7xl px-3 sm:px-4 md:px-6 lg:px-8 2xl:px-12 pb-16 sm:pb-20">
+      <HeroSection
+        coverImage={project.metadata.cover_image}
+        className={projectContentInset}
+      />
+      <div className={cn("mx-auto w-full max-w-7xl pb-16 sm:pb-20", projectContentInset, "px-3 sm:px-4")}>
         <ProjectHeader
           title={project.metadata.title}
           subtitle={project.metadata.subtitle}
