@@ -3313,6 +3313,11 @@ graphemer@^1.4.0:
   resolved "https://registry.yarnpkg.com/graphemer/-/graphemer-1.4.0.tgz#fb2f1d55e0e3a1849aeffc90c4fa0dd53a0e66c6"
   integrity sha512-EtKwoO6kxCL9WO5xipiHTZlSzBm7WLT627TqC/uVRd0HKmq8NXyebnNYxDoBi7wt8eTWrUrKXCOVaFq9x1kgag==
 
+groq-sdk@^1.3.0:
+  version "1.3.0"
+  resolved "https://registry.yarnpkg.com/groq-sdk/-/groq-sdk-1.3.0.tgz#0ae713f5e224b4ad62efd95aaebb92b7fd9408b5"
+  integrity sha512-mvgUIpAxlk/VxWIoliHx4R+Ha78Bd/g0t24OFjCXtdLbNiY1rW4h9AcznKBwFho7K/Nq732ZSjxMYkNb1xeCFg==
+
 h3-js@4:
   version "4.4.0"
   resolved "https://registry.yarnpkg.com/h3-js/-/h3-js-4.4.0.tgz#858586205d49fc2b164df8e2d1ab855565ee9e81"

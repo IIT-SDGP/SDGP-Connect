@@ -82,13 +82,6 @@ export default function RootLayout({
           as="image"
           type="image/svg+xml"
         />
-        <script
-          defer
-          src="https://api.psycodelabs.lk/widget.js"
-          data-key="pk_b3a99bccdb1c43c3d49599b7f2ad4fa3857306cd7cce0b2f"
-          data-api="https://api.psycodelabs.lk"
-        ></script>
-
       </head>
       <body
         className={`public-site ${notoSansLatin.variable} ${notoSansTamil.variable} ${notoSansSinhala.variable} ${geistMono.variable} font-sans antialiased`}
