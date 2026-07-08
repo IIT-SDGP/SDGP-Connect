@@ -40,8 +40,8 @@ const RejectedCompetitionsTableSkeleton: React.FC = () => {
             <TableHead>
               <Skeleton className="h-5 w-20" />
             </TableHead>
-            <TableHead>
-              <Skeleton className="h-5 w-20" />
+            <TableHead className="admin-table-actions-head">
+              <Skeleton className="mx-auto h-5 w-20" />
             </TableHead>
           </TableRow>
         </TableHeader>
@@ -81,8 +81,8 @@ const RejectedCompetitionsTableSkeleton: React.FC = () => {
                   <TooltipContent>Loading rejection reason...</TooltipContent>
                 </Tooltip>
               </TableCell>
-              <TableCell>
-                <div className="flex gap-2">
+              <TableCell className="admin-table-actions-cell">
+                <div className="admin-table-actions-inner">
                   <Skeleton className="h-8 w-20 rounded-md" />
                   <Skeleton className="h-8 w-16 rounded-md" />
                 </div>

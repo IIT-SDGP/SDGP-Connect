@@ -11,93 +11,111 @@ import StatusPieChart from '@/components/dashboard/StatusPieChart';
 import SubmissionsLineChart from '@/components/dashboard/SubmissionsLineChart';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import useGetTotalProjectsCount from '@/hooks/dashboard/useGetTotalProjectsCount';
-import useGetFeaturedProjectsCount from '@/hooks/dashboard/useGetFeaturedProjectsCount';
 import useGetPendingProjectsCount from '@/hooks/dashboard/useGetPendingProjectsCount';
-import { Clock, Folder, Star, Laptop } from 'lucide-react';
+import { Clock, Folder, Star, Laptop, LayoutGrid, Users } from 'lucide-react';
 import useGetActivity from '@/hooks/dashboard/useGetActivity';
 import useIsMobile from '@/hooks/useIsMobile';
 import useGetCountByStatus from '@/hooks/dashboard/useGetCountByStatus';
+import { AdminPageShell } from '@/components/layout/admin-page-shell';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { useSession } from 'next-auth/react';
 
 export default function DashboardPage() {
-  // Use the mobile detection hook
+  const { data: session } = useSession();
+  const displayName = session?.user?.name?.trim() || 'there';
+
   const isMobile = useIsMobile();
 
-  // Fetch real data using custom hooks
   const { count: totalCount, isLoading: isTotalLoading } = useGetTotalProjectsCount();
   const { count: pendingCount, isLoading: isPendingLoading } = useGetPendingProjectsCount();
-  const { statusCounts, isLoading:isApprovedLoading, error } = useGetCountByStatus();
-  
-  // Stats card data
+  const { statusCounts, isLoading: isApprovedLoading } = useGetCountByStatus();
+
   const stats = [
     {
       title: 'Approved Projects',
       value: isApprovedLoading ? <LoadingSpinner /> : statusCounts?.approvedCount?.toString() || '0',
       icon: <Star className="h-5 w-5" />,
+      tone: 'emerald' as const,
       isLoading: isApprovedLoading
     },
     {
       title: 'Total Projects',
       value: isTotalLoading ? <LoadingSpinner /> : totalCount?.toString() || '0',
       icon: <Folder className="h-5 w-5" />,
+      tone: 'blue' as const,
       isLoading: isTotalLoading
     },
     {
       title: 'Pending Review',
       value: isPendingLoading ? <LoadingSpinner /> : pendingCount?.toString() || '0',
       icon: <Clock className="h-5 w-5" />,
+      tone: 'amber' as const,
       isLoading: isPendingLoading
     },
   ];
 
-  const { activities: recentActivities, isLoading: isActivitiesLoading, error: activitiesError } = useGetActivity();
-
-  // Mobile fallback UI
-  if (isMobile) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[70vh] px-4 text-center">
-        <Laptop className="h-16 w-16 mb-4 text-primary" />
-        <h2 className="text-2xl font-bold tracking-tight mb-2">Desktop View Required</h2>
-        <p className="text-muted-foreground mb-4">
-          The admin dashboard is optimized for larger screens. Please open this page on a laptop or desktop computer for the best experience.
-        </p>
-        <div className="p-4 bg-muted rounded-lg max-w-md">
-          <p className="text-sm">
-            If you need immediate access on mobile, you can request the desktop site in your browser settings, but functionality may be limited.
-          </p>
-        </div>
-      </div>
-    );
-  }
+  const { activities: recentActivities } = useGetActivity();
 
   return (
-    <>
-      <div className="mb-8 animate-fade-in">
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground mt-2">Welcome back! Here's an overview of your platform.</p>
+    <AdminPageShell
+      kicker="Overview"
+      title="Dashboard"
+      description={`Welcome back, ${displayName}. Track submissions, reviews, and platform health at a glance.`}
+      actions={
+        <>
+          <Button variant="outline" size="sm" asChild className="rounded-xl border-border/80 shadow-sm">
+            <Link href="/admin/projects">
+              <LayoutGrid className="size-4" />
+              Projects
+            </Link>
+          </Button>
+          <Button size="sm" asChild className="rounded-xl shadow-md">
+            <Link href="/admin/users">
+              <Users className="size-4" />
+              Users
+            </Link>
+          </Button>
+        </>
+      }
+    >
+      {isMobile ? (
+        <div className="admin-content-card flex items-start gap-3 border-primary/15 bg-primary/5">
+          <div className="mt-0.5 grid size-9 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/20">
+            <Laptop className="h-4 w-4" />
+          </div>
+          <p className="text-sm leading-relaxed text-muted-foreground">
+            For the best experience, use a tablet or desktop when managing tables, charts, and bulk actions.
+          </p>
+        </div>
+      ) : null}
+
+      <div>
+        <p className="admin-section-title mb-4">Key metrics</p>
+        <div className="admin-dashboard-stats">
+          {stats.map((stat, index) => (
+            <StatCard
+              key={index}
+              title={stat.title}
+              value={stat.value}
+              icon={stat.icon}
+              tone={stat.tone}
+              className="animate-fade-in"
+              style={{ animationDelay: `${index * 100}ms` }}
+            />
+          ))}
+        </div>
       </div>
-      
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        {stats.map((stat, index) => (
-          <StatCard
-            key={index}
-            title={stat.title}
-            value={stat.value}
-            icon={stat.icon}
-            className="animate-fade-in"
-            style={{ animationDelay: `${index * 100}ms` }}
-          />
-        ))}
+
+      <div>
+        <p className="admin-section-title mb-4">Analytics</p>
+        <div className="admin-dashboard-analytics">
+          <StatusPieChart />
+          <SubmissionsLineChart />
+        </div>
       </div>
-      
-      {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <StatusPieChart/>
-        <SubmissionsLineChart />
-      </div>
-      
-      {/* Recent Activity Table */}
+
       <RecentActivityTable activities={recentActivities} />
-    </>
+    </AdminPageShell>
   );
 }

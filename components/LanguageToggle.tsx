@@ -5,6 +5,7 @@
 'use client'
 import React from 'react';
 import { useLanguage } from '../hooks/LanguageProvider';
+import { useHomeScrollChromeVisible } from '@/hooks/HomeScrollChromeContext';
 import { cn } from '@/lib/utils';
 
 const langs = [
@@ -15,11 +16,23 @@ const langs = [
 
 export default function LanguageToggle() {
   const { lang, changeLanguage } = useLanguage();
+  const chromeVisible = useHomeScrollChromeVisible();
 
   return (
-    <div className="fixed right-0 top-1/2 -translate-y-1/2 z-50">
-      <div className="relative group bg-black/40 hover:bg-black/60 border border-white/20 hover:border-blue-500/40 text-foreground rounded-l-2xl p-2 flex flex-col items-center gap-2 transition-all duration-200 backdrop-blur-md">
-        {/* Neon effect - top */}
+    <div
+      className={cn(
+        'fixed z-[90] top-1/2 -translate-y-1/2 pointer-events-none',
+        'right-[max(0px,env(safe-area-inset-right,0px))]',
+        'max-md:transition-transform duration-300 ease-out',
+        chromeVisible ? 'max-md:translate-x-0' : 'max-md:translate-x-full'
+      )}
+    >
+      <div
+        className={cn(
+          'relative group bg-black/40 hover:bg-black/60 border border-white/20 hover:border-blue-500/40 text-foreground rounded-l-2xl p-2 flex flex-col items-center gap-2 transition-[background-color,border-color] duration-200 backdrop-blur-md',
+          chromeVisible ? 'pointer-events-auto' : 'pointer-events-none'
+        )}
+      >
         <span className={cn("absolute h-px opacity-0 group-hover:opacity-100 transition-all duration-500 ease-in-out inset-x-0 top-0 bg-gradient-to-r w-3/4 mx-auto from-transparent via-blue-400 to-transparent")} />
 
         {langs.map(l => (
@@ -28,7 +41,9 @@ export default function LanguageToggle() {
             onClick={() => changeLanguage(l.code)}
             title={l.code.toUpperCase()}
             className={cn(
-              "w-8 h-8 text-xs font-bold rounded-lg border transition-all duration-200 cursor-pointer flex items-center justify-center",
+              "w-8 h-8 shrink-0 text-xs font-bold rounded-lg border transition-[background-color,border-color,color,box-shadow] duration-200 cursor-pointer flex items-center justify-center leading-none",
+              l.code === 'si' && "font-[family-name:var(--font-noto-sans-sinhala)] text-[11px]",
+              l.code === 'th' && "font-[family-name:var(--font-noto-sans-tamil)] text-[15px] pb-px",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black/60",
               lang === l.code
                 ? "bg-blue-600 text-white border-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.6)]"
@@ -39,7 +54,6 @@ export default function LanguageToggle() {
           </button>
         ))}
 
-        {/* Neon effect - bottom */}
         <span className={cn("absolute group-hover:opacity-30 transition-all duration-500 ease-in-out inset-x-0 h-px -bottom-px bg-gradient-to-r w-3/4 mx-auto from-transparent via-blue-400 to-transparent")} />
       </div>
     </div>

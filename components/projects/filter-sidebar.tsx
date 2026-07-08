@@ -4,12 +4,12 @@
 // See <https://www.gnu.org/licenses/agpl-3.0.html> for details.
 "use client"
 
-import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import { Check, ChevronDown, X as ClearIcon, Star } from "lucide-react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { Check, ChevronDown, X as ClearIcon, Star, SlidersHorizontal } from "lucide-react";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "../ui/collapsible";
-import { cn } from "@/lib/utils";
+import { cn, dualGlowBg } from "@/lib/utils";
 
 import {
   projectStatusOptions,
@@ -62,10 +62,10 @@ function FeaturedFilterSection({
       <CollapsibleTrigger asChild>
         <Button
           variant="ghost"
-          className="flex w-full justify-between p-2 font-medium hover:bg-muted/50"
+          className="flex h-auto min-h-10 w-full min-w-0 justify-between gap-2 p-2 font-medium hover:bg-muted/50"
         >
-          Featured Projects
-          <ChevronDown className={cn("h-4 w-4 transition-transform", isOpen && "rotate-180")} />
+          <span className="truncate text-left">Featured Projects</span>
+          <ChevronDown className={cn("h-4 w-4 shrink-0 transition-transform", isOpen && "rotate-180")} />
         </Button>
       </CollapsibleTrigger>
       <CollapsibleContent className="px-2 data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up overflow-hidden">
@@ -130,10 +130,10 @@ function GenericFilterSection({
       <CollapsibleTrigger asChild>
         <Button
           variant="ghost"
-          className="flex w-full justify-between p-2 font-medium hover:bg-muted/50"
+          className="flex h-auto min-h-10 w-full min-w-0 justify-between gap-2 p-2 font-medium hover:bg-muted/50"
         >
-          {title}
-          <ChevronDown className={cn("h-4 w-4 transition-transform", isOpen && "rotate-180")} />
+          <span className="truncate text-left">{title}</span>
+          <ChevronDown className={cn("h-4 w-4 shrink-0 transition-transform", isOpen && "rotate-180")} />
         </Button>
       </CollapsibleTrigger>
       <CollapsibleContent className="px-2 data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up overflow-hidden">
@@ -222,10 +222,10 @@ function TechStackSection({
       <CollapsibleTrigger asChild>
         <Button
           variant="ghost"
-          className="flex w-full justify-between p-2 font-medium hover:bg-muted/50"
+          className="flex h-auto min-h-10 w-full min-w-0 justify-between gap-2 p-2 font-medium hover:bg-muted/50"
         >
-          Tech Stack
-          <ChevronDown className={cn("h-4 w-4 transition-transform", isOpen && "rotate-180")} />
+          <span className="truncate text-left">Tech Stack</span>
+          <ChevronDown className={cn("h-4 w-4 shrink-0 transition-transform", isOpen && "rotate-180")} />
         </Button>
       </CollapsibleTrigger>
       <CollapsibleContent className="px-2 data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up overflow-hidden">
@@ -283,16 +283,17 @@ function TechStackSection({
 
 // --- FilterSidebar Props Interface ---
 interface FilterSidebarProps {
-  // Callback function when filters change
   onFilterChange: (filters: FilterState) => void;
-  // Initial filter state, derived from URL params in the parent
   initialFilters: FilterState;
+  /** Strip outer card chrome when nested inside mobile sheet */
+  embedded?: boolean;
 }
 
 // --- FilterSidebar Component ---
 export default function FilterSidebar({
   onFilterChange,
-  initialFilters
+  initialFilters,
+  embedded = false,
 }: FilterSidebarProps) {
   // Internal state for each filter category, initialized from props
   const [featuredOnly, setFeaturedOnly] = useState<boolean>(() => initialFilters.featured || false);
@@ -303,15 +304,9 @@ export default function FilterSidebar({
   const [selectedSDGs, setSelectedSDGs] = useState<string[]>(() => initialFilters.sdgGoals || []);
   const [selectedTechStack, setSelectedTechStack] = useState<string[]>(() => initialFilters.techStack || []);
 
-  // Keep a stable callback reference so parent callback identity changes don't trigger loops.
-  const onFilterChangeRef = useRef(onFilterChange);
-  useEffect(() => {
-    onFilterChangeRef.current = onFilterChange;
-  }, [onFilterChange]);
-
   // Memoized callback to notify the parent component of filter changes
   const notifyFilterChange = useCallback(() => {
-    onFilterChangeRef.current({
+    onFilterChange({
       featured: featuredOnly,
       status: selectedStatuses,
       years: selectedYears,
@@ -328,33 +323,19 @@ export default function FilterSidebar({
     selectedDomains,
     selectedSDGs,
     selectedTechStack,
-    // onFilterChange intentionally excluded (tracked via ref)
+    onFilterChange // Include onFilterChange in dependencies
   ]);
-
-  const isInitialMount = useRef(true);
-  const prevInitialFiltersRef = useRef(initialFilters);
 
   // Effect to call the notification callback when any internal filter state changes
   useEffect(() => {
-    if (isInitialMount.current) {
-      isInitialMount.current = false;
-      return;
-    }
-
-    const urlJustChanged = JSON.stringify(prevInitialFiltersRef.current) !== JSON.stringify(initialFilters);
-    if (urlJustChanged) {
-      prevInitialFiltersRef.current = initialFilters;
-      return;
-    }
-
     notifyFilterChange();
-  }, [notifyFilterChange, initialFilters]);
+  }, [notifyFilterChange]); // Dependency is the memoized callback
 
   // Effect to update internal state if the initialFilters prop changes (e.g., from URL)
   useEffect(() => {
     // Helper to compare arrays, prevents unnecessary state updates
     const arraysAreEqual = (a: string[] | undefined, b: string[] | undefined): boolean =>
-      JSON.stringify([...(a || [])].sort()) === JSON.stringify([...(b || [])].sort());
+      JSON.stringify(a?.sort() || []) === JSON.stringify(b?.sort() || []);
 
     if (initialFilters.featured !== featuredOnly) {
       setFeaturedOnly(initialFilters.featured || false);
@@ -377,8 +358,6 @@ export default function FilterSidebar({
     if (!arraysAreEqual(initialFilters.techStack, selectedTechStack)) {
       setSelectedTechStack(initialFilters.techStack || []);
     }
-
-    prevInitialFiltersRef.current = initialFilters;
   }, [initialFilters]); // Depend on the entire initialFilters object
 
   // --- Data Transformations for Display ---
@@ -475,21 +454,50 @@ export default function FilterSidebar({
   }, []);
 
   // --- JSX Rendering ---
+  const shellClass = embedded
+    ? "relative flex h-full min-w-0 flex-col"
+    : "relative flex h-full max-h-[calc(100dvh-2rem)] min-w-0 flex-col overflow-hidden rounded-2xl border border-border/50 bg-card/90 pl-3 pr-0 pt-3 pb-3 shadow-sm ring-1 ring-border/50 sm:pl-4 sm:pt-4 sm:pb-4";
+
   return (
-    <div className="bg-card p-3 rounded-lg border shadow-sm">
-      {/* Header with Title and Clear Button */}
-      <div className="flex justify-between items-center mb-3 pb-2 border-b">
-        <h3 className="font-semibold text-base">Filters</h3>
-        {hasActiveFilters && (
-          <Button variant="ghost" size="sm" onClick={clearFilters} className="text-xs h-7 text-muted-foreground hover:text-foreground">
+    <div className={shellClass}>
+      {!embedded && (
+        <div className={cn("pointer-events-none absolute inset-0", dualGlowBg)} />
+      )}
+      <div className="relative flex h-full min-h-0 flex-1 flex-col">
+      {!embedded && (
+        <div className="mb-3 flex min-w-0 items-start justify-between gap-2 border-b border-border/60 pb-3 pr-3 sm:pr-3.5">
+          <div className="flex min-w-0 gap-2.5">
+            <span
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/12 ring-1 ring-primary/25"
+              aria-hidden
+            >
+              <SlidersHorizontal className="h-4 w-4 text-primary" />
+            </span>
+            <div className="min-w-0">
+              <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-muted-foreground sm:text-[11px]">
+                Refine results
+              </p>
+              <h3 className="mt-0.5 text-base font-bold tracking-tight sm:text-lg">Filters</h3>
+            </div>
+          </div>
+          {hasActiveFilters ? (
+            <Button variant="ghost" size="sm" onClick={clearFilters} className="h-8 shrink-0 text-xs text-muted-foreground hover:text-foreground">
+              Clear all
+            </Button>
+          ) : null}
+        </div>
+      )}
+      {embedded && hasActiveFilters ? (
+        <div className="mb-3 flex justify-end">
+          <Button variant="ghost" size="sm" onClick={clearFilters} className="h-8 shrink-0 text-xs text-muted-foreground hover:text-foreground">
             Clear all
           </Button>
-        )}
-      </div>
+        </div>
+      ) : null}
 
       {/* Active Filters Badges */}
       {hasActiveFilters && (
-        <div className="flex flex-wrap gap-1 mb-3 flex-shrink-0">
+        <div className="mb-3 flex flex-shrink-0 flex-wrap gap-1 pr-3 sm:pr-3.5">
           {activeFiltersList.map((filter) => (
             <Badge key={`${filter.type}-${filter.value}`} variant="secondary" className="flex items-center gap-1 pr-0.5">
               <span className="text-xs">{filter.label}</span>
@@ -507,8 +515,16 @@ export default function FilterSidebar({
         </div>
       )}
 
-      {/* Scrollable Filter Sections */}
-      <div className="space-y-1 divide-y divide-border/50">
+      {/* Filter sections — page scroll won't move panel; long lists scroll inside only */}
+      <div
+        className={cn(
+          "min-h-0 flex-1 divide-y divide-border/50",
+          embedded
+            ? "scrollbar-visible space-y-1 overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch]"
+            : "scrollbar-edge overflow-y-auto overscroll-contain",
+        )}
+      >
+        <div className="space-y-1 divide-y divide-border/50 pr-3 sm:pr-3.5">
         <FeaturedFilterSection
           selection={featuredOnly}
           setSelection={setFeaturedOnly}
@@ -550,6 +566,8 @@ export default function FilterSidebar({
           selection={selectedTechStack}
           setSelection={setSelectedTechStack}
         />
+        </div>
+      </div>
       </div>
     </div>
   );

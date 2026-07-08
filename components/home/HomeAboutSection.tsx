@@ -8,6 +8,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { Sparkles } from "lucide-react";
 import { useLanguage } from "@/hooks/LanguageProvider";
+import { indicTextClass } from "@/lib/i18n-utils";
+import { cn } from "@/lib/utils";
 
 type Dict = Record<string, unknown>;
 
@@ -36,7 +38,7 @@ const partnerLogos = [
 ];
 
 export default function HomeAboutSection() {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const homeCta = getNested(t, ["home", "cta"], {});
 
   const heading =
@@ -50,7 +52,7 @@ export default function HomeAboutSection() {
   const buttonText = (homeCta.button as string) || "Discover more";
 
   return (
-    <section className="relative overflow-hidden px-2 sm:px-8 md:px-12 lg:px-16">
+    <section className="relative min-w-0 overflow-hidden px-2 sm:px-8 md:px-12 lg:px-16">
       <div className="relative mx-auto max-w-[1280px] rounded-3xl border border-white/10 bg-black/35 p-6 text-white shadow-[0_40px_120px_rgba(0,0,0,0.45)] sm:p-8 lg:p-10">
 
         <div className="relative grid gap-8 lg:grid-cols-[1.15fr_0.85fr]">
@@ -60,11 +62,11 @@ export default function HomeAboutSection() {
               SDGP Experience
             </span>
 
-            <h2 className="mt-4 max-w-3xl text-3xl font-black leading-tight tracking-tight sm:text-4xl lg:text-5xl">
+            <h2 className={cn("mt-4 max-w-3xl text-3xl font-black leading-tight tracking-tight break-words sm:text-4xl lg:text-5xl", indicTextClass(lang))}>
               {heading}
             </h2>
 
-            <p className="mt-4 max-w-3xl text-sm leading-relaxed text-white/75 sm:text-base lg:text-lg">
+            <p className={cn("mt-4 max-w-3xl text-sm leading-relaxed text-white/75 sm:text-base lg:text-lg", indicTextClass(lang))}>
               {description}
             </p>
 

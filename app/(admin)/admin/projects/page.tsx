@@ -14,7 +14,6 @@ import { RejectedProjectsTable } from '@/components/tables/RejectedProjectsTable
 import PendingProjectsTableSkeleton from '@/components/tables/skeletons/PendingProjectsTableSkeleton';
 import ApprovedProjectsTableSkeleton from '@/components/tables/skeletons/ApprovedProjectsTableSkeleton';
 import RejectedProjectsTableSkeleton from '@/components/tables/skeletons/RejectedProjectsTableSkeleton';
-import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useGetProjectsByApprovalStatus } from '@/hooks/project/useGetProjectsByApprovalStatus';
 import { useToggleProjectFeature } from '@/hooks/project/useToggleProjectFeature';
@@ -29,8 +28,9 @@ import { Button } from '@/components/ui/button';
 import BulkApproveDialog from '@/components/dialogs/BulkApproveDialog';
 import DuplicatePendingProjectsDialog from '@/components/dialogs/DuplicatePendingProjectsDialog';
 import { useSession } from 'next-auth/react';
-
-const projectStatuses = ['IDEA', 'RESEARCH', 'MVP', 'DEPLOYED', 'STARTUP'];
+import { AdminPageShell } from '@/components/layout/admin-page-shell';
+import { AdminManagementBar } from '@/components/layout/admin-management-bar';
+import { AdminSearchField } from '@/components/layout/admin-search-field';
 
 export default function ProjectManagement() {
   const [selectedProjects, setSelectedProjects] = useState<number[]>([]);
@@ -323,71 +323,59 @@ export default function ProjectManagement() {
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Project Management</h1>
-        <p className="text-muted-foreground">Review and manage project submissions</p>
-      </div>
-
+    <AdminPageShell
+      title="Project Management"
+      description="Review, approve, and monitor project submissions."
+    >
       <Tabs defaultValue="pending" onValueChange={handleTabChange} value={currentTab}>
-        <TabsList>
-          <TabsTrigger value="pending">Pending</TabsTrigger>
-          <TabsTrigger value="approved">Approved</TabsTrigger>
-          <TabsTrigger value="rejected">Rejected</TabsTrigger>
-        </TabsList>
-        
-        <div className="my-4 flex flex-wrap gap-4 justify-between">
-          <div className="flex items-center gap-2">
-            <Input
-              placeholder="Search projects..."
-              className="max-w-xs"
+        <AdminManagementBar
+          tabs={
+            <TabsList className="admin-tab-list">
+              <TabsTrigger value="pending" className="admin-tab-trigger">
+                Pending
+              </TabsTrigger>
+              <TabsTrigger value="approved" className="admin-tab-trigger">
+                Approved
+              </TabsTrigger>
+              <TabsTrigger value="rejected" className="admin-tab-trigger">
+                Rejected
+              </TabsTrigger>
+            </TabsList>
+          }
+          center={
+            <AdminSearchField
+              placeholder="Search projects…"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              showClear
+              onClear={() => {
+                setSearchQuery('');
+                setDebouncedSearchQuery('');
+              }}
+              aria-label="Search projects"
             />
-            {searchQuery && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setSearchQuery('');
-                  setDebouncedSearchQuery('');
-                }}
-              >
-                Clear
+          }
+          end={
+            <>
+              <Button variant="outline" onClick={handleRefresh} className="h-10">
+                Last Fetched: {lastFetchedTime}
+                <RefreshCcw className="ml-2 h-4 w-4" />
               </Button>
-            )}
-          </div>
+              {currentTab === 'pending' && isAdmin && (
+                <Button variant="outline" onClick={() => setDuplicateDialog(true)} className="h-10">
+                  Reject Duplicates
+                </Button>
+              )}
+              {currentTab === 'pending' && selectedProjects.length > 0 && (
+                <Button onClick={() => setBulkApproveDialog(true)} variant="default" className="h-10">
+                  Approve All ({selectedProjects.length})
+                </Button>
+              )}
+            </>
+          }
+        />
 
-          <div className="flex items-center gap-4">
-            <Button
-              variant="outline"
-              onClick={handleRefresh}
-            >
-              Last Fetched: {lastFetchedTime}
-              <RefreshCcw />
-            </Button>
-
-            {currentTab === 'pending' && isAdmin && (
-              <Button
-                variant="outline"
-                onClick={() => setDuplicateDialog(true)}
-              >
-                Reject Duplicates
-              </Button>
-            )}
-
-            {currentTab === 'pending' && selectedProjects.length > 0 && (
-              <Button
-                onClick={() => setBulkApproveDialog(true)}
-                variant="default"
-              >
-                Approve All ({selectedProjects.length})
-              </Button>
-            )}
-          </div>
-        </div>
-
-        {renderContent()}
+        <div className="admin-table-wrap">{renderContent()}</div>
       </Tabs>
 
       {detailsDialog && currentProject && (
@@ -395,6 +383,22 @@ export default function ProjectManagement() {
           open={detailsDialog}
           onOpenChange={setDetailsDialog}
           projectID={currentProject.id}
+          onReject={
+            currentTab === 'pending' || currentTab === 'approved'
+              ? () => {
+                  setDetailsDialog(false);
+                  setRejectDialog(true);
+                }
+              : undefined
+          }
+          onApprove={
+            currentTab === 'pending'
+              ? () => {
+                  setDetailsDialog(false);
+                  setApproveDialog(true);
+                }
+              : undefined
+          }
         />
       )}
 
@@ -435,6 +439,6 @@ export default function ProjectManagement() {
           onRejected={refreshPending}
         />
       )}
-    </div>
+    </AdminPageShell>
   );
 }

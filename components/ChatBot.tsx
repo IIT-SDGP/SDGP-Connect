@@ -10,6 +10,7 @@ import { createPortal } from "react-dom";
 import Image from "next/image";
 import ReactMarkdown from "react-markdown";
 import { CONSENT_KEY, TOOLTIP_KEY, MAX_LEN } from "@/lib/constants/chat";
+import { useChatBot } from "@/hooks/ChatBotContext";
 
 type Message = { role: "user" | "assistant"; content: string };
 
@@ -99,8 +100,8 @@ function greetingForTime() {
 }
 
 export default function ChatBot() {
+  const { open, closeChat, toggleChat } = useChatBot();
   const [mounted, setMounted] = useState(false);
-  const [open, setOpen] = useState(false);
   const [consented, setConsented] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -316,7 +317,7 @@ export default function ChatBot() {
 
       {open && (
         <button
-          onClick={() => setOpen(false)}
+          onClick={closeChat}
           aria-label="Close chat"
           className="fixed right-4 top-4 z-[10000] flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-black/80 text-white sm:hidden"
         >
@@ -325,9 +326,9 @@ export default function ChatBot() {
       )}
 
       <button
-        onClick={() => setOpen((v) => !v)}
+        onClick={toggleChat}
         aria-label="Toggle chat"
-        className={`${open ? "hidden sm:flex" : "flex"} mb-5 mr-5 h-14 w-14 items-center justify-center rounded-full border border-blue-500/50 bg-black text-white shadow-xl transition hover:scale-105 hover:border-blue-500 sm:mb-0 sm:mr-0`}
+        className="mb-5 mr-5 hidden h-14 w-14 items-center justify-center rounded-full border border-blue-500/50 bg-black text-white shadow-xl transition hover:scale-105 hover:border-blue-500 sm:mb-0 sm:mr-0 sm:flex"
       >
         {open ? <XIcon className="h-5 w-5" /> : <BotIcon className="h-6 w-6" />}
       </button>

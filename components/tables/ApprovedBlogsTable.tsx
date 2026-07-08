@@ -32,9 +32,9 @@ export function ApprovedBlogsTable({
   onPreviousPage,
 }: ApprovedBlogsTableProps) {
   return (
-    <div>
+    <div className="admin-table-inner">
       <Table>
-        <TableHeader>
+        <TableHeader className="admin-table-thead">
           <TableRow>
             <TableHead className="w-12">
               <Checkbox
@@ -42,17 +42,17 @@ export function ApprovedBlogsTable({
                 onCheckedChange={(checked) => onSelectAll(checked as boolean)}
               />
             </TableHead>
-            <TableHead>Title</TableHead>
-            <TableHead>Author</TableHead>
-            <TableHead>Category</TableHead>
-            <TableHead>Approved By</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Actions</TableHead>
+            <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Title</TableHead>
+            <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Author</TableHead>
+            <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Category</TableHead>
+            <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Approved By</TableHead>
+            <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Status</TableHead>
+            <TableHead className="admin-table-actions-head">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {blogs.map((blog) => (
-            <TableRow key={blog.id}>
+            <TableRow key={blog.id} className="hover:bg-muted/25">
               <TableCell>
                 <Checkbox
                   checked={selectedBlogs.includes(blog.id)}
@@ -103,11 +103,12 @@ export function ApprovedBlogsTable({
                   )}
                 </div>
               </TableCell>
-              <TableCell>
-                <div className="flex space-x-2">
+              <TableCell className="admin-table-actions-cell">
+                <div className="admin-table-actions-inner">
                   <Button
                     variant="outline"
                     size="sm"
+                    className="rounded-lg"
                     onClick={() => onViewDetails(blog)}
                   >
                     <Eye className="h-4 w-4" />
@@ -115,8 +116,8 @@ export function ApprovedBlogsTable({
                   <Button
                     variant="outline"
                     size="sm"
+                    className={blog.featured ? "rounded-lg text-yellow-600 hover:text-yellow-700" : "rounded-lg"}
                     onClick={() => onToggleFeature(blog)}
-                    className={blog.featured ? "text-yellow-600 hover:text-yellow-700" : ""}
                   >
                     {blog.featured ? <StarOff className="h-4 w-4" /> : <Star className="h-4 w-4" />}
                   </Button>
@@ -128,7 +129,7 @@ export function ApprovedBlogsTable({
       </Table>
       
       {totalPages > 1 && (
-        <div className="flex justify-center mt-4">
+        <div className="flex justify-center border-t border-border/70 px-4 py-3">
           <div className="flex items-center space-x-2">
             <Button
               variant="outline"

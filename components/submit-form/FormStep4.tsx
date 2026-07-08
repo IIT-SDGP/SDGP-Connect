@@ -7,6 +7,7 @@ import { Plus, Trash2, AlertTriangle, CheckCircle } from "lucide-react";
 import { SocialTypeEnum } from "@/types/prisma-types";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import React from "react";
+import { FormStepIntro } from "./FormStepIntro";
 
 const FormStep4 = () => {
   const { control, watch, setValue } = useFormContext<ProjectSubmissionSchema>();
@@ -145,9 +146,11 @@ const FormStep4 = () => {
 
   return (
     <div className="space-y-8">
-      <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-        Contact Information
-      </h2>
+      <FormStepIntro
+        step="Step 4 — Contact"
+        title="Reach you & your channels"
+        description="Primary email and phone for reviewer questions, plus optional social links."
+      />
 
       {/* Team Email */}
       <FormField
@@ -248,7 +251,7 @@ const FormStep4 = () => {
         {/* Display Combined Phone Number */}
         {(countryCode || "+94") && phoneNumber && (
           <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-md">
-            <p className="text-sm text-gray-600 dark:text-gray-400">Combined Phone Number:</p>
+            <p className="text-sm text-muted-foreground">Combined phone:</p>
             <p className="font-medium">{countryCode || "+94"}{phoneNumber}</p>
           </div>
         )}
@@ -389,7 +392,7 @@ const FormStep4 = () => {
                       </p>
                     )}
                     {urlValidation.isValid && urlValidation.cleanUrl !== currentUrl && (
-                      <p className="text-sm text-blue600 flex items-center gap-1">
+                      <p className="text-sm text-blue-600 flex items-center gap-1 dark:text-blue-400">
                         <CheckCircle className="h-3 w-3" />
                         URL will be cleaned to: {urlValidation.cleanUrl}
                       </p>

@@ -49,7 +49,7 @@ export default function TeamMemberRow({ member }: TeamMemberRowProps) {
           </Button>
         </Link>
       </div>
-      <div>
+      <div className="flex justify-end">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="rounded-full">

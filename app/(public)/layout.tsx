@@ -2,14 +2,33 @@
 // Licensed under the GNU Affero General Public License v3.0 or later,
 // with an additional restriction: Non-commercial use only.
 // See <https://www.gnu.org/licenses/agpl-3.0.html> for details.
-import { Geist, Geist_Mono } from "next/font/google";
+import {
+  Geist_Mono,
+  Noto_Sans,
+  Noto_Sans_Sinhala,
+  Noto_Sans_Tamil,
+} from "next/font/google";
 import type { Metadata } from "next";
 import "../globals.css";
 import ClientLayout from "@/components/Clientlayout";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+/** Latin + Tamil + Sinhala: one Noto Sans design via stacked regional families */
+const notoSansLatin = Noto_Sans({
+  variable: "--font-noto-sans-core",
+  subsets: ["latin", "latin-ext"],
+  display: "swap",
+});
+
+const notoSansTamil = Noto_Sans_Tamil({
+  variable: "--font-noto-sans-tamil",
+  subsets: ["tamil"],
+  display: "swap",
+});
+
+const notoSansSinhala = Noto_Sans_Sinhala({
+  variable: "--font-noto-sans-sinhala",
+  subsets: ["sinhala"],
+  display: "swap",
 });
 
 const geistMono = Geist_Mono({
@@ -54,7 +73,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning className="public-site">
       <head>
         <link rel="icon" href="/iconw.svg" type="image/png" sizes="128x128" />
         <link
@@ -63,6 +82,7 @@ export default function RootLayout({
           as="image"
           type="image/svg+xml"
         />
+
         <link
           rel="preload"
           href="https://fonts.googleapis.com/css2?family=Geist:wght@400;700&display=swap"
@@ -72,16 +92,10 @@ export default function RootLayout({
           rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Geist:wght@400;700&display=swap"
         />
-        {/* temporarily removing third-party AI chatbot
-        <script
-          defer
-          src="https://api.psycodelabs.lk/widget.js"
-          data-key="pk_b3a99bccdb1c43c3d49599b7f2ad4fa3857306cd7cce0b2f"
-          data-api="https://api.psycodelabs.lk"
-        ></script>  */}
-
       </head>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <body
+        className={`public-site ${notoSansLatin.variable} ${notoSansTamil.variable} ${notoSansSinhala.variable} ${geistMono.variable} font-sans antialiased`}
+      >
         <ClientLayout>{children}</ClientLayout>
       </body>
     </html>

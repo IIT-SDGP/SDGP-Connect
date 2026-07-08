@@ -6,20 +6,22 @@
 // Admin Awards Management Page
 'use client';
 import React, { useState, useEffect } from 'react';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import PendingAwardsTable from '@/components/tables/PendingAwardsTable';
 import ApprovedAwardsTable from '@/components/tables/ApprovedAwardsTable';
 import RejectedAwardsTable from '@/components/tables/RejectedAwardsTable';
 import PendingAwardsTableSkeleton from '@/components/tables/skeletons/PendingAwardsTableSkeleton';
 import ApprovedAwardsTableSkeleton from '@/components/tables/skeletons/ApprovedAwardsTableSkeleton';
 import RejectedAwardsTableSkeleton from '@/components/tables/skeletons/RejectedAwardsTableSkeleton';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { RefreshCcw, AlertCircle, FileX2, Inbox } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { EmptyState } from '@/components/ui/empty-state';
 import { useGetAwardsByApprovalStatus } from '@/hooks/awards/useGetAwardsByApprovalStatus';
 import { useDebounce } from '@/hooks/use-debounce';
+import { AdminPageShell } from '@/components/layout/admin-page-shell';
+import { AdminManagementBar } from '@/components/layout/admin-management-bar';
+import { AdminSearchField } from '@/components/layout/admin-search-field';
 
 export default function AdminAwardsPage() {
   const [currentTab, setCurrentTab] = useState<'pending' | 'approved' | 'rejected'>('pending');
@@ -147,41 +149,44 @@ export default function AdminAwardsPage() {
   };
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">Awards Management</h1>
+    <AdminPageShell
+      title="Awards Management"
+      description="Review and manage award submissions."
+    >
       <Tabs defaultValue="pending" value={currentTab} onValueChange={handleTabChange} className="w-full">
-        <TabsList className="mb-4">
-          <TabsTrigger value="pending">Pending</TabsTrigger>
-          <TabsTrigger value="approved">Approved</TabsTrigger>
-          <TabsTrigger value="rejected">Rejected</TabsTrigger>
-        </TabsList>
-        <div className="my-4 flex flex-wrap gap-4 justify-between">
-          <div className="flex items-center gap-2">
-            <Input
-              placeholder="Search awards..."
-              className="max-w-xs"
+        <AdminManagementBar
+          tabs={
+            <TabsList className="admin-tab-list">
+              <TabsTrigger value="pending" className="admin-tab-trigger">
+                Pending
+              </TabsTrigger>
+              <TabsTrigger value="approved" className="admin-tab-trigger">
+                Approved
+              </TabsTrigger>
+              <TabsTrigger value="rejected" className="admin-tab-trigger">
+                Rejected
+              </TabsTrigger>
+            </TabsList>
+          }
+          center={
+            <AdminSearchField
+              placeholder="Search awards…"
               value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              showClear
+              onClear={() => setSearchQuery('')}
+              aria-label="Search awards"
             />
-            {searchQuery && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setSearchQuery('')}
-              >
-                Clear
-              </Button>
-            )}
-          </div>
-          <div className="flex items-center gap-4">
-            <Button variant="outline" onClick={handleRefresh}>
+          }
+          end={
+            <Button variant="outline" onClick={handleRefresh} className="h-10">
               Last Fetched: {lastFetchedTime}
               <RefreshCcw className="ml-2 h-4 w-4" />
             </Button>
-          </div>
-        </div>
-        {renderContent()}
+          }
+        />
+        <div className="admin-table-wrap">{renderContent()}</div>
       </Tabs>
-    </div>
+    </AdminPageShell>
   );
 }

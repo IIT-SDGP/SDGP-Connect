@@ -5,6 +5,7 @@ import { ProjectSubmissionSchema } from "@/validations/submit_project";
 import { ProjectDomainEnum } from "@/types/prisma-types";
 import { useFormContext } from "react-hook-form";
 import { MultiSelect } from "../ui/Multi-Select";
+import { FormStepIntro } from "./FormStepIntro";
 
 
 // Create domain options directly from the enum
@@ -27,12 +28,11 @@ const FormStep3 = () => {
 
   return (
     <div className="space-y-8">
-      <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-        Project Classification
-      </h2>
-      <p className="text-slate-600 dark:text-slate-400">
-        Help us categorize your project to increase its visibility.
-      </p>
+      <FormStepIntro
+        step="Step 3 — Classification"
+        title="How we list your project"
+        description="Pick types, tech, domains, status, and optional SDGs so the right people can discover your work."
+      />
 
       {/* Project Type & Tech Stack */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -99,10 +99,10 @@ const FormStep3 = () => {
                   <div
                     key={domain.value}
                     className={cn(
-                      "flex flex-col items-center p-3 rounded-lg border cursor-pointer transition-colors",
+                      "flex cursor-pointer flex-col items-center rounded-xl border p-3 transition-all",
                       isSelected
-                        ? "border-primary bg-primary/10"
-                        : "border-gray-200 hover:border-primary/50 dark:border-gray-700 dark:hover:border-primary/50"
+                        ? "border-primary bg-primary/10 shadow-sm shadow-primary/10"
+                        : "border-border bg-muted/20 hover:border-primary/40"
                     )}
                     onClick={(e) => {
                       e.preventDefault();
@@ -112,7 +112,7 @@ const FormStep3 = () => {
                       field.onChange(updatedValue);
                     }}
                   >
-                    <div className="text-sm text-center font-medium">{domain.label}</div>
+                    <div className="text-center text-sm font-medium text-foreground">{domain.label}</div>
                   </div>
                 );
               })}
@@ -137,17 +137,17 @@ const FormStep3 = () => {
                   <div
                     key={status.value}
                     className={cn(
-                      "flex flex-col items-center p-4 rounded-lg border cursor-pointer transition-colors",
+                      "flex cursor-pointer flex-col items-center rounded-xl border p-4 transition-all",
                       isSelected
-                        ? "border-primary bg-primary/10"
-                        : "border-gray-200 hover:border-primary/50 dark:border-gray-700 dark:hover:border-primary/50"
+                        ? "border-primary bg-primary/10 shadow-sm shadow-primary/10"
+                        : "border-border bg-muted/20 hover:border-primary/40"
                     )}
                     onClick={() => field.onChange(status.value)}
                   >
-                    <div className="text-lg font-medium text-center text-slate-900 dark:text-white">
+                    <div className="text-center text-lg font-medium text-foreground">
                       {status.label}
                     </div>
-                    <p className="text-sm text-center text-gray-500 mt-1">
+                    <p className="mt-1 text-center text-sm text-muted-foreground">
                       {status.description || ""}
                     </p>
                   </div>
@@ -177,10 +177,10 @@ const FormStep3 = () => {
                   <div
                     key={goal.id}
                     className={cn(
-                      "flex items-center px-2 py-2 rounded-lg border cursor-pointer transition-colors gap-3",
+                      "flex cursor-pointer items-center gap-3 rounded-xl border px-2 py-2 transition-all",
                       isSelected
-                        ? "border-primary bg-primary/10"
-                        : "border-gray-200 hover:border-primary/50 dark:border-gray-700 dark:hover:border-primary/50"
+                        ? "border-primary bg-primary/10 shadow-sm shadow-primary/10"
+                        : "border-border bg-muted/20 hover:border-primary/40"
                     )}
                     onClick={(e) => {
                       e.preventDefault();
@@ -198,7 +198,7 @@ const FormStep3 = () => {
                       />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs text-gray-600 leading-tight max-h-[3.75rem] overflow-y-auto pr-1 scroll-hide">
+                      <p className="max-h-[3.75rem] flex-1 min-w-0 overflow-y-auto pr-1 text-xs leading-tight text-muted-foreground scroll-hide">
                         {goal.description}
                       </p>
                     </div>
