@@ -79,20 +79,20 @@ const Teamandsocial = ({
   const hasRealPhone = Boolean(teamPhone && teamPhone !== "0000000000");
 
   return (
-    <section className="space-y-6">
-      <Card className="relative overflow-hidden border p-5 shadow-sm sm:p-6 md:p-8">
+    <section className="space-y-4 sm:space-y-6">
+      <Card className="relative overflow-hidden border p-4 shadow-sm sm:p-6 md:p-8">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_12%_15%,rgba(99,102,241,0.12),transparent_28%)]" />
-        <div className="relative mb-6 flex flex-wrap items-center justify-between gap-3">
-          <div>
+        <div className="relative mb-5 flex flex-col items-start gap-2 sm:mb-6 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-3">
+          <div className="min-w-0">
             <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">People & Communication</p>
-            <h2 className="mt-1 text-2xl font-semibold md:text-3xl">Team and Contact Hub</h2>
+            <h2 className="mt-1 text-xl font-semibold sm:text-2xl md:text-3xl">Team and Contact Hub</h2>
           </div>
           <Badge variant="outline" className="rounded-full px-3 py-1">
             {teamMembers.length} members
           </Badge>
         </div>
 
-        <div className="relative grid grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-0">
+        <div className="relative grid grid-cols-1 gap-6 sm:gap-8 lg:grid-cols-2 lg:gap-0">
           <div className="space-y-4 lg:border-r lg:border-border/60 lg:pr-10">
             <h3 className="text-lg font-semibold tracking-tight">Contact & social</h3>
             <p className="text-sm text-muted-foreground">
@@ -103,7 +103,7 @@ const Teamandsocial = ({
               <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Contact
               </p>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div className="grid grid-cols-1 gap-3 min-[480px]:grid-cols-2">
                 <ConnectTile href={`mailto:${email}`} label="Email" sub={email}>
                   <span
                     className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-[#EA4335]/15 ring-1 ring-[#EA4335]/25"

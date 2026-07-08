@@ -37,7 +37,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ coverImage, className 
 
   return (
     <section ref={sectionRef} className={cn("relative bg-black", className)}>
-      <div className="relative aspect-video w-full min-h-[min(52vw,280px)] max-h-[78vh] overflow-hidden sm:min-h-[320px] md:min-h-[400px] lg:min-h-[460px] xl:min-h-[520px]">
+      <div className="relative aspect-video w-full min-h-[200px] max-h-[70vh] overflow-hidden sm:min-h-[280px] sm:max-h-[78vh] md:min-h-[400px] lg:min-h-[460px] xl:min-h-[520px]">
         <motion.div
           className="absolute -inset-[12%] will-change-transform"
           style={{

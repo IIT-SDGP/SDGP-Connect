@@ -26,7 +26,7 @@ import { Spinner } from "./ui/spinner";
 import { Card } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { IconType } from "react-icons";
-import { projectContentInset, cn } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 
 function SnapshotSection({
   title,
@@ -99,9 +99,9 @@ const ProjectDetails = ({ projectID }: { projectID: string }) => {
     <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/30">
       <HeroSection
         coverImage={project.metadata.cover_image}
-        className={projectContentInset}
+        className="px-0 md:px-[6.5rem] lg:px-[6.75rem]"
       />
-      <div className={cn("mx-auto w-full max-w-7xl pb-16 sm:pb-20", projectContentInset, "px-3 sm:px-4")}>
+      <div className={cn("mx-auto w-full max-w-[88rem] px-4 pb-20 sm:pb-20 md:px-[6.5rem] lg:px-[6.75rem]")}>
         <ProjectHeader
           title={project.metadata.title}
           subtitle={project.metadata.subtitle}
@@ -112,7 +112,7 @@ const ProjectDetails = ({ projectID }: { projectID: string }) => {
           projectId={project.metadata.project_id}
         />
 
-        <div className="mt-6 grid grid-cols-1 gap-6 lg:mt-8 lg:grid-cols-12 lg:gap-8">
+        <div className="mt-4 grid grid-cols-1 gap-4 sm:mt-6 sm:gap-6 lg:mt-8 lg:grid-cols-12 lg:gap-8">
           <div className="min-w-0 space-y-6 lg:col-span-8 xl:col-span-9">
             <ProjectOverview
               problemStatement={project.content?.projectDetails?.problem_statement}
@@ -236,7 +236,7 @@ const ProjectDetails = ({ projectID }: { projectID: string }) => {
           </aside>
         </div>
 
-        <div className="mt-6">
+        <div className="mt-4 sm:mt-6">
           <Teamandsocial
             teamMembers={project.content?.team || []}
             teamSocials={project.content?.socialLinks || []}

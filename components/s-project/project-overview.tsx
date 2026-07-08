@@ -24,18 +24,18 @@ export const ProjectOverview: React.FC<ProjectOverviewProps> = ({
   projectYear
 }) => {
   return (
-    <section className="space-y-6">
+    <section className="space-y-4 sm:space-y-6">
       <Card className="relative overflow-hidden border p-4 shadow-sm sm:p-6 md:p-8">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_10%_10%,rgba(99,102,241,0.12),transparent_32%)]" />
-        <div className="relative flex flex-col gap-5 sm:gap-6 lg:flex-row lg:items-start lg:justify-between">
+        <div className="relative flex flex-col gap-4 sm:gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0 flex-1">
             <p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">Project Overview</p>
-            <h2 className="mt-1 text-2xl font-semibold md:text-3xl">Vision and Implementation</h2>
-            <p className="mt-2 text-sm text-muted-foreground">
+            <h2 className="mt-1 text-xl font-semibold sm:text-2xl md:text-3xl">Vision and Implementation</h2>
+            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
               A concise narrative of the challenge, solution, and feature set.
             </p>
           </div>
-          <div className="flex w-full shrink-0 flex-col gap-2 sm:w-auto sm:min-w-[220px] lg:max-w-[280px]">
+          <div className="grid w-full shrink-0 grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-col sm:gap-2 lg:max-w-[280px]">
             <div className="flex items-center justify-between gap-3 rounded-lg border bg-muted/20 px-3 py-2.5 text-sm">
               <span className="inline-flex items-center gap-2 text-muted-foreground">
                 <CalendarClock className="h-4 w-4 shrink-0 text-primary" aria-hidden />
@@ -54,13 +54,13 @@ export const ProjectOverview: React.FC<ProjectOverviewProps> = ({
         </div>
       </Card>
 
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-4 sm:gap-6">
         <Card className="border bg-card/90 p-4 sm:p-6">
-          <h3 className="mb-3 inline-flex items-center gap-3 text-xl font-semibold">
-            <span className="inline-flex rounded-lg bg-rose-500/15 p-2 ring-1 ring-rose-500/25">
+          <h3 className="mb-3 flex items-start gap-2.5 text-lg font-semibold sm:gap-3 sm:text-xl">
+            <span className="inline-flex shrink-0 rounded-lg bg-rose-500/15 p-2 ring-1 ring-rose-500/25">
               <Target className="h-5 w-5 text-rose-600 dark:text-rose-400" aria-hidden />
             </span>
-            Problem Statement
+            <span className="pt-1">Problem Statement</span>
           </h3>
           <p className="text-muted-foreground leading-7">
             {problemStatement || "Problem statement has not been provided yet."}
@@ -68,11 +68,11 @@ export const ProjectOverview: React.FC<ProjectOverviewProps> = ({
         </Card>
 
         <Card className="border bg-card/90 p-4 sm:p-6">
-          <h3 className="mb-3 inline-flex items-center gap-3 text-xl font-semibold">
-            <span className="inline-flex rounded-lg bg-amber-500/15 p-2 ring-1 ring-amber-500/30">
+          <h3 className="mb-3 flex items-start gap-2.5 text-lg font-semibold sm:gap-3 sm:text-xl">
+            <span className="inline-flex shrink-0 rounded-lg bg-amber-500/15 p-2 ring-1 ring-amber-500/30">
               <Lightbulb className="h-5 w-5 text-amber-600 dark:text-amber-400" aria-hidden />
             </span>
-            Solution
+            <span className="pt-1">Solution</span>
           </h3>
           <p className="text-muted-foreground leading-7">
             {solution || "Solution details have not been provided yet."}
@@ -81,11 +81,11 @@ export const ProjectOverview: React.FC<ProjectOverviewProps> = ({
       </div>
 
       <Card className="border bg-card/90 p-4 sm:p-6">
-        <h3 className="mb-3 inline-flex items-center gap-3 text-xl font-semibold">
-          <span className="inline-flex rounded-lg bg-violet-500/15 p-2 ring-1 ring-violet-500/25">
+        <h3 className="mb-3 flex items-start gap-2.5 text-lg font-semibold sm:gap-3 sm:text-xl">
+          <span className="inline-flex shrink-0 rounded-lg bg-violet-500/15 p-2 ring-1 ring-violet-500/25">
             <Users className="h-5 w-5 text-violet-600 dark:text-violet-400" aria-hidden />
           </span>
-          Key Features
+          <span className="pt-1">Key Features</span>
         </h3>
         <div className="prose prose-sm max-w-none overflow-x-auto break-words text-muted-foreground dark:prose-invert">
           {keyFeatures ? (

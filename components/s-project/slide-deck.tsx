@@ -60,13 +60,13 @@ export const SlideDeck: React.FC<SlideDeckProps> = ({ slides: slidesProp }) => {
   }, [modalIndex, prevImage, nextImage]);
 
   return (
-    <Card className="border bg-card/90 p-6 shadow-sm">
+    <Card className="border bg-card/90 p-4 shadow-sm sm:p-6">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <h3 className="inline-flex items-center gap-3 text-xl font-semibold">
-          <span className="inline-flex rounded-lg bg-cyan-500/15 p-2 ring-1 ring-cyan-500/30">
+        <h3 className="flex items-start gap-2.5 text-lg font-semibold sm:items-center sm:gap-3 sm:text-xl">
+          <span className="inline-flex shrink-0 rounded-lg bg-cyan-500/15 p-2 ring-1 ring-cyan-500/30">
             <GalleryHorizontal className="h-5 w-5 text-cyan-600 dark:text-cyan-400" aria-hidden />
           </span>
-          Project Gallery
+          <span className="pt-0.5 sm:pt-0">Project Gallery</span>
         </h3>
         {slides.length > 0 ? (
           <Badge variant="secondary" className="w-fit shrink-0 rounded-full px-3 py-1 text-xs font-medium">
@@ -77,13 +77,13 @@ export const SlideDeck: React.FC<SlideDeckProps> = ({ slides: slidesProp }) => {
 
       {slides.length > 0 ? (
         <>
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="mt-4 flex items-center gap-2 sm:mt-5 sm:gap-3">
             <button
               type="button"
               aria-label="Previous slide"
               onClick={() => swiper?.slidePrev()}
               className={cn(
-                "flex h-10 w-10 shrink-0 items-center justify-center rounded-full",
+                "hidden h-10 w-10 shrink-0 items-center justify-center rounded-full sm:flex",
                 "border border-border/80 bg-background/95 text-foreground shadow-md backdrop-blur-sm",
                 "transition hover:bg-muted active:scale-95 disabled:pointer-events-none disabled:opacity-40"
               )}
@@ -165,7 +165,7 @@ export const SlideDeck: React.FC<SlideDeckProps> = ({ slides: slidesProp }) => {
               aria-label="Next slide"
               onClick={() => swiper?.slideNext()}
               className={cn(
-                "flex h-10 w-10 shrink-0 items-center justify-center rounded-full",
+                "hidden h-10 w-10 shrink-0 items-center justify-center rounded-full sm:flex",
                 "border border-border/80 bg-background/95 text-foreground shadow-md backdrop-blur-sm",
                 "transition hover:bg-muted active:scale-95 disabled:pointer-events-none disabled:opacity-40"
               )}
