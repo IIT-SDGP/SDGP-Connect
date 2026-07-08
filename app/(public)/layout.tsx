@@ -89,8 +89,6 @@ export default function RootLayout({
           data-api="https://api.psycodelabs.lk"
         ></script>
 
-<<<<<<< HEAD
-=======
         <link
           rel="preload"
           href="https://fonts.googleapis.com/css2?family=Geist:wght@400;700&display=swap"
@@ -108,7 +106,6 @@ export default function RootLayout({
           data-api="https://api.psycodelabs.lk"
         ></script>  */}
 
->>>>>>> 5f65dc015bbb178f5e4cf717025d092cc713a257
       </head>
       <body
         className={`public-site ${notoSansLatin.variable} ${notoSansTamil.variable} ${notoSansSinhala.variable} ${geistMono.variable} font-sans antialiased`}
