@@ -5,21 +5,16 @@
 'use client';
 
 import { sidebarItems } from '@/data/NavBarItems';
-import {
-  isPsycodeMobileViewport,
-  openPsycodeChat,
-  setPsycodeLauncherVisible,
-} from '@/lib/psycode-chat';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { MessageCircle } from 'lucide-react';
-import { useEffect } from 'react';
+import { useHomeScrollChromeVisible } from '@/hooks/HomeScrollChromeContext';
 
 const dockIconIdle =
   'text-muted-foreground/85 group-hover:text-foreground/90 dark:text-muted-foreground dark:group-hover:text-foreground';
 
-const dockIconActive = 'text-foreground';
+const dockIconActive =
+  'text-amber-400 drop-shadow-[0_0_6px_rgba(251,191,36,0.5)]';
 
 const dockSurfaceIdle = 'hover:bg-black/[0.06] dark:hover:bg-white/[0.08]';
 
@@ -48,33 +43,23 @@ const mobileDockIcon = cn(
   'group-hover:scale-[1.06] md:h-6 md:w-6'
 );
 
-export function NavBar() {
-  const pathname = usePathname();
+function isNavItemActive(pathname: string, href: string) {
+  if (href === '/') return pathname === '/';
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
 
-  /* Hide Psycode’s fixed FAB on mobile; nav bar owns the chat affordance there. */
-  useEffect(() => {
-    const sync = () => {
-      const hideLauncher = isPsycodeMobileViewport();
-      setPsycodeLauncherVisible(!hideLauncher);
-    };
-    sync();
-    const mq = window.matchMedia('(max-width: 767px)');
-    mq.addEventListener('change', sync);
-    const observer = new MutationObserver(sync);
-    observer.observe(document.body, { childList: true, subtree: true });
-    const stop = window.setTimeout(() => observer.disconnect(), 20000);
-    return () => {
-      mq.removeEventListener('change', sync);
-      observer.disconnect();
-      clearTimeout(stop);
-      setPsycodeLauncherVisible(true);
-    };
-  }, []);
+export function NavBar({ autoHideOnHomeMobile = false }: { autoHideOnHomeMobile?: boolean }) {
+  const pathname = usePathname();
+  const chromeVisible = useHomeScrollChromeVisible();
+  const hideChrome = autoHideOnHomeMobile && !chromeVisible;
 
   return (
     <aside
       className={cn(
-        'pointer-events-none fixed z-50',
+        'pointer-events-none fixed z-[100]',
+        autoHideOnHomeMobile &&
+          'max-md:transition-transform duration-300 ease-out',
+        hideChrome && 'max-md:translate-y-full',
         /* mobile: bottom dock, full width with safe inset */
         'inset-x-3 bottom-[max(1rem,env(safe-area-inset-bottom,0px))] flex justify-center md:inset-x-auto',
         /* desktop: left rail, vertically centered */
@@ -84,11 +69,15 @@ export function NavBar() {
     >
       <nav
         aria-label="Main navigation"
-        className={cn('pointer-events-auto w-full min-w-0 md:w-auto', appleGlassNav)}
+        className={cn(
+          'w-full min-w-0 md:w-auto',
+          hideChrome ? 'pointer-events-none' : 'pointer-events-auto',
+          appleGlassNav
+        )}
       >
         {sidebarItems.map((item) => {
           const Icon = item.icon;
-          const isActive = pathname === item.href;
+          const isActive = isNavItemActive(pathname, item.href);
           return (
             <Link
               key={item.href}
@@ -125,18 +114,6 @@ export function NavBar() {
             </Link>
           );
         })}
-        <button
-          type="button"
-          className={cn('md:hidden', mobileDockItem, dockSurfaceIdle)}
-          onClick={() => openPsycodeChat()}
-          aria-label="Open chat assistant"
-        >
-          <MessageCircle
-            aria-hidden
-            strokeWidth={2}
-            className={cn(mobileDockIcon, dockIconIdle)}
-          />
-        </button>
       </nav>
     </aside>
   );

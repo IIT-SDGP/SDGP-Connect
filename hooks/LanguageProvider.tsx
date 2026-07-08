@@ -48,6 +48,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   
   useEffect(() => {
     if (!isLoaded) return
+    document.documentElement.lang = lang === 'si' ? 'si' : lang === 'th' ? 'ta' : 'en'
     localStorage.setItem(LANG_KEY, lang)
     if (lang === defaultLang) {
       // English in-bundle

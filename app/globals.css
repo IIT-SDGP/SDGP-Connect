@@ -189,8 +189,23 @@
 /* Public site only: hide scrollbars; scrolling still works (wheel, trackpad, keys) */
 html.public-site,
 body.public-site {
+  overflow-x: clip;
+  max-width: 100%;
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE/Edge legacy */
+}
+
+html.public-site[lang="ta"],
+html.public-site[lang="si"] {
+  text-rendering: optimizeLegibility;
+}
+
+html.public-site[lang="ta"] :where(h1, h2, h3, p, span, button, a):not([lang="en"]) {
+  line-height: 1.55;
+}
+
+html.public-site[lang="si"] :where(h1, h2, h3, p, span, button, a):not([lang="en"]) {
+  line-height: 1.5;
 }
 html.public-site::-webkit-scrollbar,
 body.public-site::-webkit-scrollbar {

@@ -5,6 +5,8 @@
 'use client'
 
 import { useLanguage } from "@/hooks/LanguageProvider";
+import { indicTextClass } from "@/lib/i18n-utils";
+import { cn } from "@/lib/utils";
 import { InfiniteSlider } from '@/components/ui/infinite-slider'
 import { Sparkles } from "@/components/ui/sparkles"
 
@@ -113,15 +115,15 @@ export function BrandsCarousel({ className = "" }: { className?: string }) {
 }
 
 export function Brands() {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const brand = getNested(t, ['home', 'brand'], {});
   return (
     <section className="py-12 px-4 bg-dark text-white">
       <div className="container mx-auto">
-        <h2 className="text-5xl font-bold text-center mb-12">
-          <span className="text-blue-400">{brand.word1 || "Making Projects"}</span>
-          <br />
-           <span className="text-primary">{brand.word2 || "Into brands"}</span>
+        <h2 className={cn("text-3xl sm:text-4xl md:text-5xl font-bold text-center mb-12 leading-tight", indicTextClass(lang))}>
+          <span className="text-blue-400 block sm:inline">{brand.word1 || "Making Projects"}</span>
+          <span className="hidden sm:inline"> </span>
+          <span className="text-primary block sm:inline">{brand.word2 || "Into brands"}</span>
         </h2>
 
         <BrandsCarousel className="mt-7" />

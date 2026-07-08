@@ -6,14 +6,16 @@
 
 import { Award, BarChart2, Rocket, TrendingUp, Users } from "lucide-react"
 import { useLanguage } from "@/hooks/LanguageProvider";
+import { badgeLabelClass, indicTextClass } from "@/lib/i18n-utils";
 import { CornerBrackets } from "@/components/home/corner-brackets";
+import { cn } from "@/lib/utils";
 
 function getNested(obj: any, path: string[], fallback: any = undefined) {
   return path.reduce((acc, key) => (acc && acc[key] !== undefined ? acc[key] : fallback), obj);
 }
 
 export default function ImpactStats() {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const impact = getNested(t, ['home', 'impact_stats'], {});
 
   const stats = [
@@ -46,14 +48,14 @@ export default function ImpactStats() {
 
           {/* Badge */}
           <div className="flex items-center justify-center mb-2">
-            <span className="inline-flex items-center gap-2 rounded-full border border-[#2a5298]/50 bg-[#2a5298]/25 px-4 py-1 text-xs font-semibold uppercase tracking-[0.15em] text-blue-100">
+            <span className={cn("inline-flex items-center gap-2 rounded-full border border-[#2a5298]/50 bg-[#2a5298]/25 px-4 py-1 font-semibold text-blue-100", badgeLabelClass(lang))}>
               <BarChart2 className="h-3.5 w-3.5" />
               {impact.badge || "Impact Stats"}
             </span>
           </div>
 
           {/* Heading */}
-          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter max-w-4xl mx-auto leading-tight">
+          <h2 className={cn("text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter max-w-4xl mx-auto leading-tight", indicTextClass(lang))}>
             {impact.title || "Our Impact"}
           </h2>
 
@@ -87,7 +89,7 @@ export default function ImpactStats() {
               </h3>
 
               {/* Label */}
-              <p className="text-zinc-400 group-hover:text-zinc-200 transition-colors duration-300 text-sm font-medium">
+              <p className={cn("text-zinc-400 group-hover:text-zinc-200 transition-colors duration-300 text-sm font-medium", indicTextClass(lang))}>
                 {stat.description}
               </p>
             </div>

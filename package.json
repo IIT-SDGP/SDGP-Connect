@@ -62,7 +62,6 @@
     "embla-carousel-react": "^8.6.0",
     "formidable": "^3.5.2",
     "framer-motion": "^12.23.12",
-    "groq-sdk": "^1.3.0",
     "headlessui": "^0.0.0",
     "i": "^0.3.7",
     "install": "^0.13.0",

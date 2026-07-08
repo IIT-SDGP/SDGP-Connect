@@ -17,14 +17,16 @@ import HomeHeroSection from "@/components/home/HomeHeroSection";
 export default function Home() {
   return (
     <LanguageProvider>
-      <div className="flex flex-col gap-12 pb-12">
+      <div className="flex min-w-0 max-w-full flex-col overflow-x-clip pb-12">
         <HomeHeroSection />
-        <HomeAboutSection />
-        <GlobeSection />
-        <AboutSection/>
-        <Domains />
-        <ImpactStats />
-        <Brands/>
+        <div className="mx-3 md:mx-5 lg:mx-8 flex flex-col gap-12">
+          <HomeAboutSection />
+          <GlobeSection />
+          <AboutSection/>
+          <Domains />
+          <ImpactStats />
+          <Brands/>
+        </div>
       </div>
       <LanguageToggle />
     </LanguageProvider>

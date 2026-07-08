@@ -16,7 +16,9 @@ import {
 import { projectDomainsOptions } from "@/lib/types/mapping";
 import Link from "next/link";
 import React from "react";
+import { cn } from "@/lib/utils";
 import { useLanguage } from "@/hooks/LanguageProvider";
+import { badgeLabelClass, indicTextClass } from "@/lib/i18n-utils";
 import { CornerBrackets } from "@/components/home/corner-brackets";
 
 function getNested(obj: any, path: string[], fallback: any = undefined) {
@@ -24,7 +26,7 @@ function getNested(obj: any, path: string[], fallback: any = undefined) {
 }
 
 export default function Domains() {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const domains = getNested(t, ['home', 'domains'], {});
 
   return (
@@ -34,19 +36,19 @@ export default function Domains() {
 
           {/* Badge */}
           <div className="flex items-center justify-center mb-2">
-            <span className="inline-flex items-center gap-2 rounded-full border border-[#2a5298]/50 bg-[#2a5298]/25 px-4 py-1 text-xs font-semibold uppercase tracking-[0.15em] text-blue-100">
+            <span className={cn("inline-flex items-center gap-2 rounded-full border border-[#2a5298]/50 bg-[#2a5298]/25 px-4 py-1 font-semibold text-blue-100", badgeLabelClass(lang))}>
               <Layers3 className="h-3.5 w-3.5" />
               {domains.badge || "Project domains"}
             </span>
           </div>
 
           {/* Heading */}
-          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter max-w-4xl mx-auto leading-tight">
+          <h2 className={cn("text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter max-w-4xl mx-auto leading-tight", indicTextClass(lang))}>
             {domains.heading || "Explore key Innovation domains"}
           </h2>
 
           {/* Subtitle */}
-          <p className="text-zinc-500 text-base sm:text-lg md:text-xl max-w-[700px] mx-auto mt-4 mb-8 leading-relaxed">
+          <p className={cn("text-zinc-500 text-base sm:text-lg md:text-xl max-w-[700px] mx-auto mt-4 mb-8 leading-relaxed", indicTextClass(lang))}>
             {domains.description || "Discover a wide range of technology domains driving the future from AI and Blockchain to Sustainability and Gaming. These categories represent where impactful ideas and projects come to life."}
           </p>
 
@@ -105,7 +107,7 @@ export default function Domains() {
             <Button
               variant="outline"
               size="lg"
-              className="group border-zinc-700 bg-transparent text-zinc-300 hover:border-zinc-500 hover:text-white hover:bg-zinc-800/50 transition-all duration-300 rounded-full"
+              className={cn("group border-zinc-700 bg-transparent text-zinc-300 hover:border-zinc-500 hover:text-white hover:bg-zinc-800/50 transition-all duration-300 rounded-full h-auto py-3 whitespace-normal text-center max-w-[min(100%,20rem)]", indicTextClass(lang))}
             >
               {domains.button || "View projects of all domains"}
               <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />

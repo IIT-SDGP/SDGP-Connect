@@ -15,7 +15,6 @@ import { SpeedInsights } from "@vercel/speed-insights/next"
 import CookieBanner from "@/components/CookieBanner"
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import ChatBot from "@/components/ChatBot";
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const isMobile = useIsMobile();
@@ -60,7 +59,6 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
       <Analytics />
       <SpeedInsights />
       <Toaster />
-      <ChatBot />
     </ThemeProvider>
   );
 }
