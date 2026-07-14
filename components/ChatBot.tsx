@@ -8,6 +8,7 @@
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import { CONSENT_KEY, TOOLTIP_KEY, MAX_LEN } from "@/lib/constants/chat";
 
@@ -99,6 +100,7 @@ function greetingForTime() {
 }
 
 export default function ChatBot() {
+  const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [open, setOpen] = useState(false);
   const [consented, setConsented] = useState(false);
@@ -131,6 +133,16 @@ export default function ChatBot() {
   function resetChat() {
     setMessages([]);
     setInput("");
+  }
+
+  // Internal links (e.g. a "Show more" link to /projects?domains=AI) navigate
+  // client-side and close the widget; external links open in a new tab.
+  function handleMarkdownLinkClick(e: React.MouseEvent<HTMLAnchorElement>, href: string) {
+    if (href.startsWith("/")) {
+      e.preventDefault();
+      setOpen(false);
+      router.push(href);
+    }
   }
 
   async function send(text: string) {
@@ -243,8 +255,15 @@ export default function ChatBot() {
                             ol: ({ ...props }) => <ol className="mb-2 list-decimal space-y-1 pl-4 last:mb-0" {...props} />,
                             li: ({ ...props }) => <li {...props} />,
                             strong: ({ ...props }) => <strong className="font-semibold text-white" {...props} />,
-                            a: ({ ...props }) => (
-                              <a className="text-blue-400 underline" target="_blank" rel="noopener noreferrer" {...props} />
+                            a: ({ href, ...props }) => (
+                              <a
+                                href={href}
+                                className="text-blue-400 underline"
+                                target={href?.startsWith("/") ? undefined : "_blank"}
+                                rel={href?.startsWith("/") ? undefined : "noopener noreferrer"}
+                                onClick={(e) => href && handleMarkdownLinkClick(e, href)}
+                                {...props}
+                              />
                             ),
                           }}
                         >

@@ -47,7 +47,7 @@ const tools: Groq.Chat.Completions.ChatCompletionTool[] = [
           sdgGoal: { type: "string", description: "One of the SDGGoalEnum values, e.g. GOOD_HEALTH, CLIMATE_ACTION" },
           status: { type: "string", enum: ["IDEA", "MVP", "RESEARCH", "DEPLOYED", "STARTUP"] },
           featuredOnly: { type: "boolean", description: "Set true when the user asks for 'best' or 'featured' projects" },
-          limit: { type: "number", description: "Max results, default 3, max 8" },
+          limit: { type: "number", description: "Max results to preview, default 3, max 3 — use showMoreUrl for anything beyond this" },
         },
       },
     },
