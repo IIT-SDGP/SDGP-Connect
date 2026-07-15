@@ -30,6 +30,7 @@ export interface ProjectSearchSummary {
   description: string | null;
   pageUrl: string;
   featured: boolean;
+  logo: string | null;
   domains: (ProjectDomainEnum | null | undefined)[] | undefined;
   techStack: (TechStackEnum | null | undefined)[] | undefined;
   sdgGoals: (SDGGoalEnum | null | undefined)[] | undefined;
@@ -163,6 +164,7 @@ export async function searchProjects(
       title: true,
       subtitle: true,
       featured: true,
+      logo: true,
       sdgp_year: true,
       projectContent: {
         select: {
@@ -223,6 +225,7 @@ export async function searchProjects(
       description: description ? truncate(description, DESCRIPTION_MAX_LENGTH) : null,
       pageUrl: `/project/${p.project_id}`,
       featured: p.featured,
+      logo: p.logo ?? null,
       domains: p.projectContent?.associations
         .filter((a) => a.type === "PROJECT_DOMAIN")
         .map((a) => a.domain),
