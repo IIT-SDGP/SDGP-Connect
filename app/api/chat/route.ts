@@ -5,7 +5,11 @@
 
 import Groq from "groq-sdk";
 import { NextRequest, NextResponse } from "next/server";
-import { searchProjects, ProjectSearchParams } from "@/lib/projectSearch";
+import {
+  searchProjects,
+  ProjectSearchParams,
+  ProjectSearchResponse,
+} from "@/lib/projectSearch";
 import { checkRateLimit } from "@/lib/rateLimit";
 import {
   groq,
@@ -47,7 +51,7 @@ const tools: Groq.Chat.Completions.ChatCompletionTool[] = [
           sdgGoal: { type: "string", description: "One of the SDGGoalEnum values, e.g. GOOD_HEALTH, CLIMATE_ACTION" },
           status: { type: "string", enum: ["IDEA", "MVP", "RESEARCH", "DEPLOYED", "STARTUP"] },
           featuredOnly: { type: "boolean", description: "Set true when the user asks for 'best' or 'featured' projects" },
-          limit: { type: "number", description: "Max results, default 3, max 8" },
+          limit: { type: "number", description: "Max results to preview, default 3, max 3 — use showMoreUrl for anything beyond this" },
         },
       },
     },
@@ -123,6 +127,21 @@ async function withRetry<T>(fn: (attempt: number) => Promise<T>, retries = 3): P
   }
 }
 
+function chatResponse(
+  reply: string,
+  lastSearch: ProjectSearchResponse | null,
+  status = 200
+) {
+  return NextResponse.json(
+    {
+      reply,
+      projects: lastSearch?.results ?? [],
+      showMoreUrl: lastSearch?.showMoreUrl ?? null,
+    },
+    { status }
+  );
+}
+
 export async function POST(req: NextRequest) {
   try {
     const rateLimit = await checkRateLimit(getClientIp(req), CHAT_RATE_LIMIT_RULES);
@@ -170,7 +189,7 @@ export async function POST(req: NextRequest) {
     if (quotaResetAt && Date.now() < quotaResetAt) {
       const mins = Math.ceil((quotaResetAt - Date.now()) / 60_000);
       console.warn(`[groq] blocked request, daily quota resets in ~${mins} min`);
-      return NextResponse.json({ reply: QUOTA_EXCEEDED_MESSAGE }, { status: 200 });
+      return chatResponse(QUOTA_EXCEEDED_MESSAGE, null);
     }
 
     type GroqMessage = Groq.Chat.Completions.ChatCompletionMessageParam;
@@ -180,6 +199,8 @@ export async function POST(req: NextRequest) {
       { role: "system", content: SYSTEM_PROMPT },
       ...trimmedMessages.map((m) => ({ role: m.role, content: m.content })),
     ];
+
+    let lastSearch: ProjectSearchResponse | null = null;
 
     for (let turn = 0; turn < 4; turn++) {
       const response = await withRetry((attempt) =>
@@ -202,7 +223,7 @@ export async function POST(req: NextRequest) {
       const toolCalls = choice.message.tool_calls;
 
       if (!toolCalls || toolCalls.length === 0) {
-        return NextResponse.json({ reply: choice.message.content ?? "" });
+        return chatResponse(choice.message.content ?? "", lastSearch);
       }
 
       chatMessages.push(choice.message);
@@ -235,6 +256,7 @@ export async function POST(req: NextRequest) {
 
           console.log("search_projects called with:", args);
           const results = await searchProjects(args);
+          lastSearch = results;
           chatMessages.push({
             role: "tool",
             tool_call_id: call.id,
@@ -244,7 +266,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    return NextResponse.json({ reply: "Sorry, I couldn't complete that request." });
+    return chatResponse("Sorry, I couldn't complete that request.", lastSearch);
   } catch (err) {
     const { status, error } = toGroqErrorShape(err);
     const code = error?.error?.code;
@@ -261,24 +283,15 @@ export async function POST(req: NextRequest) {
       if (isDailyQuotaExceeded(err)) {
         const mins = getRetryAfterMinutes(err);
         console.warn(`[groq] daily quota exceeded, resets in ~${mins ?? "?"} min`);
-        return NextResponse.json({ reply: QUOTA_EXCEEDED_MESSAGE }, { status: 200 });
+        return chatResponse(QUOTA_EXCEEDED_MESSAGE, null);
       }
-      return NextResponse.json(
-        { reply: "I'm getting a lot of questions right now. Please try again in a bit." },
-        { status: 200 }
-      );
+      return chatResponse("I'm getting a lot of questions right now. Please try again in a bit.", null);
     }
     if (status === 503) {
-      return NextResponse.json(
-        { reply: "The AI service is overloaded right now. Please try again in a moment." },
-        { status: 200 }
-      );
+      return chatResponse("The AI service is overloaded right now. Please try again in a moment.", null);
     }
     if (code === "tool_use_failed") {
-      return NextResponse.json(
-        { reply: "I had trouble processing that — could you rephrase your question?" },
-        { status: 200 }
-      );
+      return chatResponse("I had trouble processing that — could you rephrase your question?", null);
     }
     return NextResponse.json({ error: "Something went wrong." }, { status: 500 });
   }

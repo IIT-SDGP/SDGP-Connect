@@ -23,8 +23,32 @@ export interface ProjectSearchParams {
   limit?: number;
 }
 
+export interface ProjectSearchSummary {
+  id: string;
+  title: string;
+  subtitle: string | null;
+  description: string | null;
+  pageUrl: string;
+  featured: boolean;
+  logo: string | null;
+  domains: (ProjectDomainEnum | null | undefined)[] | undefined;
+  techStack: (TechStackEnum | null | undefined)[] | undefined;
+  sdgGoals: (SDGGoalEnum | null | undefined)[] | undefined;
+}
+
+export interface ProjectSearchResponse {
+  results: ProjectSearchSummary[];
+  totalCount: number;
+  // Link to the full filtered list on the /projects page, or null when
+  // everything that matched is already in `results`.
+  showMoreUrl: string | null;
+}
+
 const HARD_FETCH_CAP = 100;
 const DESCRIPTION_MAX_LENGTH = 300;
+// Chat previews are capped at 3 regardless of what the model requests —
+// anything beyond that belongs on the /projects page via showMoreUrl.
+const PREVIEW_LIMIT = 3;
 
 // Light suffix stripping so morphological variants share a stem and substring
 // matching connects them, e.g. "dyslexia" and "Dyslexic" both reduce to
@@ -66,7 +90,25 @@ function truncate(s: string, max: number): string {
   return s.length > max ? `${s.slice(0, max).trimEnd()}…` : s;
 }
 
-export async function searchProjects(params: ProjectSearchParams | null | undefined) {
+// Mirrors the query param names read by the /projects page
+// (ProjectQueryParams in useGetProjects / FilterSidebar's FilterState).
+function buildShowMoreUrl(params: ProjectSearchParams): string {
+  const qs = new URLSearchParams();
+  if (params.keyword) qs.append("title", params.keyword);
+  if (params.featuredOnly) qs.append("featured", "true");
+  if (params.status) qs.append("status", params.status);
+  if (params.domain) qs.append("domains", params.domain);
+  if (params.techStack) qs.append("techStack", params.techStack);
+  if (params.projectType) qs.append("projectTypes", params.projectType);
+  if (params.sdgGoal) qs.append("sdgGoals", params.sdgGoal);
+
+  const query = qs.toString();
+  return query ? `/project?${query}` : "/project";
+}
+
+export async function searchProjects(
+  params: ProjectSearchParams | null | undefined
+): Promise<ProjectSearchResponse> {
   const {
     keyword,
     domain,
@@ -75,11 +117,11 @@ export async function searchProjects(params: ProjectSearchParams | null | undefi
     sdgGoal,
     status,
     featuredOnly,
-    limit = 3,
+    limit = PREVIEW_LIMIT,
   } = params ?? {};
 
-  const rawLimit = Number.isFinite(limit) ? Math.floor(limit as number) : 3;
-  const take = Math.min(Math.max(rawLimit, 1), 8);
+  const rawLimit = Number.isFinite(limit) ? Math.floor(limit as number) : PREVIEW_LIMIT;
+  const take = Math.min(Math.max(rawLimit, 1), PREVIEW_LIMIT);
 
   const associationFilters: Record<string, unknown>[] = [];
   if (domain) associationFilters.push({ type: "PROJECT_DOMAIN", domain });
@@ -122,6 +164,7 @@ export async function searchProjects(params: ProjectSearchParams | null | undefi
       title: true,
       subtitle: true,
       featured: true,
+      logo: true,
       sdgp_year: true,
       projectContent: {
         select: {
@@ -160,16 +203,17 @@ export async function searchProjects(params: ProjectSearchParams | null | undefi
 
   const filtered = stems.length ? scored.filter((s) => s.score > 0) : scored;
 
-  const results = filtered
-    .sort(
-      (a, b) =>
-        b.score - a.score ||
-        Number(b.project.featured) - Number(a.project.featured) ||
-        a.project.project_id.localeCompare(b.project.project_id)
-    )
-    .slice(0, take);
+  const sorted = filtered.sort(
+    (a, b) =>
+      b.score - a.score ||
+      Number(b.project.featured) - Number(a.project.featured) ||
+      a.project.project_id.localeCompare(b.project.project_id)
+  );
 
-  return results.map(({ project: p }) => {
+  const totalCount = sorted.length;
+  const page = sorted.slice(0, take);
+
+  const results = page.map(({ project: p }) => {
     const details = p.projectContent?.projectDetails;
     const description = [details?.problem_statement, details?.solution]
       .filter(Boolean)
@@ -181,6 +225,7 @@ export async function searchProjects(params: ProjectSearchParams | null | undefi
       description: description ? truncate(description, DESCRIPTION_MAX_LENGTH) : null,
       pageUrl: `/project/${p.project_id}`,
       featured: p.featured,
+      logo: p.logo ?? null,
       domains: p.projectContent?.associations
         .filter((a) => a.type === "PROJECT_DOMAIN")
         .map((a) => a.domain),
@@ -192,4 +237,10 @@ export async function searchProjects(params: ProjectSearchParams | null | undefi
         .map((a) => a.sdgGoal),
     };
   });
+
+  return {
+    results,
+    totalCount,
+    showMoreUrl: totalCount > results.length ? buildShowMoreUrl(params ?? {}) : null,
+  };
 }

@@ -8,10 +8,27 @@
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import { CONSENT_KEY, TOOLTIP_KEY, MAX_LEN } from "@/lib/constants/chat";
 
-type Message = { role: "user" | "assistant"; content: string };
+type ProjectCard = {
+  id: string;
+  title: string;
+  subtitle?: string | null;
+  description: string | null;
+  pageUrl: string;
+  featured: boolean;
+  logo?: string | null;
+  domains?: (string | null | undefined)[];
+};
+
+type Message = {
+  role: "user" | "assistant";
+  content: string;
+  projects?: ProjectCard[];
+  showMoreUrl?: string | null;
+};
 
 const STARTER_PROMPTS = [
   "Show me featured AI projects",
@@ -91,6 +108,31 @@ function SendIcon({ className }: { className?: string }) {
   );
 }
 
+function ProjectIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className}>
+      <rect x="3.5" y="3.5" width="17" height="17" rx="4" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M8 12h8M8 8.5h8M8 15.5h5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function ArrowUpRightIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className}>
+      <path d="M7 17L17 7M8 7h9v9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function ChevronRightIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className}>
+      <path d="M9 6l6 6-6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 function greetingForTime() {
   const hour = new Date().getHours();
   if (hour < 12) return "Good morning";
@@ -98,7 +140,15 @@ function greetingForTime() {
   return "Good evening";
 }
 
+function formatDomains(domains?: (string | null | undefined)[]) {
+  return (domains ?? [])
+    .filter((d): d is string => Boolean(d))
+    .map((d) => d.replace(/_/g, " "))
+    .join(" · ");
+}
+
 export default function ChatBot() {
+  const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [open, setOpen] = useState(false);
   const [consented, setConsented] = useState(false);
@@ -133,6 +183,17 @@ export default function ChatBot() {
     setInput("");
   }
 
+  // Internal links (e.g. a project page or a "Show more" link to
+  // /project?domains=AI) navigate client-side and close the widget;
+  // external links open in a new tab.
+  function handleInternalLink(e: React.MouseEvent<HTMLAnchorElement>, href: string) {
+    if (href.startsWith("/")) {
+      e.preventDefault();
+      setOpen(false);
+      router.push(href);
+    }
+  }
+
   async function send(text: string) {
     if (!text.trim() || loading) return;
     dismissTooltip();
@@ -145,10 +206,18 @@ export default function ChatBot() {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: next }),
+        body: JSON.stringify({ messages: next.map(({ role, content }) => ({ role, content })) }),
       });
       const data = await res.json();
-      setMessages([...next, { role: "assistant", content: data.reply ?? "Something went wrong." }]);
+      setMessages([
+        ...next,
+        {
+          role: "assistant",
+          content: data.reply ?? "Something went wrong.",
+          projects: Array.isArray(data.projects) ? data.projects : undefined,
+          showMoreUrl: data.showMoreUrl ?? null,
+        },
+      ]);
     } catch {
       setMessages([...next, { role: "assistant", content: "Couldn't reach the server. Try again in a moment." }]);
     } finally {
@@ -230,28 +299,101 @@ export default function ChatBot() {
                   </div>
                 ) : (
                   messages.map((m, i) => (
-                    <div
-                      key={i}
-                      className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed ${m.role === "user" ? "ml-auto bg-white text-black" : "mr-auto bg-white/[0.06] text-white/90"
+                    <div key={i} className="space-y-2">
+                      <div
+                        className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed ${
+                          m.role === "user" ? "ml-auto bg-white text-black" : "mr-auto bg-white/[0.06] text-white/90"
                         }`}
-                    >
-                      {m.role === "assistant" ? (
-                        <ReactMarkdown
-                          components={{
-                            p: ({ ...props }) => <p className="mb-2 last:mb-0" {...props} />,
-                            ul: ({ ...props }) => <ul className="mb-2 list-disc space-y-1 pl-4 last:mb-0" {...props} />,
-                            ol: ({ ...props }) => <ol className="mb-2 list-decimal space-y-1 pl-4 last:mb-0" {...props} />,
-                            li: ({ ...props }) => <li {...props} />,
-                            strong: ({ ...props }) => <strong className="font-semibold text-white" {...props} />,
-                            a: ({ ...props }) => (
-                              <a className="text-blue-400 underline" target="_blank" rel="noopener noreferrer" {...props} />
-                            ),
-                          }}
-                        >
-                          {m.content}
-                        </ReactMarkdown>
-                      ) : (
-                        m.content
+                      >
+                        {m.role === "assistant" ? (
+                          <ReactMarkdown
+                            components={{
+                              p: ({ ...props }) => <p className="mb-2 last:mb-0" {...props} />,
+                              ul: ({ ...props }) => <ul className="mb-2 list-disc space-y-1 pl-4 last:mb-0" {...props} />,
+                              ol: ({ ...props }) => <ol className="mb-2 list-decimal space-y-1 pl-4 last:mb-0" {...props} />,
+                              li: ({ ...props }) => <li {...props} />,
+                              strong: ({ ...props }) => <strong className="font-semibold text-white" {...props} />,
+                              a: ({ href, ...props }) => (
+                                <a
+                                  href={href}
+                                  className="text-blue-400 underline"
+                                  target={href?.startsWith("/") ? undefined : "_blank"}
+                                  rel={href?.startsWith("/") ? undefined : "noopener noreferrer"}
+                                  onClick={(e) => href && handleInternalLink(e, href)}
+                                  {...props}
+                                />
+                              ),
+                            }}
+                          >
+                            {m.content}
+                          </ReactMarkdown>
+                        ) : (
+                          m.content
+                        )}
+                      </div>
+
+                      {m.role === "assistant" && m.projects && m.projects.length > 0 && (
+                        <div className="mr-auto flex max-w-[85%] flex-col gap-2">
+                          {m.projects.map((p) => (
+                            <a
+                              key={p.id}
+                              href={p.pageUrl}
+                              onClick={(e) => handleInternalLink(e, p.pageUrl)}
+                              className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.04] px-3.5 py-3 text-left transition hover:bg-white/[0.08]"
+                            >
+                              <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-white/5">
+                                {p.logo ? (
+                                  <img
+                                    src={p.logo}
+                                    alt=""
+                                    width={40}
+                                    height={40}
+                                    className="h-full w-full object-cover"
+                                    onError={(e) => {
+                                      const el = e.currentTarget;
+                                      el.style.display = "none";
+                                      el.parentElement?.insertAdjacentHTML(
+                                        "beforeend",
+                                        '<svg viewBox="0 0 24 24" fill="none" class="h-5 w-5 text-white/60"><rect x="3.5" y="3.5" width="17" height="17" rx="4" stroke="currentColor" stroke-width="1.5"/><path d="M8 12h8M8 8.5h8M8 15.5h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>'
+                                      );
+                                    }}
+                                  />
+                                ) : (
+                                  <ProjectIcon className="h-5 w-5 text-white/60" />
+                                )}
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-center justify-between gap-2">
+                                  <p className="truncate text-sm font-semibold text-white">{p.title}</p>
+                                  {p.featured && (
+                                    <span className="shrink-0 rounded-full bg-white/10 px-2 py-0.5 text-[10px] text-white/60">
+                                      Featured
+                                    </span>
+                                  )}
+                                </div>
+                                {p.description && (
+                                  <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-white/50">
+                                    {p.description}
+                                  </p>
+                                )}
+                                <div className="mt-1.5 flex items-center justify-between gap-2">
+                                  <p className="truncate text-[11px] text-white/40">{formatDomains(p.domains)}</p>
+                                  <ArrowUpRightIcon className="h-3.5 w-3.5 shrink-0 text-white/40" />
+                                </div>
+                              </div>
+                            </a>
+                          ))}
+                          {m.showMoreUrl && (
+                            <a
+                              href={m.showMoreUrl}
+                              onClick={(e) => handleInternalLink(e, m.showMoreUrl!)}
+                              className="flex items-center justify-center gap-1.5 rounded-xl border border-white/10 px-3 py-2 text-xs text-white/60 hover:bg-white/5"
+                            >
+                              Show more projects
+                              <ChevronRightIcon className="h-3.5 w-3.5" />
+                            </a>
+                          )}
+                        </div>
                       )}
                     </div>
                   ))
