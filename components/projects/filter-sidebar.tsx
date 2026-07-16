@@ -33,6 +33,7 @@ type Option = {
 // Define the structure for the entire filter state
 export interface FilterState {
   featured: boolean; // Add featured filter
+  investment: boolean;
   status: string[];
   years: string[];
   projectTypes: string[];
@@ -43,6 +44,11 @@ export interface FilterState {
 
 // --- FeaturedFilterSection Component ---
 type FeaturedSectionProps = {
+  selection: boolean;
+  setSelection: React.Dispatch<React.SetStateAction<boolean>>;
+};
+
+type InvestmentSectionProps = {
   selection: boolean;
   setSelection: React.Dispatch<React.SetStateAction<boolean>>;
 };
@@ -79,6 +85,43 @@ function FeaturedFilterSection({
             />
             <Label htmlFor="featured" className="flex-grow truncate text-sm cursor-pointer">
               Featured 
+            </Label>
+          </div>
+        </div>
+      </CollapsibleContent>
+    </Collapsible>
+  );
+}
+
+function InvestmentFilterSection({ selection, setSelection }: InvestmentSectionProps) {
+  const [isOpen, setIsOpen] = useState(true);
+
+  const toggleInvestment = useCallback(() => {
+    setSelection(prev => !prev);
+  }, [setSelection]);
+
+  return (
+    <Collapsible open={isOpen} onOpenChange={setIsOpen} className="w-full">
+      <CollapsibleTrigger asChild>
+        <Button
+          variant="ghost"
+          className="flex w-full justify-between p-2 font-medium hover:bg-muted/50"
+        >
+          Investment
+          <ChevronDown className={cn("h-4 w-4 transition-transform", isOpen && "rotate-180")} />
+        </Button>
+      </CollapsibleTrigger>
+      <CollapsibleContent className="px-2 data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up overflow-hidden">
+        <div className="pt-1 pb-2 space-y-1">
+          <div className="flex items-center gap-2 px-1 py-1">
+            <Checkbox
+              id="investment"
+              checked={selection}
+              onCheckedChange={toggleInvestment}
+              className="flex-shrink-0"
+            />
+            <Label htmlFor="investment" className="flex-grow truncate text-sm cursor-pointer">
+              Open for Investment
             </Label>
           </div>
         </div>
@@ -296,6 +339,7 @@ export default function FilterSidebar({
 }: FilterSidebarProps) {
   // Internal state for each filter category, initialized from props
   const [featuredOnly, setFeaturedOnly] = useState<boolean>(() => initialFilters.featured || false);
+  const [openForInvestment, setOpenForInvestment] = useState<boolean>(() => initialFilters.investment || false);
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>(() => initialFilters.status || []);
   const [selectedYears, setSelectedYears] = useState<string[]>(() => initialFilters.years || []);
   const [selectedProjectTypes, setSelectedProjectTypes] = useState<string[]>(() => initialFilters.projectTypes || []);
@@ -313,6 +357,7 @@ export default function FilterSidebar({
   const notifyFilterChange = useCallback(() => {
     onFilterChangeRef.current({
       featured: featuredOnly,
+      investment: openForInvestment,
       status: selectedStatuses,
       years: selectedYears,
       projectTypes: selectedProjectTypes,
@@ -322,6 +367,7 @@ export default function FilterSidebar({
     });
   }, [
     featuredOnly,
+    openForInvestment,
     selectedStatuses,
     selectedYears,
     selectedProjectTypes,
@@ -358,6 +404,9 @@ export default function FilterSidebar({
 
     if (initialFilters.featured !== featuredOnly) {
       setFeaturedOnly(initialFilters.featured || false);
+    }
+    if (initialFilters.investment !== openForInvestment) {
+      setOpenForInvestment(initialFilters.investment || false);
     }
     if (!arraysAreEqual(initialFilters.status, selectedStatuses)) {
       setSelectedStatuses(initialFilters.status || []);
@@ -422,6 +471,10 @@ export default function FilterSidebar({
     if (featuredOnly) {
       filters.push({ type: 'featured' as keyof FilterState, value: 'true', label: 'Featured Only' });
     }
+
+    if (openForInvestment) {
+      filters.push({ type: 'investment' as keyof FilterState, value: 'true', label: 'Open for Investment' });
+    }
     
     // Add other filters
     filters.push(
@@ -434,7 +487,7 @@ export default function FilterSidebar({
     );
     
     return filters;
-  }, [featuredOnly, selectedStatuses, selectedYears, selectedProjectTypes, selectedDomains, selectedSDGs, selectedTechStack, labelMap]);
+  }, [featuredOnly, openForInvestment, selectedStatuses, selectedYears, selectedProjectTypes, selectedDomains, selectedSDGs, selectedTechStack, labelMap]);
 
   const hasActiveFilters = activeFiltersList.length > 0;
 
@@ -443,6 +496,7 @@ export default function FilterSidebar({
   // Callback to clear all filters internally
   const clearFilters = useCallback(() => {
     setFeaturedOnly(false);
+    setOpenForInvestment(false);
     setSelectedStatuses([]);
     setSelectedYears([]);
     setSelectedProjectTypes([]);
@@ -456,6 +510,11 @@ export default function FilterSidebar({
   const removeFilter = useCallback((filterType: keyof FilterState, filterValue: string) => {
     if (filterType === 'featured') {
       setFeaturedOnly(false);
+      return;
+    }
+
+    if (filterType === 'investment') {
+      setOpenForInvestment(false);
       return;
     }
 
@@ -512,6 +571,10 @@ export default function FilterSidebar({
         <FeaturedFilterSection
           selection={featuredOnly}
           setSelection={setFeaturedOnly}
+        />
+        <InvestmentFilterSection
+          selection={openForInvestment}
+          setSelection={setOpenForInvestment}
         />
         <GenericFilterSection
           title="Project Status"

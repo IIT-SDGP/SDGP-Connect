@@ -17,6 +17,7 @@ interface ProjectHeaderProps {
   subtitle?: string;
   domains?: ProjectDomainEnum[];
   status?: ProjectStatusEnum;
+  lookingForInvestment?: boolean | null;
   logo?: string;
   website?: string;
   projectId: string;
@@ -27,6 +28,7 @@ export const ProjectHeader: React.FC<ProjectHeaderProps> = ({
   subtitle,
   domains,
   status,
+  lookingForInvestment,
   logo,
   website,
   projectId,
@@ -72,6 +74,11 @@ export const ProjectHeader: React.FC<ProjectHeaderProps> = ({
       <p className="text-lg md:text-xl text-gray-300 mb-4">{subtitle}</p>
 
       <div className="flex flex-wrap items-center gap-2 mb-6">
+        {lookingForInvestment ? (
+          <Badge>
+            OPEN FOR INVESTMENT
+          </Badge>
+        ) : null}
         <Badge>{status}</Badge>
         {domains?.map((domain) => (
           <Badge key={domain} variant="secondary">

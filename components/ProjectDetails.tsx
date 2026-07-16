@@ -67,6 +67,7 @@ const ProjectDetails = ({ projectID }: { projectID: string }) => {
             )
             .map((association) => association.domain)}
           status={project.content?.status?.status}
+          lookingForInvestment={project.metadata.lookingForInvestment}
           logo={project.metadata.logo}
           website={project.metadata.website}
           projectId={project.metadata.project_id}

@@ -23,6 +23,7 @@ const ThreeScene = dynamic(() => import("@/components/home/three-scene"), {
 
 interface FilterState {
     featured: boolean;
+    investment: boolean;
     status: string[];
     years: string[];
     projectTypes: string[];
@@ -43,6 +44,7 @@ function ProjectsPageContent() {
         limit: parseInt(searchParams.get('limit') || '9', 10),
         title: searchParams.get('title') || undefined,
         featured: searchParams.get('featured') === 'true',
+        investment: searchParams.get('investment') === 'true',
         status: searchParams.getAll('status'),
         years: searchParams.getAll('years'),
         projectTypes: searchParams.getAll('projectTypes'),
@@ -66,6 +68,7 @@ function ProjectsPageContent() {
 
     const initialFilters = useMemo((): FilterState => ({
         featured: currentParams.featured || false,
+        investment: currentParams.investment || false,
         status: currentParams.status || [],
         years: currentParams.years || [],
         projectTypes: currentParams.projectTypes || [],
@@ -89,6 +92,7 @@ function ProjectsPageContent() {
         const prev = prevFiltersRef.current;
         const isSame =
             prev.featured === newFilters.featured &&
+            prev.investment === newFilters.investment &&
             JSON.stringify([...prev.status].sort()) === JSON.stringify([...newFilters.status].sort()) &&
             JSON.stringify([...prev.years].sort()) === JSON.stringify([...newFilters.years].sort()) &&
             JSON.stringify([...prev.projectTypes].sort()) === JSON.stringify([...newFilters.projectTypes].sort()) &&
@@ -112,6 +116,8 @@ function ProjectsPageContent() {
         if (newFilters.featured) {
             params.append('featured', 'true');
         }
+
+        if (newFilters.investment) params.append('investment', 'true');
 
         // Handle array filters
         Object.entries(newFilters).forEach(([key, values]) => {

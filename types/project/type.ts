@@ -21,6 +21,7 @@ export interface IProjectMetadata {
     cover_image?: string;
     logo?: string;
     featured: boolean;
+    lookingForInvestment?: boolean | null;
     featured_by_userId?: string;
     createdAt?: Date;
     updatedAt?: Date;

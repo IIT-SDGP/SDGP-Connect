@@ -143,3 +143,66 @@ export async function GET(
     );
   }
 }
+
+export async function PATCH(
+  request: Request,
+  { params }: { params: Promise<{ projectId: string }> }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const role = (session.user as any)?.role as Role | undefined;
+    if (role !== Role.STUDENT) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    const userId = (session.user as any)?.id as string | undefined;
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { projectId } = await params;
+    if (!projectId) {
+      return NextResponse.json({ error: "Project ID is required" }, { status: 400 });
+    }
+
+    const body = await request.json();
+    if (typeof body?.lookingForInvestment !== "boolean") {
+      return NextResponse.json(
+        { error: "lookingForInvestment must be a boolean" },
+        { status: 400 }
+      );
+    }
+
+    const projectMetadata = await prisma.projectMetadata.findUnique({
+      where: { project_id: projectId },
+      select: { project_id: true, owner_userId: true },
+    });
+
+    if (!projectMetadata || projectMetadata.owner_userId !== userId) {
+      return NextResponse.json({ error: "Project not found" }, { status: 404 });
+    }
+
+    const updated = await prisma.projectMetadata.update({
+      where: { project_id: projectId },
+      data: { lookingForInvestment: body.lookingForInvestment },
+      select: { project_id: true, lookingForInvestment: true },
+    });
+
+    return NextResponse.json({
+      data: {
+        projectId: updated.project_id,
+        lookingForInvestment: updated.lookingForInvestment,
+      },
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return NextResponse.json(
+      { error: "Failed to update investment status", details: message },
+      { status: 500 }
+    );
+  }
+}

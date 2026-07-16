@@ -270,6 +270,7 @@ model ProjectMetadata {
   cover_image        String?
   logo               String?
   featured           Boolean         @default(false)
+  lookingForInvestment Boolean?
   awards             Award[]         @relation("ProjectAwards")
   module             String?
 
