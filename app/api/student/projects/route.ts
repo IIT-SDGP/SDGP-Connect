@@ -69,6 +69,7 @@ export async function GET(request: Request) {
       approvalStatus: p.projectContent?.status?.approved_status ?? null,
       rejectedReason: p.projectContent?.status?.rejected_reason ?? null,
       pendingEdit: pendingSet.has(p.project_id),
+      lookingForInvestment: p.lookingForInvestment,
     }));
 
     return NextResponse.json({

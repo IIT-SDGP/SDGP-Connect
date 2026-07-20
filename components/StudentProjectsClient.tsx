@@ -14,6 +14,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Switch } from '@/components/ui/switch'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 
 type StudentProjectRow = {
@@ -24,6 +25,7 @@ type StudentProjectRow = {
     approvalStatus: string | null
     rejectedReason: string | null
     pendingEdit: boolean
+    lookingForInvestment: boolean | null
 }
 
 export default function StudentProjectsClient() {
@@ -32,6 +34,7 @@ export default function StudentProjectsClient() {
     const [projects, setProjects] = useState<StudentProjectRow[]>([])
     const [isLoading, setIsLoading] = useState(true)
     const [errorMessage, setErrorMessage] = useState<string | null>(null)
+    const [updatingProjectId, setUpdatingProjectId] = useState<string | null>(null)
 
     useEffect(() => {
         const load = async () => {
@@ -52,6 +55,32 @@ export default function StudentProjectsClient() {
         }
         load()
     }, [])
+
+    const handleInvestmentToggle = async (projectId: string, checked: boolean) => {
+        setUpdatingProjectId(projectId)
+        setErrorMessage(null)
+
+        const previousProjects = projects
+
+        setProjects((current) =>
+            current.map((project) =>
+                project.projectId === projectId
+                    ? { ...project, lookingForInvestment: checked }
+                    : project
+            )
+        )
+
+        try {
+            await axios.patch(`/api/student/projects/${projectId}`, {
+                lookingForInvestment: checked,
+            })
+        } catch (e: any) {
+            setProjects(previousProjects)
+            setErrorMessage(e?.response?.data?.error || e.message || 'Failed to update investment status')
+        } finally {
+            setUpdatingProjectId(null)
+        }
+    }
 
     if (isLoading) {
         return (
@@ -90,6 +119,7 @@ export default function StudentProjectsClient() {
                     <TableHead>Group</TableHead>
                     <TableHead>Year</TableHead>
                     <TableHead>Status</TableHead>
+                    <TableHead>Investment</TableHead>
                     <TableHead>Pending Edit</TableHead>
                     <TableHead className='text-right'>Actions</TableHead>
                 </TableRow>
@@ -113,6 +143,20 @@ export default function StudentProjectsClient() {
                                 >
                                     {p.approvalStatus ?? 'UNKNOWN'}
                                 </Badge>
+                            </TableCell>
+                            <TableCell>
+                                <div className='flex items-center gap-3'>
+                                    <Switch
+                                        checked={p.lookingForInvestment ?? false}
+                                        disabled={updatingProjectId === p.projectId}
+                                        onCheckedChange={(checked) =>
+                                            handleInvestmentToggle(p.projectId, checked)
+                                        }
+                                    />
+                                    <span className='text-sm text-muted-foreground'>
+                                        {p.lookingForInvestment ? 'Yes' : 'No'}
+                                    </span>
+                                </div>
                             </TableCell>
                             <TableCell>
                                 {p.pendingEdit ? (
@@ -139,7 +183,7 @@ export default function StudentProjectsClient() {
                         </TableRow>
                         {p.approvalStatus === ProjectApprovalStatus.REJECTED && p.rejectedReason ? (
                             <TableRow key={`${p.projectId}-reason`}>
-                                <TableCell colSpan={6} className='bg-destructive/5 text-sm'>
+                                <TableCell colSpan={7} className='bg-destructive/5 text-sm'>
                                     <span className='font-medium text-destructive'>Rejected reason:</span>{' '}
                                     <span className='text-muted-foreground'>{p.rejectedReason}</span>
                                 </TableCell>

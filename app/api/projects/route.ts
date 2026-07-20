@@ -18,6 +18,7 @@ export const GET = async (req: NextRequest) => {
 
     // --- Filters from URL ---
     const title        = searchParams.get("title")    || "";
+    const investment   = searchParams.get("investment") === "true";
     const years        = searchParams.getAll("years");
     const statusValues = searchParams.getAll("status");
     const projectTypes = searchParams.getAll("projectTypes");
@@ -31,6 +32,10 @@ export const GET = async (req: NextRequest) => {
     // Year filter
     if (years.length) {
       baseWhere.sdgp_year = { in: years };
+    }
+
+    if (investment) {
+      baseWhere.lookingForInvestment = true;
     }
 
     // Status filter
